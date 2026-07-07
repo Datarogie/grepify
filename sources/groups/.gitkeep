@@ -1,0 +1,3 @@
+# Curated source group files live here (ai-research.yml, ai-business.yml, ...).
+# Seeded by GRP-07. See docs/prd.md §7 for the group file schema and
+# tests/fixtures/config/ for worked examples.

@@ -1,0 +1,24 @@
+# Live settings for this deployment. No secrets (PRD §5). See settings.example.yml.
+llm:
+  active_profile: gemini-free
+  max_items_per_call: 25
+  profiles:
+    gemini-free:
+      endpoint: openai-compat
+      model: gemini-3.1-flash-lite
+      max_calls_per_run: 40
+    claude:
+      endpoint: anthropic
+      model: claude-haiku-4-5
+      max_calls_per_run: 40
+
+windows:
+  cloud_days: 7
+  digest_daily_hours: 24
+  digest_weekly: iso_week
+
+limits:
+  transcript_max_chars: 60000
+  transcript_langs: [en]
+
+timezone: America/Edmonton

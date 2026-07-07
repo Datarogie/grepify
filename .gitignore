@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# Derived SQLite query cache — rebuilt from JSONL truth in CI, never committed (PRD §5).
+data/grepify.db
+data/grepify.db-*
+
+# Local secrets — never committed (PRD §5). Real values live in CI masked vars.
+.env
