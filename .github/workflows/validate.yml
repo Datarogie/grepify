@@ -1,0 +1,50 @@
+name: validate
+
+# GRP-06: MR/PR gate. The job below is named `validate` (not `check`) so the
+# required-status-check name pinned in the `main` ruleset matches exactly.
+#
+# Data-branch revision: pipeline data commits now go to a dedicated `data`
+# branch, not `main` (see pipeline.yml), so `push: branches: [main]` alone
+# already means this workflow structurally can't be retriggered by them.
+# `paths-ignore: data/**` and the `[skip ci]` on those commits are kept as
+# belt-and-suspenders in case a future workflow ever watches more branches.
+on:
+  pull_request:
+    paths-ignore:
+      - "data/**"
+  push:
+    branches: [main]
+    paths-ignore:
+      - "data/**"
+  workflow_dispatch: {}
+
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least privilege: this workflow only reads and never pushes (unlike
+# pipeline.yml), so it doesn't need the org/repo default token scope.
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install
+        run: make install
+
+      - name: Lint, typecheck, test
+        run: make check
+
+      - name: Validate config
+        run: make validate

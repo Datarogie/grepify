@@ -30,6 +30,21 @@ mobile-driven, agent-built project from drifting. Read them before touching code
 - If an issue's AC is ambiguous, state the assumption in the MR and proceed;
   ask only if truly blocked.
 
+## Security (public repo)
+
+- The repo is **public** — treat every workflow file, log line, and committed
+  artifact as visible to anyone.
+- `validate`/PR-triggered workflows must **never reference `LLM_API_KEY` or
+  any other secret**. Secrets are only ever consumed by the `pipeline`
+  workflow (schedule/`workflow_dispatch`, never `pull_request`), and only in
+  steps that don't echo them.
+- Never log request headers or credential-bearing config (API keys, tokens,
+  session cookies) — not even truncated/masked by hand; rely on GitHub's
+  built-in secret masking, don't build a parallel one.
+- Keep the repo's default fork-PR approval settings (workflow runs from
+  first-time/outside contributors require maintainer approval) — do not
+  relax them for convenience.
+
 ## Work-in-progress cap
 
 - **Max 2 active work streams** at any time. `[P]`-marked issues are the only

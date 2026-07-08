@@ -19,7 +19,8 @@ is just a scheduler.
 
 ## Storage: JSONL truth + SQLite cache
 
-- **Truth** = append-only JSONL committed to the repo:
+- **Truth** = append-only JSONL committed to a dedicated **`data` branch**
+  (not `main`, which requires PRs — GRP-06):
   `data/items/YYYY/MM/DD.jsonl`, `data/keywords/YYYY/MM/DD.jsonl`,
   `data/digests/*.json`, plus `data/logs/{fetch,llm}/…`. Readable diffs, no binary
   blobs in history, retroactive reprocessing = rerun over files. This IS the v2
