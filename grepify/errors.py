@@ -9,10 +9,14 @@ whole family at pipeline boundaries. Subclasses are intentionally coarse:
   YAML, schema violation). Raised by the config layer; surfaced by ``validate``.
 - :class:`RepositoryError` — storage could not satisfy a request (unreadable
   JSONL truth, cache rebuild failure). Raised by the repository layer.
+- :class:`FetchError` — a *single* source failed to fetch (timeout, HTTP error,
+  malformed feed, auth challenge, rate limit). Unlike the two above it is **not**
+  a systemic fault: the ingest orchestrator catches it, records an ``error``
+  ``fetch_log`` row, and continues the run — one dead feed never fails the run
+  (PRD §9). Raised by :class:`~grepify.ingest.base.Fetcher` implementations.
 
-These are programming/environment faults, not per-source hiccups. A single
-source failing to fetch is *not* an error here — that is logged to ``fetch_log``
-and the run continues (PRD §9).
+The first two are programming/environment faults that stop the run;
+:class:`FetchError` is an isolated per-source hiccup that does not.
 """
 
 from __future__ import annotations
@@ -28,3 +32,8 @@ class ConfigError(GrepifyError):
 
 class RepositoryError(GrepifyError):
     """A storage operation failed."""
+
+
+class FetchError(GrepifyError):
+    """A single source failed to fetch. Non-fatal: the orchestrator logs it to
+    ``fetch_log`` and continues the run (PRD §9), so it never fails the run."""

@@ -5,7 +5,7 @@ from __future__ import annotations
 import textwrap
 from pathlib import Path
 
-from grepify.models import Item, ItemKeyword, SourceKind
+from grepify.models import Item, ItemKeyword, Source, SourceKind
 
 VALID_SETTINGS = textwrap.dedent(
     """
@@ -56,7 +56,12 @@ def write_config(
     return root
 
 
-def make_item(item_id: str, *, published_at: str = "2026-07-07T10:00:00+00:00") -> Item:
+def make_item(
+    item_id: str,
+    *,
+    published_at: str = "2026-07-07T10:00:00+00:00",
+    content_hash: str | None = None,
+) -> Item:
     return Item(
         item_id=item_id,
         source_id="src-1",
@@ -67,7 +72,19 @@ def make_item(item_id: str, *, published_at: str = "2026-07-07T10:00:00+00:00") 
         summary="a summary",
         published_at=published_at,
         fetched_at="2026-07-07T11:00:00+00:00",
-        content_hash=f"hash-{item_id}",
+        content_hash=content_hash if content_hash is not None else f"hash-{item_id}",
+    )
+
+
+def make_source(source_id: str, *, kind: SourceKind = SourceKind.RSS) -> Source:
+    return Source(
+        source_id=source_id,
+        name=source_id.upper(),
+        kind=kind,
+        url=f"https://example.com/{source_id}/feed",
+        url_hash=f"urlhash-{source_id}",
+        group_id="g1",
+        added_at="2026-07-07T00:00:00+00:00",
     )
 
 
