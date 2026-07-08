@@ -1,10 +1,13 @@
 name: validate
 
-# GRP-06: MR/PR gate. `paths-ignore: data/**` on `push` means the pipeline
-# workflow's own data commits to main never re-trigger this workflow — the
-# second half of the loop guard (the first half is `[skip ci]` on those
-# commits; either guard alone would be enough, both together is deliberate
-# belt-and-suspenders per the S2 brief).
+# GRP-06: MR/PR gate. The job below is named `validate` (not `check`) so the
+# required-status-check name pinned in the `main` ruleset matches exactly.
+#
+# Data-branch revision: pipeline data commits now go to a dedicated `data`
+# branch, not `main` (see pipeline.yml), so `push: branches: [main]` alone
+# already means this workflow structurally can't be retriggered by them.
+# `paths-ignore: data/**` and the `[skip ci]` on those commits are kept as
+# belt-and-suspenders in case a future workflow ever watches more branches.
 on:
   pull_request:
     paths-ignore:
@@ -20,7 +23,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

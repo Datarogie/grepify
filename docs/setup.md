@@ -60,23 +60,34 @@ Set these as masked CI variables — **never commit them** (`.env` is gitignored
 Two workflows live under `.github/workflows/`:
 
 - `validate.yml` — `make check` + `make validate` on every PR (and on pushes
-  to `main` that touch anything outside `data/`).
+  to `main` that touch anything outside `data/`). Its job is named exactly
+  `validate` so it can be pinned as a required status check on `main`'s
+  ruleset.
 - `pipeline.yml` — cron (3x/day) running `make ingest extract` (+ `make
-  digest` when `scripts/digest-gate.sh` says it's due), commits any new
-  `data/` files back to the branch (`[skip ci]`, so it never re-triggers
-  `validate`), then `make build site` and a GitHub Pages deploy.
+  digest` when `scripts/digest-gate.sh` says it's due), commits any new data
+  to the dedicated **`data` branch** (`[skip ci]`, never `main` — see below),
+  then `make build site` and a GitHub Pages deploy.
 
-One manual step outside the repo: **Settings → Pages → Source: GitHub
-Actions** (can't be set from a workflow file). After that, both workflows run
-as-is; `pipeline.yml` also has a `workflow_dispatch` trigger so you can run it
-on demand from the Actions tab (including from a PR branch, e.g. from a
-phone) instead of waiting for the schedule.
+Two one-time repo settings outside the workflow files:
+
+- **Settings → Pages → Source: GitHub Actions.**
+- If `main` has a ruleset requiring PRs (recommended for a public repo), make
+  sure it does **not** apply to a `data` branch — the pipeline pushes there
+  directly with the default `GITHUB_TOKEN`. `pipeline.yml`
+  (`scripts/ensure-data-branch.sh`) creates `data` itself on first run if it
+  doesn't exist.
+
+After that, both workflows run as-is; `pipeline.yml` also has a
+`workflow_dispatch` trigger so you can run it on demand from the Actions tab
+(including from a PR branch, e.g. from a phone) instead of waiting for the
+schedule.
 
 Until the real site build lands (GRP-35, M3), `make site` deploys the static
 placeholder in `site-placeholder/`.
 
 ## Data & storage
 
-Truth is append-only JSONL under `data/` (committed, human-readable diffs). The
-SQLite cache (`data/grepify.db`) is rebuilt from JSONL each run and is
-gitignored — never commit it.
+Truth is append-only JSONL under `data/` — committed to a dedicated **`data`
+branch**, not `main` (see above), with human-readable diffs. The SQLite cache
+(`data/grepify.db`) is rebuilt from JSONL each run and is gitignored — never
+commit it.

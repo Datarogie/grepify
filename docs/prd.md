@@ -82,7 +82,7 @@ Decisions (and why):
 
 - **Language**: Python 3.12, `uv` for env. Matches Kyle's stack and every library needed (feedparser, twscrape, youtube-transcript-api).
 - **Storage (v0.2 - revised)**: **append-only JSONL is the source of truth**, SQLite is a derived query cache.
-  - Truth: `data/items/YYYY/MM/DD.jsonl`, `data/keywords/YYYY/MM/DD.jsonl`, `data/digests/*.json`, committed to the repo. Readable diffs, no binary blobs in git history, retroactive reprocessing = rerun over files.
+  - Truth: `data/items/YYYY/MM/DD.jsonl`, `data/keywords/YYYY/MM/DD.jsonl`, `data/digests/*.json`, committed to a dedicated **`data` branch** (not `main`, which carries a ruleset requiring PRs with no bypass — GRP-06 revision). Readable diffs, no binary blobs in git history, retroactive reprocessing = rerun over files.
   - Cache: `grepify.db` rebuilt in CI each run (seconds at this scale), never committed. All trend/related-keyword/timeline queries hit SQLite.
   - Concurrency: Actions concurrency group on the pipeline + rebase-retry on data commits (cron runs can't race).
   - Migration payoff: JSONL **is** the v2 migration - `COPY FROM` into Postgres and v2 starts with full history. Nothing here is throwaway.

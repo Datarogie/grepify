@@ -93,3 +93,26 @@ session begins by checking whether its scope **depends on that branch**:
   the stacking in the PR body (which branch it stacks on, and that it should
   merge after).
 - **If no** — branch from `main` as usual.
+
+## Pipeline data-branch design (GRP-06)
+
+`main` carries a repo ruleset requiring PRs with no bypass — the pipeline's
+automated JSONL-truth commits (PRD §5) cannot land there. Instead:
+
+- The `pipeline` workflow checks out `main` for code as usual, then checks out
+  a dedicated **`data` branch** as a git worktree at `./data`
+  (`scripts/ensure-data-branch.sh` via `make data-branch`), creating it as an
+  empty orphan branch on first run if it doesn't exist yet.
+- `grepify`'s pipeline commands (`ingest`/`extract`/`digest`/`build`) write
+  into `./data` exactly as before (`DataRootOpt` defaults to `data`) — they
+  don't know or care which branch that directory tracks.
+- `make commit-data` (`scripts/commit_pipeline_data.py --repo-dir data
+  --branch data`) commits and pushes **only** the `data` branch, with the
+  default `GITHUB_TOKEN`, message carrying `[skip ci]`.
+- `main` never receives a data commit again, so `validate.yml`'s
+  `push: branches: [main]` trigger structurally can't be retriggered by the
+  pipeline. `paths-ignore: data/**` and `[skip ci]` remain as
+  belt-and-suspenders.
+- Later epics that read data at build time (GRP-35 site build) run against
+  the same worktree — "site" is a pure function of `main`'s code + config plus
+  the `data` branch's current state, checked out side by side in one job.

@@ -8,7 +8,7 @@ UV ?= uv
 
 .PHONY: help install fmt lint typecheck test check \
         ingest extract trends digest build validate health backfill \
-        digest-gate commit-data site
+        digest-gate data-branch commit-data site
 
 help: ## List available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -65,8 +65,11 @@ backfill: ## Re-process / re-extract historical data (E6)
 digest-gate: ## Print daily=/weekly= flags: are digest steps due now? (coarse pre-GRP-45 placeholder)
 	@bash scripts/digest-gate.sh
 
-commit-data: ## Commit + push new data/ files with rebase-retry; needs GIT_BRANCH env ([skip ci] loop guard)
-	$(UV) run python scripts/commit_pipeline_data.py --branch "$(GIT_BRANCH)"
+data-branch: ## Check out the dedicated `data` branch as a worktree at ./data (bootstraps it on first run)
+	bash scripts/ensure-data-branch.sh
+
+commit-data: ## Commit + push data/ changes to the `data` branch worktree with rebase-retry ([skip ci] loop guard)
+	$(UV) run python scripts/commit_pipeline_data.py --repo-dir data --branch data
 
 site: ## Assemble public/ for the Pages deploy (placeholder until GRP-35 emits the real SSG output)
 	mkdir -p public

@@ -5,14 +5,21 @@ name: pipeline
 # Pages deploy needs the artifact this same run just built, and PRD §5's
 # architecture diagram already draws build+deploy as one arrow.
 #
+# Data-branch design (repo ruleset revision): `main` now requires PRs with no
+# bypass, so the pipeline's JSONL truth commits can't land there. This job
+# checks out `main` for code as usual, then checks out a dedicated `data`
+# branch as a worktree at ./data (scripts/ensure-data-branch.sh, bootstraps it
+# on first run) and commits/pushes only that branch, with the default
+# GITHUB_TOKEN. See docs/process.md for the full design.
+#
 # Never triggered by `push`, so it cannot self-retrigger via the data commit
-# it makes at the end (belt-and-suspenders with `[skip ci]` + validate's
-# `paths-ignore: data/**`, see validate.yml). `concurrency` serializes
-# overlapping cron/manual runs so they can't race on the data commit (PRD §5)
-# — a second, independent guard from `fetch-depth: 1`'s shallow-clone rebase
-# path in commit_data, which stays correct even without the concurrency
-# group. `fetch-depth: 1` also keeps checkouts cheap (PRD §9 CI-minutes
-# budget).
+# it makes (belt-and-suspenders with `[skip ci]` on that commit + validate's
+# `push: branches: [main]` scoping — pushes to `data` can't reach `validate`
+# at all, see validate.yml). `concurrency` serializes overlapping cron/manual
+# runs so they can't race on the data commit (PRD §5) — a second, independent
+# guard from `fetch-depth: 1`'s shallow-clone rebase path in commit_data,
+# which stays correct even without the concurrency group. `fetch-depth: 1`
+# also keeps checkouts cheap (PRD §9 CI-minutes budget).
 on:
   schedule:
     # 3x/day, spread across the day; the ~05:00-08:00 America/Edmonton slot
@@ -36,7 +43,8 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout main (code)
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
@@ -52,6 +60,9 @@ jobs:
         run: |
           git config user.name "grepify-bot"
           git config user.email "grepify-bot@users.noreply.github.com"
+
+      - name: Checkout data branch (worktree at ./data)
+        run: make data-branch
 
       - name: Digest gate
         id: gate
@@ -75,15 +86,14 @@ jobs:
         if: steps.gate.outputs.weekly == 'true'
         run: make digest
 
-      - name: Commit pipeline data
-        env:
-          GIT_BRANCH: ${{ github.ref_name }}
+      - name: Commit pipeline data (to the `data` branch)
         run: make commit-data
 
       # `make build` is still the E3 stub (records a manifest, no output) —
       # kept in the pipeline now so its place in the sequence is set before
-      # GRP-35 gives it real output; `make site` is what actually populates
-      # `public/` until then (the checked-in placeholder page).
+      # GRP-35 gives it real output (site = main code + data-branch state);
+      # `make site` is what actually populates `public/` until then (the
+      # checked-in placeholder page).
       - name: Build
         run: make build
 
