@@ -1,0 +1,46 @@
+# Data-engineering sources (Kyle-added, not from trendcloud — PRD §7, §14).
+# Category = data-eng (the second launch category, PRD §14 open-question #2).
+#
+# PROVENANCE + LIVENESS CAVEAT: see ai-research.yml header. Seeds are from
+# PRD §14; benn.substack.com/feed and roundup.getdbt.com/feed are given verbatim
+# by the PRD. No feed was pinged (egress blocked).
+#   enabled: true  -> URL given by PRD or standard WordPress /feed/ path
+#   enabled: false -> URL path uncertain (see inline comment); flip after liveness pass
+group: data-engineering
+name: Data Engineering
+category: data-eng
+enabled: true
+builtin: true
+sources:
+  - id: benn-substack
+    kind: rss
+    name: benn.substack.com (Benn Stancil)
+    url: https://benn.substack.com/feed
+    added_at: "2026-07-08"
+  - id: getdbt-roundup
+    kind: rss
+    name: The Analytics Engineering Roundup (dbt)
+    url: https://roundup.getdbt.com/feed
+    added_at: "2026-07-08"
+  - id: locally-optimistic
+    kind: rss
+    name: Locally Optimistic
+    url: https://locallyoptimistic.com/feed/
+    added_at: "2026-07-08"
+  - id: dbt-developer-blog
+    kind: rss
+    name: dbt Developer Blog
+    url: https://docs.getdbt.com/blog/rss.xml
+    enabled: false  # UNVERIFIED feed path — confirm in networked liveness pass
+    added_at: "2026-07-08"
+  - id: snowflake-engineering
+    kind: rss
+    name: Snowflake Engineering Blog
+    url: https://www.snowflake.com/engineering-blog/feed/
+    enabled: false  # UNVERIFIED feed path — confirm in networked liveness pass
+    added_at: "2026-07-08"
+  - id: r-dataengineering
+    kind: reddit
+    name: r/dataengineering
+    subreddit: dataengineering
+    added_at: "2026-07-08"

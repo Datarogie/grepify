@@ -1,0 +1,58 @@
+# AI research sources — papers / labs / academic — scrubbed from the trendcloud.io /sources AI list (GRP-07).
+#
+# PROVENANCE: source rows (name, feed URL, kind) copied from trendcloud.io's
+# public 118-source AI list. Categorized per the playbook rubric
+# (research = papers/labs/academic; business = funding/market/enterprise;
+# tooling-dev = frameworks/infra/how-to; ambiguous -> tooling-dev).
+#
+# LIVENESS: feeds are NOT pinged here — this build environment blocks outbound
+# HTTPS to feed hosts. These are trendcloud's actively-aggregated feeds, so they
+# ship enabled; per-source health tracking (fetch_log / GRP-16) disables any that
+# fail persistently once the fetcher runs. `grepify validate` checks schema +
+# duplicate ids/url_hashes only (live pinging is deferred to GRP-10/11 by design).
+group: ai-research
+name: AI Research
+category: ai
+enabled: true
+builtin: true
+sources:
+  - id: ahead-of-ai
+    kind: rss
+    name: Ahead of AI
+    url: https://magazine.sebastianraschka.com/feed
+    added_at: "2026-07-08"
+  - id: aihub
+    kind: rss
+    name: AIHub
+    url: https://aihub.org/feed/?cat=-473
+    added_at: "2026-07-08"
+  - id: bair-blog
+    kind: rss
+    name: BAIR Blog
+    url: https://bair.berkeley.edu/blog/feed.xml
+    added_at: "2026-07-08"
+  - id: google-research
+    kind: rss
+    name: Google Research
+    url: https://research.google/blog/rss
+    added_at: "2026-07-08"
+  - id: live-science-ai
+    kind: rss
+    name: Live Science AI
+    url: https://www.livescience.com/feeds/tag/artificial-intelligence
+    added_at: "2026-07-08"
+  - id: mit-news
+    kind: rss
+    name: MIT News
+    url: https://news.mit.edu/rss/topic/artificial-intelligence2
+    added_at: "2026-07-08"
+  - id: science-news-ai
+    kind: rss
+    name: Science News AI
+    url: https://www.sciencenews.org/topic/artificial-intelligence/feed
+    added_at: "2026-07-08"
+  - id: sciencedaily-ai
+    kind: rss
+    name: ScienceDaily AI
+    url: https://www.sciencedaily.com/rss/computers_math/artificial_intelligence.xml
+    added_at: "2026-07-08"

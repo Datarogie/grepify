@@ -1,0 +1,63 @@
+# AI YouTube channels — video metadata via channel RSS, no API key — scrubbed from the trendcloud.io /sources AI list (GRP-07).
+#
+# PROVENANCE: source rows (name, feed URL, kind) copied from trendcloud.io's
+# public 118-source AI list. Categorized per the playbook rubric
+# (research = papers/labs/academic; business = funding/market/enterprise;
+# tooling-dev = frameworks/infra/how-to; ambiguous -> tooling-dev).
+#
+# LIVENESS: feeds are NOT pinged here — this build environment blocks outbound
+# HTTPS to feed hosts. These are trendcloud's actively-aggregated feeds, so they
+# ship enabled; per-source health tracking (fetch_log / GRP-16) disables any that
+# fail persistently once the fetcher runs. `grepify validate` checks schema +
+# duplicate ids/url_hashes only (live pinging is deferred to GRP-10/11 by design).
+group: youtube-ai
+name: YouTube — AI
+category: ai
+enabled: true
+builtin: true
+sources:
+  - id: yt-jack-roberts
+    kind: youtube
+    name: Jack Roberts
+    channel_id: UCxVxcTULO9cFU6SB9qVaisQ
+    added_at: "2026-07-08"
+  - id: yt-jeff-su
+    kind: youtube
+    name: Jeff Su
+    channel_id: UCwAnu01qlnVg1Ai2AbtTMaA
+    added_at: "2026-07-08"
+  - id: yt-ben-ai
+    kind: youtube
+    name: Ben AI
+    channel_id: UC3KK7ENB_ierAXvrxVNnbZQ
+    added_at: "2026-07-08"
+  - id: yt-dylan-davis
+    kind: youtube
+    name: Dylan Davis
+    channel_id: UCVzcPkOAnbnzOpJzOCDNHwQ
+    added_at: "2026-07-08"
+  - id: yt-futurepedia
+    kind: youtube
+    name: Futurepedia
+    channel_id: UC_RovKmk0OCbuZjA8f08opw
+    added_at: "2026-07-08"
+  - id: yt-greg-isenberg
+    kind: youtube
+    name: Greg Isenberg
+    channel_id: UCPjNBjflYl0-HQtUvOx0Ibw
+    added_at: "2026-07-08"
+  - id: yt-kevin-stratvert
+    kind: youtube
+    name: Kevin Stratvert
+    channel_id: UCfJT_eYDTmDE-ovKaxVE1ig
+    added_at: "2026-07-08"
+  - id: yt-lex-fridman
+    kind: youtube
+    name: Lex Fridman
+    channel_id: UCSHZKyawb77ixDdsGog4iWA
+    added_at: "2026-07-08"
+  - id: yt-theprimeagen
+    kind: youtube
+    name: ThePrimeagen
+    channel_id: UC8ENHE5xdFSwx71u3fDH5Xw
+    added_at: "2026-07-08"

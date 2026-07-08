@@ -1,0 +1,193 @@
+# AI tooling / dev sources — frameworks / infra / how-to — scrubbed from the trendcloud.io /sources AI list (GRP-07).
+#
+# PROVENANCE: source rows (name, feed URL, kind) copied from trendcloud.io's
+# public 118-source AI list. Categorized per the playbook rubric
+# (research = papers/labs/academic; business = funding/market/enterprise;
+# tooling-dev = frameworks/infra/how-to; ambiguous -> tooling-dev).
+#
+# LIVENESS: feeds are NOT pinged here — this build environment blocks outbound
+# HTTPS to feed hosts. These are trendcloud's actively-aggregated feeds, so they
+# ship enabled; per-source health tracking (fetch_log / GRP-16) disables any that
+# fail persistently once the fetcher runs. `grepify validate` checks schema +
+# duplicate ids/url_hashes only (live pinging is deferred to GRP-10/11 by design).
+group: ai-tooling-dev
+name: AI Tooling & Dev
+category: ai
+enabled: true
+builtin: true
+sources:
+  - id: ai2-people
+    kind: rss
+    name: AI2 People
+    url: https://ai2people.com/feed
+    added_at: "2026-07-08"
+  - id: aiiot-artificial-intelligence
+    kind: rss
+    name: AIIOT Artificial Intelligence
+    url: https://www.aiiottalk.com/feed/
+    added_at: "2026-07-08"
+  - id: aimodels
+    kind: rss
+    name: AIModels
+    url: https://aimodels.substack.com/feed
+    added_at: "2026-07-08"
+  - id: analytics-vidhya
+    kind: rss
+    name: Analytics Vidhya
+    url: https://analyticsvidhya.com/feed
+    added_at: "2026-07-08"
+  - id: artificial-intelligence-plus
+    kind: rss
+    name: Artificial Intelligence +
+    url: https://www.aiplusinfo.com/feed/
+    added_at: "2026-07-08"
+  - id: clarifai-blog
+    kind: rss
+    name: Clarifai Blog
+    url: https://www.clarifai.com/blog/rss.xml
+    added_at: "2026-07-08"
+  - id: cogito-tech-blog
+    kind: rss
+    name: Cogito Tech Blog
+    url: https://www.cogitotech.com/feed/
+    added_at: "2026-07-08"
+  - id: copyleaks-blog
+    kind: rss
+    name: Copyleaks Blog
+    url: https://copyleaks.com/blog/feed
+    added_at: "2026-07-08"
+  - id: datarobot-blog
+    kind: rss
+    name: DataRobot Blog
+    url: https://www.datarobot.com/blog/feed/
+    added_at: "2026-07-08"
+  - id: deepcognition-ai-blog
+    kind: rss
+    name: DeepCognition.ai Blog
+    url: https://deepcognition.ai/feed/
+    added_at: "2026-07-08"
+  - id: dlabs-ai
+    kind: rss
+    name: DLabs.ai
+    url: https://dlabs.ai/feed/
+    added_at: "2026-07-08"
+  - id: fusemachines-insights
+    kind: rss
+    name: FuseMachines Insights
+    url: https://insights.fusemachines.com/feed/
+    added_at: "2026-07-08"
+  - id: google-ai-blog
+    kind: rss
+    name: Google AI Blog
+    url: https://blog.google/technology/ai/rss/
+    added_at: "2026-07-08"
+  - id: gptzero-news
+    kind: rss
+    name: GPTZero News
+    url: https://gptzero.me/news/rss/
+    added_at: "2026-07-08"
+  - id: infoworld-ai
+    kind: rss
+    name: InfoWorld AI
+    url: https://www.infoworld.com/artificial-intelligence/feed/
+    added_at: "2026-07-08"
+  - id: kavita-ganesans-blog
+    kind: rss
+    name: Kavita Ganesan's Blog
+    url: https://kavita-ganesan.com/feed/
+    added_at: "2026-07-08"
+  - id: kdnugget
+    kind: rss
+    name: KDNugget
+    url: https://kdnuggets.com/feed
+    added_at: "2026-07-08"
+  - id: kore-ai-blog
+    kind: rss
+    name: Kore.ai Blog
+    url: https://blog.kore.ai/rss.xml
+    added_at: "2026-07-08"
+  - id: machine-learning-mastery
+    kind: rss
+    name: Machine Learning Mastery
+    url: https://machinelearningmastery.com/feed
+    added_at: "2026-07-08"
+  - id: machine-learning-mastery-blog
+    kind: rss
+    name: Machine Learning Mastery Blog
+    url: https://machinelearningmastery.com/blog/feed
+    added_at: "2026-07-08"
+  - id: marktechpost
+    kind: rss
+    name: MarktechPost
+    url: https://marktechpost.com/feed
+    added_at: "2026-07-08"
+  - id: nanonets-blog
+    kind: rss
+    name: Nanonets Blog
+    url: https://nanonets.com/blog/rss/
+    added_at: "2026-07-08"
+  - id: nvidia-blog
+    kind: rss
+    name: NVidia Blog
+    url: https://blogs.nvidia.com/feed
+    added_at: "2026-07-08"
+  - id: oreilly-ai-ml
+    kind: rss
+    name: O'Reilly AI-ML
+    url: https://www.oreilly.com/radar/topics/ai-ml/feed/
+    added_at: "2026-07-08"
+  - id: openai-news
+    kind: rss
+    name: OpenAI News
+    url: https://openai.com/news/rss.xml
+    added_at: "2026-07-08"
+  - id: qudata
+    kind: rss
+    name: QuData
+    url: https://qudata.com/en/news/rss.xml
+    added_at: "2026-07-08"
+  - id: saal-insights
+    kind: rss
+    name: SAAL Insights
+    url: https://saal.ai/feed/
+    added_at: "2026-07-08"
+  - id: sas-ai-blog
+    kind: rss
+    name: SAS AI Blog
+    url: https://blogs.sas.com/content/topic/artificial-intelligence/feed/
+    added_at: "2026-07-08"
+  - id: shaip-blog
+    kind: rss
+    name: Shaip Blog
+    url: https://www.shaip.com/feed/
+    added_at: "2026-07-08"
+  - id: spritle-blog
+    kind: rss
+    name: Spritle Blog
+    url: https://www.spritle.com/blog/feed/
+    added_at: "2026-07-08"
+  - id: theodo-data-and-ai-blog
+    kind: rss
+    name: Theodo Data & AI Blog
+    url: https://data-ai.theodo.com/en/technical-blog/rss.xml
+    added_at: "2026-07-08"
+  - id: towards-data-science
+    kind: rss
+    name: Towards Data Science
+    url: https://towardsdatascience.com/feed
+    added_at: "2026-07-08"
+  - id: vectra-ai-blog
+    kind: rss
+    name: Vectra.ai Blog
+    url: https://www.vectra.ai/blog/rss.xml
+    added_at: "2026-07-08"
+  - id: viact-blog
+    kind: rss
+    name: viAct Blog
+    url: https://www.viact.ai/blog-feed.xml
+    added_at: "2026-07-08"
+  - id: yatter-blog
+    kind: rss
+    name: Yatter Blog
+    url: https://yatter.in/feed/
+    added_at: "2026-07-08"
