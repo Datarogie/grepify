@@ -53,6 +53,7 @@ create table items (
 );
 create index idx_items_published on items(published_at);
 create index idx_items_source on items(source_id, published_at);
+create unique index idx_items_dedup on items(kind, external_id);
 
 create table item_keywords (
   item_id        text not null,
@@ -65,6 +66,8 @@ create table item_keywords (
 );
 create index idx_kw_keyword on item_keywords(keyword);
 
+-- Intentionally unpopulated in E0: aliases live in keywords.yml and are applied
+-- at trend-computation time (PRD §6 note), so a later epic (E3/E4) projects them.
 create table keyword_aliases (
   alias          text primary key,
   canonical      text not null

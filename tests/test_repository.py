@@ -53,12 +53,15 @@ def test_rebuild_is_deterministic(tmp_path: Path) -> None:
     repo.add_items([make_item(f"i{n}") for n in range(5)])
     repo.add_item_keywords([make_keyword(f"i{n}", f"kw{n}") for n in range(5)])
 
+    # No `order by`: rely on insertion (rowid) order so the assertion catches a
+    # nondeterministic insert order, not just same-set membership.
     repo.rebuild_cache()
-    first = _rows(tmp_path / "grepify.db", "select item_id, title from items order by item_id")
+    first = _rows(tmp_path / "grepify.db", "select item_id, title from items")
     repo.rebuild_cache()
-    second = _rows(tmp_path / "grepify.db", "select item_id, title from items order by item_id")
+    second = _rows(tmp_path / "grepify.db", "select item_id, title from items")
 
     assert first == second
+    assert [r[0] for r in first] == [f"i{n}" for n in range(5)]
     assert len(first) == 5
     repo.close()
 
