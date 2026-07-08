@@ -7,7 +7,8 @@
 UV ?= uv
 
 .PHONY: help install fmt lint typecheck test check \
-        ingest extract trends digest build validate health backfill
+        ingest extract trends digest build validate health backfill \
+        digest-gate commit-data site
 
 help: ## List available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -57,3 +58,16 @@ health: ## Print the latest run manifest
 
 backfill: ## Re-process / re-extract historical data (E6)
 	$(UV) run grepify backfill
+
+# --- CI-only helpers (GRP-06). Kept as make targets, not inline workflow ---
+# --- shell, per F-OPS-03 (GitLab portability). ---------------------------
+
+digest-gate: ## Print daily=/weekly= flags: are digest steps due now? (coarse pre-GRP-45 placeholder)
+	@bash scripts/digest-gate.sh
+
+commit-data: ## Commit + push new data/ files with rebase-retry; needs GIT_BRANCH env ([skip ci] loop guard)
+	$(UV) run python scripts/commit_pipeline_data.py --branch "$(GIT_BRANCH)"
+
+site: ## Assemble public/ for the Pages deploy (placeholder until GRP-35 emits the real SSG output)
+	mkdir -p public
+	cp -r site-placeholder/. public/

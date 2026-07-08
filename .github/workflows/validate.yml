@@ -1,0 +1,42 @@
+name: validate
+
+# GRP-06: MR/PR gate. `paths-ignore: data/**` on `push` means the pipeline
+# workflow's own data commits to main never re-trigger this workflow — the
+# second half of the loop guard (the first half is `[skip ci]` on those
+# commits; either guard alone would be enough, both together is deliberate
+# belt-and-suspenders per the S2 brief).
+on:
+  pull_request:
+    paths-ignore:
+      - "data/**"
+  push:
+    branches: [main]
+    paths-ignore:
+      - "data/**"
+  workflow_dispatch: {}
+
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install
+        run: make install
+
+      - name: Lint, typecheck, test
+        run: make check
+
+      - name: Validate config
+        run: make validate

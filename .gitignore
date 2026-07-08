@@ -13,5 +13,8 @@ build/
 data/grepify.db
 data/grepify.db-*
 
+# Rendered site output (`make build` / `make site`) — generated per run, never committed.
+public/
+
 # Local secrets — never committed (PRD §5). Real values live in CI masked vars.
 .env

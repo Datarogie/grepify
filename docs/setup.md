@@ -57,9 +57,23 @@ Set these as masked CI variables — **never commit them** (`.env` is gitignored
 
 ## 5. Enable the cron
 
-CI workflows (added in GRP-06) call `make ingest extract build` on a schedule
-and deploy the static site. Fork → add secrets → enable the scheduled workflow
-and you have a running clone.
+Two workflows live under `.github/workflows/`:
+
+- `validate.yml` — `make check` + `make validate` on every PR (and on pushes
+  to `main` that touch anything outside `data/`).
+- `pipeline.yml` — cron (3x/day) running `make ingest extract` (+ `make
+  digest` when `scripts/digest-gate.sh` says it's due), commits any new
+  `data/` files back to the branch (`[skip ci]`, so it never re-triggers
+  `validate`), then `make build site` and a GitHub Pages deploy.
+
+One manual step outside the repo: **Settings → Pages → Source: GitHub
+Actions** (can't be set from a workflow file). After that, both workflows run
+as-is; `pipeline.yml` also has a `workflow_dispatch` trigger so you can run it
+on demand from the Actions tab (including from a PR branch, e.g. from a
+phone) instead of waiting for the schedule.
+
+Until the real site build lands (GRP-35, M3), `make site` deploys the static
+placeholder in `site-placeholder/`.
 
 ## Data & storage
 
