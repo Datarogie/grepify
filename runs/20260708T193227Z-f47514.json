@@ -1,0 +1,12 @@
+{
+  "run_id": "20260708T193227Z-f47514",
+  "command": "extract",
+  "started_at": "2026-07-08T19:32:27+00:00",
+  "finished_at": "2026-07-08T19:32:27+00:00",
+  "ok": true,
+  "counts": {},
+  "durations_ms": {},
+  "notes": [
+    "stub: extract not yet implemented (E2)"
+  ]
+}
