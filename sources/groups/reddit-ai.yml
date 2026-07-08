@@ -1,15 +1,116 @@
-# AI subreddits — subreddit JSON endpoints (PRD F-ING-04).
-# feed identity resolves to reddit.com/r/<subreddit>/new.json.
-# Seeds confirmed from PRD §14 open-question #3 (r/LocalLLaMA, r/MachineLearning).
+# AI subreddits — subreddit JSON endpoints (PRD F-ING-04) — scrubbed from the trendcloud.io /sources AI list (GRP-07).
 #
-# PROVENANCE + LIVENESS CAVEAT: see ai-research.yml header. Subreddit names are
-# stable and high-confidence, but no endpoint was pinged (egress blocked).
+# PROVENANCE: source rows (name, feed URL, kind) copied from trendcloud.io's
+# public 118-source AI list. Categorized per the playbook rubric
+# (research = papers/labs/academic; business = funding/market/enterprise;
+# tooling-dev = frameworks/infra/how-to; ambiguous -> tooling-dev).
+#
+# LIVENESS: feeds are NOT pinged here — this build environment blocks outbound
+# HTTPS to feed hosts. These are trendcloud's actively-aggregated feeds, so they
+# ship enabled; per-source health tracking (fetch_log / GRP-16) disables any that
+# fail persistently once the fetcher runs. `grepify validate` checks schema +
+# duplicate ids/url_hashes only (live pinging is deferred to GRP-10/11 by design).
 group: reddit-ai
 name: Reddit — AI
 category: ai
 enabled: true
 builtin: true
 sources:
+  - id: r-agi
+    kind: reddit
+    name: r/AGI
+    subreddit: AGI
+    added_at: "2026-07-08"
+  - id: r-aiassisted
+    kind: reddit
+    name: r/AiAssisted
+    subreddit: AiAssisted
+    added_at: "2026-07-08"
+  - id: r-aicuriosity
+    kind: reddit
+    name: r/AICuriosity
+    subreddit: AICuriosity
+    added_at: "2026-07-08"
+  - id: r-aitooltesting
+    kind: reddit
+    name: r/AIToolTesting
+    subreddit: AIToolTesting
+    added_at: "2026-07-08"
+  - id: r-anthropic
+    kind: reddit
+    name: r/Anthropic
+    subreddit: Anthropic
+    added_at: "2026-07-08"
+  - id: r-artificial
+    kind: reddit
+    name: r/artificial
+    subreddit: artificial
+    added_at: "2026-07-08"
+  - id: r-artificialinteligence
+    kind: reddit
+    name: r/ArtificialInteligence
+    subreddit: ArtificialInteligence
+    added_at: "2026-07-08"
+  - id: r-bard
+    kind: reddit
+    name: r/Bard
+    subreddit: Bard
+    added_at: "2026-07-08"
+  - id: r-chatgpt
+    kind: reddit
+    name: r/ChatGPT
+    subreddit: ChatGPT
+    added_at: "2026-07-08"
+  - id: r-chatgptcoding
+    kind: reddit
+    name: r/ChatGPTCoding
+    subreddit: ChatGPTCoding
+    added_at: "2026-07-08"
+  - id: r-chatgptpro
+    kind: reddit
+    name: r/ChatGPTPro
+    subreddit: ChatGPTPro
+    added_at: "2026-07-08"
+  - id: r-chatgptpromptgenius
+    kind: reddit
+    name: r/ChatGPTPromptGenius
+    subreddit: ChatGPTPromptGenius
+    added_at: "2026-07-08"
+  - id: r-claudeai
+    kind: reddit
+    name: r/ClaudeAI
+    subreddit: ClaudeAI
+    added_at: "2026-07-08"
+  - id: r-claudecode
+    kind: reddit
+    name: r/ClaudeCode
+    subreddit: ClaudeCode
+    added_at: "2026-07-08"
+  - id: r-codex
+    kind: reddit
+    name: r/codex
+    subreddit: codex
+    added_at: "2026-07-08"
+  - id: r-deepseek
+    kind: reddit
+    name: r/DeepSeek
+    subreddit: DeepSeek
+    added_at: "2026-07-08"
+  - id: r-geminiai
+    kind: reddit
+    name: r/GeminiAI
+    subreddit: GeminiAI
+    added_at: "2026-07-08"
+  - id: r-generativeai
+    kind: reddit
+    name: r/GenerativeAI
+    subreddit: GenerativeAI
+    added_at: "2026-07-08"
+  - id: r-google-antigravity
+    kind: reddit
+    name: r/Google_antigravity
+    subreddit: Google_antigravity
+    added_at: "2026-07-08"
   - id: r-localllama
     kind: reddit
     name: r/LocalLLaMA
@@ -19,4 +120,29 @@ sources:
     kind: reddit
     name: r/MachineLearning
     subreddit: MachineLearning
+    added_at: "2026-07-08"
+  - id: r-mistralai
+    kind: reddit
+    name: r/MistralAI
+    subreddit: MistralAI
+    added_at: "2026-07-08"
+  - id: r-openai
+    kind: reddit
+    name: r/OpenAI
+    subreddit: OpenAI
+    added_at: "2026-07-08"
+  - id: r-perplexityai
+    kind: reddit
+    name: r/PerplexityAI
+    subreddit: PerplexityAI
+    added_at: "2026-07-08"
+  - id: r-singularity
+    kind: reddit
+    name: r/singularity
+    subreddit: singularity
+    added_at: "2026-07-08"
+  - id: r-vibecoding
+    kind: reddit
+    name: r/VibeCoding
+    subreddit: VibeCoding
     added_at: "2026-07-08"

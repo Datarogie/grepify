@@ -1,48 +1,218 @@
-# AI business sources — funding / market / enterprise (GRP-07).
+# AI business sources — funding / market / enterprise — scrubbed from the trendcloud.io /sources AI list (GRP-07).
 #
-# PROVENANCE + LIVENESS CAVEAT: see ai-research.yml header. Best-effort curated
-# seed, NOT a verified trendcloud scrape; no feed was pinged (egress blocked).
-#   enabled: true  -> well-known canonical feed URL (still UN-pinged)
-#   enabled: false -> URL path uncertain (see inline comment); flip after liveness pass
+# PROVENANCE: source rows (name, feed URL, kind) copied from trendcloud.io's
+# public 118-source AI list. Categorized per the playbook rubric
+# (research = papers/labs/academic; business = funding/market/enterprise;
+# tooling-dev = frameworks/infra/how-to; ambiguous -> tooling-dev).
 #
-# NOTE: PRD §7 also names "AI Insider" as a business seed; it could not be resolved
-# to a specific feed URL without network access, so it is omitted here rather than
-# invented. Add it in the networked liveness pass.
+# LIVENESS: feeds are NOT pinged here — this build environment blocks outbound
+# HTTPS to feed hosts. These are trendcloud's actively-aggregated feeds, so they
+# ship enabled; per-source health tracking (fetch_log / GRP-16) disables any that
+# fail persistently once the fetcher runs. `grepify validate` checks schema +
+# duplicate ids/url_hashes only (live pinging is deferred to GRP-10/11 by design).
 group: ai-business
 name: AI Business
 category: ai
 enabled: true
 builtin: true
 sources:
-  - id: techcrunch-ai
+  - id: ai-accelerator-institute
     kind: rss
-    name: TechCrunch — Artificial Intelligence
-    url: https://techcrunch.com/category/artificial-intelligence/feed/
+    name: AI Accelerator Institute
+    url: https://aiacceleratorinstitute.com/rss/
     added_at: "2026-07-08"
-  - id: venturebeat-ai
-    kind: rss
-    name: VentureBeat — AI
-    url: https://venturebeat.com/category/ai/feed/
-    added_at: "2026-07-08"
-  - id: the-verge-ai
-    kind: rss
-    name: The Verge — AI
-    url: https://www.theverge.com/rss/ai-artificial-intelligence/index.xml
-    added_at: "2026-07-08"
-  - id: wired-ai
-    kind: rss
-    name: WIRED — Artificial Intelligence
-    url: https://www.wired.com/feed/tag/ai/latest/rss
-    added_at: "2026-07-08"
-  - id: aibusiness-com
+  - id: ai-business
     kind: rss
     name: AI Business
     url: https://aibusiness.com/rss.xml
-    enabled: false  # UNVERIFIED feed path — confirm in networked liveness pass
     added_at: "2026-07-08"
-  - id: forbes-ai
+  - id: ai-insider
     kind: rss
-    name: Forbes — AI
-    url: https://www.forbes.com/ai/feed/
-    enabled: false  # UNVERIFIED feed path — confirm in networked liveness pass
+    name: AI Insider
+    url: https://theaiinsider.tech/feed/
+    added_at: "2026-07-08"
+  - id: ai-news
+    kind: rss
+    name: AI News
+    url: https://www.artificialintelligence-news.com/feed/
+    added_at: "2026-07-08"
+  - id: ai-techpark
+    kind: rss
+    name: AI TechPark
+    url: https://ai-techpark.com/category/ai/feed/
+    added_at: "2026-07-08"
+  - id: ai-time-journal
+    kind: rss
+    name: AI Time Journal
+    url: https://www.aitimejournal.com/feed/
+    added_at: "2026-07-08"
+  - id: aim-ai
+    kind: rss
+    name: AIM AI
+    url: https://analyticsindiamag.com/ai-news-updates/feed/
+    added_at: "2026-07-08"
+  - id: ars-technica-ai
+    kind: rss
+    name: ars Technica AI
+    url: https://arstechnica.com/ai/feed/
+    added_at: "2026-07-08"
+  - id: artificial-intelligence-blog
+    kind: rss
+    name: Artificial Intelligence Blog
+    url: https://artificial-intelligence.blog/ai-news?format=rss
+    added_at: "2026-07-08"
+  - id: artificial-lawyer
+    kind: rss
+    name: Artificial Lawyer
+    url: https://www.artificiallawyer.com/feed/
+    added_at: "2026-07-08"
+  - id: aws-ai-news
+    kind: rss
+    name: AWS AI News
+    url: https://aws.amazon.com/fr/blogs/aws/category/artificial-intelligence/feed/
+    added_at: "2026-07-08"
+  - id: bdan-ai
+    kind: rss
+    name: BDAN AI
+    url: https://bigdataanalyticsnews.com/category/artificial-intelligence/feed/
+    added_at: "2026-07-08"
+  - id: computerworld-ai
+    kind: rss
+    name: ComputerWorld AI
+    url: https://www.computerworld.com/artificial-intelligence/feed/
+    added_at: "2026-07-08"
+  - id: crunchbase-ai-news
+    kind: rss
+    name: Crunchbase AI News
+    url: https://news.crunchbase.com/sections/ai/feed/
+    added_at: "2026-07-08"
+  - id: edmonton-journal-ai
+    kind: rss
+    name: Edmonton Journal AI
+    url: https://edmontonjournal.com/tag/artificial-intelligence/feed.xml
+    added_at: "2026-07-08"
+  - id: fast-company-ai
+    kind: rss
+    name: Fast Company AI
+    url: https://www.fastcompany.com/section/artificial-intelligence/rss
+    added_at: "2026-07-08"
+  - id: federal-news-network-ai
+    kind: rss
+    name: Federal News Network AI
+    url: https://federalnewsnetwork.com/category/technology-main/artificial-intelligence/feed/
+    added_at: "2026-07-08"
+  - id: france-24-ai
+    kind: rss
+    name: France 24 AI
+    url: https://www.france24.com/en/tag/artificial-intelligence/rss
+    added_at: "2026-07-08"
+  - id: ft-ai
+    kind: rss
+    name: FT AI
+    url: https://www.ft.com/artificial-intelligence?format=rss
+    added_at: "2026-07-08"
+  - id: geekwire-ai
+    kind: rss
+    name: GeekWire AI
+    url: https://www.geekwire.com/ai/feed/
+    added_at: "2026-07-08"
+  - id: government-technology-ai
+    kind: rss
+    name: Government Technology AI
+    url: https://www.govtech.com/artificial-intelligence.rss
+    added_at: "2026-07-08"
+  - id: hpc-wire-ai
+    kind: rss
+    name: HPC Wire AI
+    url: https://www.hpcwire.com/aiwire/feed/
+    added_at: "2026-07-08"
+  - id: inside-ai-news
+    kind: rss
+    name: Inside AI News
+    url: https://insideainews.com/feed/
+    added_at: "2026-07-08"
+  - id: just-ai-news
+    kind: rss
+    name: Just AI News
+    url: https://justainews.com/feed/
+    added_at: "2026-07-08"
+  - id: knowtechie-ai
+    kind: rss
+    name: KnowTechie AI
+    url: https://knowtechie.com/category/ai/feed/
+    added_at: "2026-07-08"
+  - id: la-biblia-de-la-ia
+    kind: rss
+    name: La Biblia de la IA
+    url: https://editorialia.com/feed/
+    added_at: "2026-07-08"
+  - id: marketing-artificial-intelligence-institute-blog
+    kind: rss
+    name: Marketing Artificial Intelligence Institute Blog
+    url: https://www.marketingaiinstitute.com/blog/rss.xml
+    added_at: "2026-07-08"
+  - id: microsoft-ai-news
+    kind: rss
+    name: Microsoft AI News
+    url: https://news.microsoft.com/source/topics/ai/feed/
+    added_at: "2026-07-08"
+  - id: mint-ai
+    kind: rss
+    name: mint AI
+    url: https://www.livemint.com/rss/AI
+    added_at: "2026-07-08"
+  - id: mit-ai-technology-review
+    kind: rss
+    name: MIT AI Technology Review
+    url: https://www.technologyreview.com/topic/artificial-intelligence/feed/
+    added_at: "2026-07-08"
+  - id: robot-writers-ai
+    kind: rss
+    name: Robot Writers AI
+    url: https://robotwritersai.com/feed/
+    added_at: "2026-07-08"
+  - id: scripps-news-ai
+    kind: rss
+    name: Scripps News AI
+    url: https://www.scrippsnews.com/science-and-tech/artificial-intelligence.rss
+    added_at: "2026-07-08"
+  - id: techcrunch-ai
+    kind: rss
+    name: TechCrunch AI
+    url: https://techcrunch.com/category/artificial-intelligence/feed/
+    added_at: "2026-07-08"
+  - id: techspective
+    kind: rss
+    name: TechSpective
+    url: https://techspective.net/category/technology/artificial-intelligence/feed
+    added_at: "2026-07-08"
+  - id: the-guardian-ai
+    kind: rss
+    name: The Guardian AI
+    url: https://www.theguardian.com/technology/artificialintelligenceai/rss
+    added_at: "2026-07-08"
+  - id: the-new-york-times-ai
+    kind: rss
+    name: The New York Times AI
+    url: https://www.nytimes.com/svc/collections/v1/publish/https://www.nytimes.com/spotlight/artificial-intelligence/rss.xml
+    added_at: "2026-07-08"
+  - id: the-rundown-ai
+    kind: rss
+    name: The Rundown AI
+    url: https://rss.beehiiv.com/feeds/2R3C6Bt5wj.xml
+    added_at: "2026-07-08"
+  - id: the-verge-ai
+    kind: rss
+    name: The Verge AI
+    url: https://www.theverge.com/rss/ai-artificial-intelligence/index.xml
+    added_at: "2026-07-08"
+  - id: venturebeat-ai
+    kind: rss
+    name: VentureBeat AI
+    url: https://venturebeat.com/category/ai/feed
+    added_at: "2026-07-08"
+  - id: wired-ai
+    kind: rss
+    name: WIRED AI
+    url: https://www.wired.com/feed/tag/ai/latest/rss
     added_at: "2026-07-08"

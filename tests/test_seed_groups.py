@@ -30,6 +30,7 @@ _EXPECTED_GROUPS = {
     "reddit-ai",
     "data-engineering",
 }
+_TRENDCLOUD_GROUPS = _EXPECTED_GROUPS - {"data-engineering"}
 # Only these two categories launch (PRD §14); crypto is excluded entirely (PRD §2).
 _ALLOWED_CATEGORIES = {"ai", "data-eng"}
 
@@ -49,6 +50,18 @@ def test_expected_groups_present() -> None:
     assert groups == _EXPECTED_GROUPS
 
 
+def test_trendcloud_scrape_has_all_118_sources() -> None:
+    # The trendcloud.io /sources AI list is 118 sources (83 rss, 9 youtube, 26 reddit).
+    sources = [s for s in _provider().sources() if s.group_id in _TRENDCLOUD_GROUPS]
+    assert len(sources) == 118, len(sources)
+    by_kind = {k: 0 for k in SourceKind}
+    for s in sources:
+        by_kind[s.kind] += 1
+    assert by_kind[SourceKind.RSS] == 83
+    assert by_kind[SourceKind.YOUTUBE] == 9
+    assert by_kind[SourceKind.REDDIT] == 26
+
+
 def test_no_forbidden_category() -> None:
     for group in _provider().groups():
         assert group.category in _ALLOWED_CATEGORIES, group.category
@@ -66,25 +79,25 @@ def test_prd_mandated_seeds_present() -> None:
     # PRD §14 data-eng seeds given verbatim.
     assert by_id["benn-substack"].url == "https://benn.substack.com/feed"
     assert by_id["getdbt-roundup"].url == "https://roundup.getdbt.com/feed"
-    # PRD §14 Q3 reddit seeds.
+    # PRD §14 Q3 reddit seeds (LocalLLaMA/MachineLearning scraped into reddit-ai;
+    # dataengineering is Kyle's data-eng seed).
     for sid in ("r-localllama", "r-machinelearning", "r-dataengineering"):
         assert by_id[sid].kind is SourceKind.REDDIT
 
 
 def test_dead_sources_disabled_not_omitted() -> None:
-    # "mark dead ones enabled: false rather than omitting them" — the known-defunct
-    # Distill is present and disabled.
+    # "mark dead ones enabled: false rather than omitting them" — the data-eng
+    # seeds whose feed path could not be confirmed ship disabled, still present.
     by_id = {s.source_id: s for s in _provider().sources()}
-    assert "distill-pub" in by_id
-    assert by_id["distill-pub"].enabled is False
+    assert by_id["dbt-developer-blog"].enabled is False
+    assert by_id["snowflake-engineering"].enabled is False
 
 
-def test_youtube_channel_ids_unverified_so_disabled() -> None:
-    # channel_ids could not be pinged (egress blocked); a wrong channel_id is a
-    # dead feed, so every youtube seed ships disabled pending a networked pass.
+def test_youtube_sources_have_channel_id_locator() -> None:
     yt = [s for s in _provider().sources() if s.kind is SourceKind.YOUTUBE]
     assert yt, "expected youtube seeds"
-    assert all(not s.enabled for s in yt)
+    # canonical url resolves to the keyless channel-RSS endpoint (PRD F-ING-02).
+    assert all("channel_id=" in s.url for s in yt)
 
 
 def test_every_source_has_unique_url_hash() -> None:

@@ -1,78 +1,58 @@
-# AI research sources — papers / labs / academic (GRP-07).
+# AI research sources — papers / labs / academic — scrubbed from the trendcloud.io /sources AI list (GRP-07).
 #
-# PROVENANCE + LIVENESS CAVEAT (read before trusting `enabled`):
-# The trendcloud.io /sources scrape and the per-feed liveness check that GRP-07
-# calls for could NOT be performed in this build environment — outbound HTTPS is
-# locked to package registries + GitHub (trendcloud.io and every feed host return
-# 403). This is therefore a best-effort curated seed of the canonical AI-research
-# feeds trendcloud is known to aggregate, NOT a verified scrape.
-#   enabled: true  -> URL string is the well-known canonical feed (still UN-pinged)
-#   enabled: false -> URL path uncertain or source defunct (see inline comment)
-# A real liveness pass (ping each feed, flip enabled to match) must run in a
-# networked env before these are relied on — this matches the E0 design, which
-# defers live feed pinging to the fetcher (GRP-10/11). `grepify validate` here
-# only checks schema + duplicate ids/url_hashes.
+# PROVENANCE: source rows (name, feed URL, kind) copied from trendcloud.io's
+# public 118-source AI list. Categorized per the playbook rubric
+# (research = papers/labs/academic; business = funding/market/enterprise;
+# tooling-dev = frameworks/infra/how-to; ambiguous -> tooling-dev).
+#
+# LIVENESS: feeds are NOT pinged here — this build environment blocks outbound
+# HTTPS to feed hosts. These are trendcloud's actively-aggregated feeds, so they
+# ship enabled; per-source health tracking (fetch_log / GRP-16) disables any that
+# fail persistently once the fetcher runs. `grepify validate` checks schema +
+# duplicate ids/url_hashes only (live pinging is deferred to GRP-10/11 by design).
 group: ai-research
 name: AI Research
 category: ai
 enabled: true
 builtin: true
 sources:
-  - id: arxiv-cs-ai
-    kind: rss
-    name: arXiv cs.AI
-    url: https://rss.arxiv.org/rss/cs.AI
-    added_at: "2026-07-08"
-  - id: arxiv-cs-lg
-    kind: rss
-    name: arXiv cs.LG (Machine Learning)
-    url: https://rss.arxiv.org/rss/cs.LG
-    added_at: "2026-07-08"
-  - id: arxiv-cs-cl
-    kind: rss
-    name: arXiv cs.CL (Computation and Language)
-    url: https://rss.arxiv.org/rss/cs.CL
-    added_at: "2026-07-08"
   - id: ahead-of-ai
     kind: rss
-    name: Ahead of AI (Sebastian Raschka)
+    name: Ahead of AI
     url: https://magazine.sebastianraschka.com/feed
     added_at: "2026-07-08"
-  - id: mit-news-ai
+  - id: aihub
     kind: rss
-    name: MIT News — Artificial Intelligence
-    url: https://news.mit.edu/rss/topic/artificial-intelligence2
-    added_at: "2026-07-08"
-  - id: the-gradient
-    kind: rss
-    name: The Gradient
-    url: https://thegradient.pub/rss/
+    name: AIHub
+    url: https://aihub.org/feed/?cat=-473
     added_at: "2026-07-08"
   - id: bair-blog
     kind: rss
-    name: Berkeley AI Research (BAIR) Blog
+    name: BAIR Blog
     url: https://bair.berkeley.edu/blog/feed.xml
     added_at: "2026-07-08"
-  - id: import-ai
+  - id: google-research
     kind: rss
-    name: Import AI (Jack Clark)
-    url: https://importai.substack.com/feed
+    name: Google Research
+    url: https://research.google/blog/rss
     added_at: "2026-07-08"
-  - id: deepmind-blog
+  - id: live-science-ai
     kind: rss
-    name: Google DeepMind Blog
-    url: https://deepmind.google/blog/rss.xml
-    enabled: false  # UNVERIFIED feed path — confirm in networked liveness pass
+    name: Live Science AI
+    url: https://www.livescience.com/feeds/tag/artificial-intelligence
     added_at: "2026-07-08"
-  - id: google-research-blog
+  - id: mit-news
     kind: rss
-    name: Google Research Blog
-    url: https://research.google/blog/rss/
-    enabled: false  # UNVERIFIED feed path — confirm in networked liveness pass
+    name: MIT News
+    url: https://news.mit.edu/rss/topic/artificial-intelligence2
     added_at: "2026-07-08"
-  - id: distill-pub
+  - id: science-news-ai
     kind: rss
-    name: Distill
-    url: https://distill.pub/rss.xml
-    enabled: false  # defunct since 2021 — kept disabled per "mark dead, don't omit"
+    name: Science News AI
+    url: https://www.sciencenews.org/topic/artificial-intelligence/feed
+    added_at: "2026-07-08"
+  - id: sciencedaily-ai
+    kind: rss
+    name: ScienceDaily AI
+    url: https://www.sciencedaily.com/rss/computers_math/artificial_intelligence.xml
     added_at: "2026-07-08"
