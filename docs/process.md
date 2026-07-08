@@ -40,6 +40,9 @@ dismissal in writing. Repeat until the subagent passes the session.
   - test evidence,
   - subagent review summary,
   - a **Phone-testable** section (see below).
+- **No AI-authorship attribution** anywhere in the title, body, or commit
+  messages (binding rule in `CLAUDE.md`): no "Generated with Claude Code", no
+  `Co-Authored-By: Claude`, no `Claude-Session:` / `claude.ai/code` links.
 
 #### Phone-testable (MANDATORY from S2 onward)
 
