@@ -9,6 +9,10 @@ mobile-driven, agent-built project from drifting. Read them before touching code
   MR/PR. `main` moves only through reviewed merges.
 - Every session ends with `make check` green and an MR whose title carries the
   relevant issue IDs (e.g. `GRP-03: storage layer`).
+- **No AI-authorship attribution in the repo.** Commit messages and MR/PR bodies
+  must not contain `Co-Authored-By: Claude`, `Claude-Session:`, "Generated with
+  Claude Code", `claude.ai/code` session links, or any similar tool/agent
+  attribution. Keep messages about the change itself.
 
 ## Source of truth
 
