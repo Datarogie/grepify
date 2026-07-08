@@ -83,6 +83,11 @@ class Repository(ABC):
     def existing_item_ids(self) -> set[str]:
         """Return the set of item_ids already in truth (for dedup/idempotency)."""
 
+    @abstractmethod
+    def iter_fetch_log(self) -> Iterator[FetchLogEntry]:
+        """Iterate all fetch-log rows from truth in deterministic order (health
+        snapshot, PRD §8 F-ING-08 / GRP-16)."""
+
     # --- config projection ----------------------------------------------------
 
     @abstractmethod

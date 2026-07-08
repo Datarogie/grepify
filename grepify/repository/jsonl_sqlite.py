@@ -115,6 +115,19 @@ class JsonlSqliteRepository(Repository):
     def existing_item_ids(self) -> set[str]:
         return self._existing_keys(self._layout.items_dir, lambda d: str(d["item_id"]))
 
+    def iter_fetch_log(self) -> Iterator[FetchLogEntry]:
+        # Sort key is `started_at` alone, relying on Python's stable sort to
+        # preserve `_read_all`'s file order (day-partitioned ascending, then
+        # true append order within a day) as the tie-break. `started_at` is
+        # second-precision text and `run_id` ends in random entropy, so
+        # sorting by `(started_at, run_id, ...)` — as the other iter_* methods
+        # do with *stable* identifiers like item_id — would let same-second
+        # entries land in an arbitrary, non-chronological order instead of
+        # the real attempt order health-snapshot consumers rely on (GRP-16).
+        rows = self._read_all(self._layout.fetch_log_dir, FetchLogEntry)
+        rows.sort(key=lambda e: e.started_at)
+        return iter(rows)
+
     # --- config projection ---------------------------------------------------
 
     def load_config(self, groups: Iterable[SourceGroup], sources: Iterable[Source]) -> None:
@@ -250,8 +263,6 @@ class JsonlSqliteRepository(Repository):
         )
 
     def _insert_fetch_log(self, conn: sqlite3.Connection) -> None:
-        rows = self._read_all(self._layout.fetch_log_dir, FetchLogEntry)
-        rows.sort(key=lambda e: (e.started_at, e.run_id, e.source_id))
         conn.executemany(
             "insert into fetch_log "
             "(source_id, run_id, started_at, status, items_new, error, duration_ms) "
@@ -266,7 +277,7 @@ class JsonlSqliteRepository(Repository):
                     e.error,
                     e.duration_ms,
                 )
-                for e in rows
+                for e in self.iter_fetch_log()
             ],
         )
 
