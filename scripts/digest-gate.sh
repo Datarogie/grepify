@@ -13,6 +13,12 @@
 #
 # Output: two `key=value` lines (`daily=`, `weekly=`), valid to append
 # directly to $GITHUB_OUTPUT.
+#
+# Failure modes
+# -------------
+# `set -euo pipefail` fails the script (and so the pipeline step) closed if
+# `date`/`TZ` data is unavailable rather than silently gating nothing on or
+# off. No network or repo state is touched — pure clock read plus arithmetic.
 set -euo pipefail
 
 if [[ -n "${GREPIFY_FAKE_HOUR:-}" ]]; then
