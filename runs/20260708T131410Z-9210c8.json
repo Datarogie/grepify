@@ -1,0 +1,12 @@
+{
+  "run_id": "20260708T131410Z-9210c8",
+  "command": "digest",
+  "started_at": "2026-07-08T13:14:10+00:00",
+  "finished_at": "2026-07-08T13:14:10+00:00",
+  "ok": true,
+  "counts": {},
+  "durations_ms": {},
+  "notes": [
+    "stub: digest not yet implemented (E4)"
+  ]
+}
