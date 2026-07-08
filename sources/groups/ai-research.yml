@@ -1,0 +1,78 @@
+# AI research sources — papers / labs / academic (GRP-07).
+#
+# PROVENANCE + LIVENESS CAVEAT (read before trusting `enabled`):
+# The trendcloud.io /sources scrape and the per-feed liveness check that GRP-07
+# calls for could NOT be performed in this build environment — outbound HTTPS is
+# locked to package registries + GitHub (trendcloud.io and every feed host return
+# 403). This is therefore a best-effort curated seed of the canonical AI-research
+# feeds trendcloud is known to aggregate, NOT a verified scrape.
+#   enabled: true  -> URL string is the well-known canonical feed (still UN-pinged)
+#   enabled: false -> URL path uncertain or source defunct (see inline comment)
+# A real liveness pass (ping each feed, flip enabled to match) must run in a
+# networked env before these are relied on — this matches the E0 design, which
+# defers live feed pinging to the fetcher (GRP-10/11). `grepify validate` here
+# only checks schema + duplicate ids/url_hashes.
+group: ai-research
+name: AI Research
+category: ai
+enabled: true
+builtin: true
+sources:
+  - id: arxiv-cs-ai
+    kind: rss
+    name: arXiv cs.AI
+    url: https://rss.arxiv.org/rss/cs.AI
+    added_at: "2026-07-08"
+  - id: arxiv-cs-lg
+    kind: rss
+    name: arXiv cs.LG (Machine Learning)
+    url: https://rss.arxiv.org/rss/cs.LG
+    added_at: "2026-07-08"
+  - id: arxiv-cs-cl
+    kind: rss
+    name: arXiv cs.CL (Computation and Language)
+    url: https://rss.arxiv.org/rss/cs.CL
+    added_at: "2026-07-08"
+  - id: ahead-of-ai
+    kind: rss
+    name: Ahead of AI (Sebastian Raschka)
+    url: https://magazine.sebastianraschka.com/feed
+    added_at: "2026-07-08"
+  - id: mit-news-ai
+    kind: rss
+    name: MIT News — Artificial Intelligence
+    url: https://news.mit.edu/rss/topic/artificial-intelligence2
+    added_at: "2026-07-08"
+  - id: the-gradient
+    kind: rss
+    name: The Gradient
+    url: https://thegradient.pub/rss/
+    added_at: "2026-07-08"
+  - id: bair-blog
+    kind: rss
+    name: Berkeley AI Research (BAIR) Blog
+    url: https://bair.berkeley.edu/blog/feed.xml
+    added_at: "2026-07-08"
+  - id: import-ai
+    kind: rss
+    name: Import AI (Jack Clark)
+    url: https://importai.substack.com/feed
+    added_at: "2026-07-08"
+  - id: deepmind-blog
+    kind: rss
+    name: Google DeepMind Blog
+    url: https://deepmind.google/blog/rss.xml
+    enabled: false  # UNVERIFIED feed path — confirm in networked liveness pass
+    added_at: "2026-07-08"
+  - id: google-research-blog
+    kind: rss
+    name: Google Research Blog
+    url: https://research.google/blog/rss/
+    enabled: false  # UNVERIFIED feed path — confirm in networked liveness pass
+    added_at: "2026-07-08"
+  - id: distill-pub
+    kind: rss
+    name: Distill
+    url: https://distill.pub/rss.xml
+    enabled: false  # defunct since 2021 — kept disabled per "mark dead, don't omit"
+    added_at: "2026-07-08"

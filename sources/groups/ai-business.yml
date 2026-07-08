@@ -1,0 +1,48 @@
+# AI business sources — funding / market / enterprise (GRP-07).
+#
+# PROVENANCE + LIVENESS CAVEAT: see ai-research.yml header. Best-effort curated
+# seed, NOT a verified trendcloud scrape; no feed was pinged (egress blocked).
+#   enabled: true  -> well-known canonical feed URL (still UN-pinged)
+#   enabled: false -> URL path uncertain (see inline comment); flip after liveness pass
+#
+# NOTE: PRD §7 also names "AI Insider" as a business seed; it could not be resolved
+# to a specific feed URL without network access, so it is omitted here rather than
+# invented. Add it in the networked liveness pass.
+group: ai-business
+name: AI Business
+category: ai
+enabled: true
+builtin: true
+sources:
+  - id: techcrunch-ai
+    kind: rss
+    name: TechCrunch — Artificial Intelligence
+    url: https://techcrunch.com/category/artificial-intelligence/feed/
+    added_at: "2026-07-08"
+  - id: venturebeat-ai
+    kind: rss
+    name: VentureBeat — AI
+    url: https://venturebeat.com/category/ai/feed/
+    added_at: "2026-07-08"
+  - id: the-verge-ai
+    kind: rss
+    name: The Verge — AI
+    url: https://www.theverge.com/rss/ai-artificial-intelligence/index.xml
+    added_at: "2026-07-08"
+  - id: wired-ai
+    kind: rss
+    name: WIRED — Artificial Intelligence
+    url: https://www.wired.com/feed/tag/ai/latest/rss
+    added_at: "2026-07-08"
+  - id: aibusiness-com
+    kind: rss
+    name: AI Business
+    url: https://aibusiness.com/rss.xml
+    enabled: false  # UNVERIFIED feed path — confirm in networked liveness pass
+    added_at: "2026-07-08"
+  - id: forbes-ai
+    kind: rss
+    name: Forbes — AI
+    url: https://www.forbes.com/ai/feed/
+    enabled: false  # UNVERIFIED feed path — confirm in networked liveness pass
+    added_at: "2026-07-08"

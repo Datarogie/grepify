@@ -1,0 +1,59 @@
+# AI tooling / dev sources — frameworks / infra / how-to (GRP-07).
+# Also the default bucket when categorization is ambiguous (rubric, playbook appx).
+#
+# PROVENANCE + LIVENESS CAVEAT: see ai-research.yml header. Best-effort curated
+# seed, NOT a verified trendcloud scrape; no feed was pinged (egress blocked).
+#   enabled: true  -> well-known canonical feed URL (still UN-pinged)
+#   enabled: false -> URL path uncertain (see inline comment); flip after liveness pass
+group: ai-tooling-dev
+name: AI Tooling & Dev
+category: ai
+enabled: true
+builtin: true
+sources:
+  - id: huggingface-blog
+    kind: rss
+    name: Hugging Face Blog
+    url: https://huggingface.co/blog/feed.xml
+    added_at: "2026-07-08"
+  - id: nvidia-blog
+    kind: rss
+    name: NVIDIA Blog
+    url: https://blogs.nvidia.com/feed/
+    added_at: "2026-07-08"
+  - id: towards-data-science
+    kind: rss
+    name: Towards Data Science
+    url: https://towardsdatascience.com/feed
+    added_at: "2026-07-08"
+  - id: infoworld-ai
+    kind: rss
+    name: InfoWorld — Artificial Intelligence
+    url: https://www.infoworld.com/category/artificial-intelligence/index.rss
+    added_at: "2026-07-08"
+  - id: marktechpost
+    kind: rss
+    name: MarkTechPost
+    url: https://www.marktechpost.com/feed/
+    added_at: "2026-07-08"
+  - id: kdnuggets
+    kind: rss
+    name: KDnuggets
+    url: https://www.kdnuggets.com/feed
+    added_at: "2026-07-08"
+  - id: machine-learning-mastery
+    kind: rss
+    name: Machine Learning Mastery
+    url: https://machinelearningmastery.com/feed/
+    added_at: "2026-07-08"
+  - id: the-batch
+    kind: rss
+    name: The Batch (DeepLearning.AI)
+    url: https://www.deeplearning.ai/the-batch/feed/
+    added_at: "2026-07-08"
+  - id: openai-blog
+    kind: rss
+    name: OpenAI News
+    url: https://openai.com/news/rss.xml
+    enabled: false  # UNVERIFIED feed path (OpenAI has moved its RSS) — confirm in liveness pass
+    added_at: "2026-07-08"

@@ -1,0 +1,37 @@
+# AI YouTube channels — video metadata via channel RSS, no API key (PRD F-ING-02).
+# feed identity resolves to youtube.com/feeds/videos.xml?channel_id=<channel_id>.
+#
+# PROVENANCE + LIVENESS CAVEAT: see ai-research.yml header. channel_id strings
+# are recalled from memory and could NOT be verified (egress blocked); a wrong
+# channel_id is a dead feed. Every source is therefore enabled:false pending a
+# networked pass that confirms each channel_id and flips enabled to match.
+group: youtube-ai
+name: YouTube — AI
+category: ai
+enabled: true
+builtin: true
+sources:
+  - id: yt-two-minute-papers
+    kind: youtube
+    name: Two Minute Papers
+    channel_id: UCbfYPyITQ-7l4upoX8nvctg
+    enabled: false  # UNVERIFIED channel_id — confirm in networked liveness pass
+    added_at: "2026-07-08"
+  - id: yt-yannic-kilcher
+    kind: youtube
+    name: Yannic Kilcher
+    channel_id: UCZHmQk67mSJgfCCTn7xBfew
+    enabled: false  # UNVERIFIED channel_id — confirm in networked liveness pass
+    added_at: "2026-07-08"
+  - id: yt-lex-fridman
+    kind: youtube
+    name: Lex Fridman
+    channel_id: UCSHZKyawb77ixDdsGog4iWA
+    enabled: false  # UNVERIFIED channel_id — confirm in networked liveness pass
+    added_at: "2026-07-08"
+  - id: yt-sentdex
+    kind: youtube
+    name: sentdex
+    channel_id: UCfzlCWGWYyIQ0aLC5w48gBQ
+    enabled: false  # UNVERIFIED channel_id — confirm in networked liveness pass
+    added_at: "2026-07-08"

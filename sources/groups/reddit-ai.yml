@@ -1,0 +1,22 @@
+# AI subreddits — subreddit JSON endpoints (PRD F-ING-04).
+# feed identity resolves to reddit.com/r/<subreddit>/new.json.
+# Seeds confirmed from PRD §14 open-question #3 (r/LocalLLaMA, r/MachineLearning).
+#
+# PROVENANCE + LIVENESS CAVEAT: see ai-research.yml header. Subreddit names are
+# stable and high-confidence, but no endpoint was pinged (egress blocked).
+group: reddit-ai
+name: Reddit — AI
+category: ai
+enabled: true
+builtin: true
+sources:
+  - id: r-localllama
+    kind: reddit
+    name: r/LocalLLaMA
+    subreddit: LocalLLaMA
+    added_at: "2026-07-08"
+  - id: r-machinelearning
+    kind: reddit
+    name: r/MachineLearning
+    subreddit: MachineLearning
+    added_at: "2026-07-08"
