@@ -1,12 +1,28 @@
-"""CLI tests (GRP-05): validate exit codes, stub manifests, health."""
+"""CLI tests (GRP-05): validate exit codes, stub manifests, health.
+
+GRP-15/16 add the ``ingest`` wiring tests: ``grepify.cli.build_registry`` is
+monkeypatched to a :class:`~grepify.ingest.fake.FakeFetcher`-backed registry
+so these exercise the full CLI -> orchestrator -> health-snapshot path without
+any network access (PRD §9).
+"""
 
 from __future__ import annotations
 
+import json
+import re
 from pathlib import Path
 
+import pytest
 from typer.testing import CliRunner
 
 from grepify.cli import app
+from grepify.errors import FetchError
+from grepify.ingest.base import RawItem
+from grepify.ingest.fake import FakeFetcher
+from grepify.ingest.registry import FetcherRegistry
+from grepify.models import RunManifest, SourceKind
+from grepify.paths import DataLayout
+from grepify.run import latest_manifest
 from tests.conftest import write_config
 
 runner = CliRunner()
@@ -19,6 +35,19 @@ _GROUP_OK = """
       - id: ahead-of-ai
         kind: rss
         url: https://magazine.sebastianraschka.com/feed
+"""
+
+_GROUP_INGEST = """
+    group: g1
+    name: G1
+    category: ai
+    sources:
+      - id: good-src
+        kind: rss
+        url: https://example.com/good/feed
+      - id: bad-src
+        kind: rss
+        url: https://example.com/bad/feed
 """
 
 
@@ -55,11 +84,80 @@ def test_stub_records_manifest_then_health_prints_it(tmp_path: Path) -> None:
     cfg = write_config(tmp_path / "sources")
     data = tmp_path / "data"
 
-    ingest = _invoke(cfg, data, "ingest")
-    assert ingest.exit_code == 0
-    assert "stub" in ingest.stdout
+    extract = _invoke(cfg, data, "extract")
+    assert extract.exit_code == 0
+    assert "stub" in extract.stdout
     assert list((data / "runs").glob("*.json"))
 
     health = _invoke(cfg, data, "health")
     assert health.exit_code == 0
-    assert '"command": "ingest"' in health.stdout
+    assert '"command": "extract"' in health.stdout
+
+
+def _fake_registry() -> FetcherRegistry:
+    """One RSS ``FakeFetcher``: ``good-src`` returns an item, ``bad-src`` errors."""
+    reg = FetcherRegistry()
+    reg.register(
+        FakeFetcher(
+            SourceKind.RSS,
+            results={"bad-src": FetchError("boom")},
+            default=[RawItem(url="https://example.com/a", title="A", external_id="a")],
+        )
+    )
+    return reg
+
+
+def test_ingest_wired_isolates_failures_and_writes_health(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    cfg = write_config(tmp_path / "sources", groups={"g1.yml": _GROUP_INGEST})
+    data = tmp_path / "data"
+    monkeypatch.setattr("grepify.cli.build_registry", _fake_registry)
+
+    result = _invoke(cfg, data, "ingest")
+    assert result.exit_code == 0
+    assert "1 ok" in result.stdout
+    assert "1 error" in result.stdout
+
+    manifest = latest_manifest(DataLayout(data))
+    assert manifest is not None
+    assert manifest.command == "ingest"
+    assert manifest.counts["sources_ok"] == 1
+    assert manifest.counts["sources_error"] == 1
+    assert manifest.counts["items_new"] == 1
+    assert any("bad-src" in note for note in manifest.notes)
+
+    health = json.loads((data / "health.json").read_text(encoding="utf-8"))
+    by_id = {s["source_id"]: s for s in health["sources"]}
+    assert by_id["bad-src"]["consecutive_failures"] == 1
+    assert by_id["bad-src"]["flagged"] is False
+    assert by_id["good-src"]["last_status"] == "ok"
+
+
+def _run_id_from_output(output: str) -> str:
+    """Pull the trailing ``run <run_id>`` token the ``ingest`` command prints.
+
+    Two invocations issued back-to-back can land in the same wall-clock
+    second, so ``run_id``'s lexical sort order (``latest_manifest``'s
+    assumption) isn't reliable enough to pick out *this* invocation's
+    manifest — read it directly by the run_id this call actually printed.
+    """
+    match = re.search(r"run (\S+)\s*$", output.strip())
+    assert match is not None, output
+    return match.group(1)
+
+
+def test_ingest_rerun_is_idempotent(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    cfg = write_config(tmp_path / "sources", groups={"g1.yml": _GROUP_INGEST})
+    data = tmp_path / "data"
+    monkeypatch.setattr("grepify.cli.build_registry", _fake_registry)
+
+    first = _invoke(cfg, data, "ingest")
+    assert first.exit_code == 0
+    second = _invoke(cfg, data, "ingest")
+    assert second.exit_code == 0
+
+    run_id = _run_id_from_output(second.stdout)
+    manifest_path = DataLayout(data).run_manifest(run_id)
+    manifest = RunManifest.model_validate_json(manifest_path.read_text(encoding="utf-8"))
+    assert manifest.counts["items_new"] == 0  # F-ING-07: rerun adds zero new rows

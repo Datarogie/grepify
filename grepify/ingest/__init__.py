@@ -14,6 +14,9 @@ Public surface every E1/E2/E5 issue builds on:
   :func:`compute_item_id`, :func:`canonicalize_url`, :func:`dedup_within_batch`.
 - Near-dup layer: :func:`compute_content_hash`, :func:`hamming_distance`,
   :func:`group_near_duplicates`.
+- Orchestration (GRP-15): :func:`run_ingest`, :class:`IngestServices`,
+  :class:`IngestSummary`, :class:`SourceResult`, :func:`build_registry` — the
+  per-source-isolated run loop the ``ingest`` CLI command drives.
 
 The X fetcher (E5) plugs into the same :class:`Fetcher` contract without
 changing it.
@@ -23,7 +26,8 @@ Failure modes
 None of its own — this is a pure re-export aggregator. See each submodule's
 docstring for its failure modes (``base``/``registry``/``fake`` for the fetch
 contract, ``rss``/``youtube``/``reddit``/``http``/``feedutil`` for the concrete
-fetchers, ``normalize``/``dedup`` for identity + near-dup).
+fetchers, ``normalize``/``dedup`` for identity + near-dup, ``orchestrator`` for
+per-source isolation).
 """
 
 from __future__ import annotations
@@ -38,6 +42,13 @@ from grepify.ingest.normalize import (
     normalize,
     normalize_batch,
 )
+from grepify.ingest.orchestrator import (
+    IngestServices,
+    IngestSummary,
+    SourceResult,
+    build_registry,
+    run_ingest,
+)
 from grepify.ingest.reddit import RedditFetcher
 from grepify.ingest.registry import FetcherRegistry
 from grepify.ingest.rss import RssFetcher
@@ -47,10 +58,14 @@ __all__ = [
     "FakeFetcher",
     "Fetcher",
     "FetcherRegistry",
+    "IngestServices",
+    "IngestSummary",
     "RawItem",
     "RedditFetcher",
     "RssFetcher",
+    "SourceResult",
     "YouTubeFetcher",
+    "build_registry",
     "canonicalize_url",
     "compute_content_hash",
     "compute_item_id",
@@ -59,4 +74,5 @@ __all__ = [
     "hamming_distance",
     "normalize",
     "normalize_batch",
+    "run_ingest",
 ]

@@ -1,16 +1,20 @@
 """Single-entrypoint CLI (PRD §8 F-OPS-01): ``grepify <subcommand>``.
 
 Subcommands: ``ingest extract trends digest build validate health backfill``.
-In E0 the pipeline stages are stubs that record a run manifest so the operator
-tooling (``health``) works end to end; ``validate`` is fully wired to the config
-layer. Later epics replace each stub body without changing the CLI surface.
+``ingest`` is wired to the E1 orchestrator (GRP-15/16); ``validate`` is fully
+wired to the config layer. ``extract``/``trends``/``digest``/``build``/
+``backfill`` remain stubs that record a run manifest so the operator tooling
+(``health``) works end to end — later epics replace each stub body without
+changing the CLI surface.
 
 Failure modes
 -------------
 - ``validate`` exits non-zero when config is invalid (CI gate on every MR).
+- ``ingest`` never fails the process for a single dead source (isolated in the
+  orchestrator, PRD §9); it only propagates systemic failures (bad config,
+  unreadable truth).
 - Pipeline stubs never fail the process; they write a manifest noting the
-  not-yet-implemented epic and return 0 (a real single-source failure will be
-  isolated in the orchestrator, PRD §9).
+  not-yet-implemented epic and return 0.
 - ``health`` with no recorded runs prints a friendly notice, exit 0.
 """
 
@@ -24,8 +28,11 @@ import typer
 
 from grepify.clock import Clock, SystemClock, to_iso
 from grepify.config.filesystem import FilesystemConfigProvider
+from grepify.health import write_health_snapshot
+from grepify.ingest.orchestrator import IngestServices, build_registry, run_ingest
 from grepify.models import RunManifest
 from grepify.paths import DataLayout
+from grepify.repository.jsonl_sqlite import JsonlSqliteRepository
 from grepify.run import latest_manifest, new_run_id, write_manifest
 
 app = typer.Typer(add_completion=False, help="grep the firehose — grepify CLI.")
@@ -52,13 +59,62 @@ def main(
     ctx.obj = AppState(config_root=config_root, data_root=data_root, clock=SystemClock())
 
 
-# --- pipeline stubs (E1+) ---------------------------------------------------
+# --- wired pipeline commands -------------------------------------------------
 
 
 @app.command()
 def ingest(ctx: typer.Context) -> None:
-    """Fetch enabled sources (E1)."""
-    _record_stub(ctx, "ingest", "E1")
+    """Fetch enabled sources, normalize+dedup, and record health (E1, GRP-15/16)."""
+    state: AppState = ctx.obj
+    layout = DataLayout(state.data_root)
+    run_id = new_run_id(state.clock)
+    started_at = to_iso(state.clock.now())
+
+    config = FilesystemConfigProvider(state.config_root)
+    repository = JsonlSqliteRepository(state.data_root)
+    try:
+        summary = run_ingest(
+            IngestServices(
+                config=config,
+                repository=repository,
+                registry=build_registry(),
+                clock=state.clock,
+            ),
+            run_id=run_id,
+        )
+        write_health_snapshot(
+            repository.iter_fetch_log(),
+            layout,
+            run_id=run_id,
+            generated_at=to_iso(state.clock.now()),
+        )
+    finally:
+        repository.close()
+
+    manifest = RunManifest(
+        run_id=run_id,
+        command="ingest",
+        started_at=started_at,
+        finished_at=to_iso(state.clock.now()),
+        ok=True,
+        counts={
+            "sources_attempted": summary.sources_attempted,
+            "sources_ok": summary.sources_ok,
+            "sources_empty": summary.sources_empty,
+            "sources_error": summary.sources_error,
+            "items_new": summary.items_new,
+        },
+        durations_ms={"total_ms": summary.duration_ms},
+        notes=[f"{r.source_id}: {r.error}" for r in summary.results if r.error],
+    )
+    write_manifest(layout, manifest)
+    typer.echo(
+        f"ingest: {summary.sources_ok} ok, {summary.sources_empty} empty, "
+        f"{summary.sources_error} error, {summary.items_new} new items; run {run_id}"
+    )
+
+
+# --- pipeline stubs (E2+) -----------------------------------------------------
 
 
 @app.command()
@@ -91,7 +147,7 @@ def backfill(ctx: typer.Context) -> None:
     _record_stub(ctx, "backfill", "E6")
 
 
-# --- wired commands ---------------------------------------------------------
+# --- other wired commands -----------------------------------------------------
 
 
 @app.command()

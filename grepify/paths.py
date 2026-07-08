@@ -14,6 +14,7 @@ Layout::
       logs/llm/YYYY/MM/DD.jsonl     # by created_at date
       transcripts/                  # compressed blobs (E5)
       runs/<run_id>.json            # run manifests
+      health.json                   # per-source health snapshot (GRP-16)
       grepify.db                    # derived cache (gitignored)
 
 Failure modes
@@ -64,6 +65,10 @@ class DataLayout:
     @property
     def cache_db(self) -> Path:
         return self.root / "grepify.db"
+
+    @property
+    def health_file(self) -> Path:
+        return self.root / "health.json"
 
     def dated_file(self, base: Path, iso_ts: str) -> Path:
         """Return ``base/YYYY/MM/DD.jsonl`` for an ISO-8601 timestamp string."""

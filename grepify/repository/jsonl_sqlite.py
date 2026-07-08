@@ -115,6 +115,11 @@ class JsonlSqliteRepository(Repository):
     def existing_item_ids(self) -> set[str]:
         return self._existing_keys(self._layout.items_dir, lambda d: str(d["item_id"]))
 
+    def iter_fetch_log(self) -> Iterator[FetchLogEntry]:
+        rows = self._read_all(self._layout.fetch_log_dir, FetchLogEntry)
+        rows.sort(key=lambda e: (e.started_at, e.run_id, e.source_id))
+        return iter(rows)
+
     # --- config projection ---------------------------------------------------
 
     def load_config(self, groups: Iterable[SourceGroup], sources: Iterable[Source]) -> None:
@@ -250,8 +255,6 @@ class JsonlSqliteRepository(Repository):
         )
 
     def _insert_fetch_log(self, conn: sqlite3.Connection) -> None:
-        rows = self._read_all(self._layout.fetch_log_dir, FetchLogEntry)
-        rows.sort(key=lambda e: (e.started_at, e.run_id, e.source_id))
         conn.executemany(
             "insert into fetch_log "
             "(source_id, run_id, started_at, status, items_new, error, duration_ms) "
@@ -266,7 +269,7 @@ class JsonlSqliteRepository(Repository):
                     e.error,
                     e.duration_ms,
                 )
-                for e in rows
+                for e in self.iter_fetch_log()
             ],
         )
 
