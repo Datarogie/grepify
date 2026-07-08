@@ -1,0 +1,59 @@
+{
+  "kind": "Listing",
+  "data": {
+    "after": "t3_abc003",
+    "dist": 3,
+    "modhash": "",
+    "children": [
+      {
+        "kind": "t3",
+        "data": {
+          "id": "abc001",
+          "name": "t3_abc001",
+          "title": "Anyone else running a 70B model locally now?",
+          "selftext": "Got a used 3090 and finally fitting a quantized 70B. Curious what tokens/sec others are seeing.",
+          "author": "quant_curious",
+          "subreddit": "LocalLLaMA",
+          "permalink": "/r/LocalLLaMA/comments/abc001/anyone_else_running_a_70b_model_locally_now/",
+          "url": "https://www.reddit.com/r/LocalLLaMA/comments/abc001/anyone_else_running_a_70b_model_locally_now/",
+          "score": 128,
+          "num_comments": 34,
+          "created_utc": 1783490400.0
+        }
+      },
+      {
+        "kind": "t3",
+        "data": {
+          "id": "abc002",
+          "name": "t3_abc002",
+          "title": "New benchmark suite for local inference engines",
+          "selftext": "",
+          "author": "benchbot",
+          "subreddit": "LocalLLaMA",
+          "permalink": "/r/LocalLLaMA/comments/abc002/new_benchmark_suite_for_local_inference_engines/",
+          "url": "https://github.com/example/inference-bench",
+          "score": 76,
+          "num_comments": 12,
+          "created_utc": 1783497600.0
+        }
+      },
+      {
+        "kind": "t3",
+        "data": {
+          "id": "abc003",
+          "name": "t3_abc003",
+          "title": "[Discussion] Is fine-tuning still worth it in 2026?",
+          "selftext": "With retrieval and long context so cheap now, when do you reach for a fine-tune instead?",
+          "author": "ft_skeptic",
+          "subreddit": "LocalLLaMA",
+          "permalink": "/r/LocalLLaMA/comments/abc003/discussion_is_finetuning_still_worth_it_in_2026/",
+          "url": "https://www.reddit.com/r/LocalLLaMA/comments/abc003/discussion_is_finetuning_still_worth_it_in_2026/",
+          "score": 41,
+          "num_comments": 58,
+          "created_utc": 1783504800.0
+        }
+      }
+    ],
+    "before": null
+  }
+}

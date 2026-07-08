@@ -8,6 +8,8 @@ dependencies = [
     "typer>=0.12",
     "pydantic>=2.7",
     "pyyaml>=6.0",
+    "feedparser>=6.0.12",
+    "httpx>=0.28.1",
 ]
 
 [project.scripts]
@@ -54,6 +56,18 @@ warn_unused_ignores = true
 disallow_untyped_defs = true
 no_implicit_optional = true
 
+[[tool.mypy.overrides]]
+# feedparser ships no py.typed marker / stubs; its FeedParserDict is
+# deliberately dynamic (attribute + mapping access), so it can't be typed
+# precisely anyway. Confined to this one module rather than a blanket ignore.
+module = "feedparser"
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+filterwarnings = [
+    # feedparser's own published_parsed<-updated_parsed compat shim (not our usage) -
+    # tracked upstream, nothing actionable on our side.
+    "ignore:To avoid breaking existing software.*:DeprecationWarning:feedparser.util",
+]

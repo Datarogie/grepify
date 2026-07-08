@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+<channel>
+  <title>AI Business</title>
+  <link>https://example.com/ai-business</link>
+  <description>Business-of-AI coverage; some titles carry raw markup.</description>
+  <item>
+    <title>&lt;b&gt;Breaking&lt;/b&gt;: Anthropic &amp; Google Announce Partnership</title>
+    <link>https://example.com/ai-business/partnership-announcement</link>
+    <guid>aib-901</guid>
+    <pubDate>Sun, 05 Jul 2026 06:00:00 +0000</pubDate>
+    <description>Entity-escaped bold tags plus an ampersand entity in the title.</description>
+  </item>
+  <item>
+    <title>Q2 Earnings: &lt;span style="color:red"&gt;Down 4%&lt;/span&gt;</title>
+    <link>https://example.com/ai-business/q2-earnings</link>
+    <guid>aib-902</guid>
+    <pubDate>Mon, 06 Jul 2026 06:00:00 +0000</pubDate>
+    <description>A styled inline span embedded in the title text.</description>
+  </item>
+</channel>
+</rss>
