@@ -22,6 +22,11 @@ concurrency:
   group: validate-${{ github.ref }}
   cancel-in-progress: true
 
+# Least privilege: this workflow only reads and never pushes (unlike
+# pipeline.yml), so it doesn't need the org/repo default token scope.
+permissions:
+  contents: read
+
 jobs:
   validate:
     runs-on: ubuntu-latest

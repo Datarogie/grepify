@@ -9,9 +9,11 @@ __pycache__/
 dist/
 build/
 
-# Derived SQLite query cache — rebuilt from JSONL truth in CI, never committed (PRD §5).
-data/grepify.db
-data/grepify.db-*
+# JSONL truth + derived SQLite cache — committed to the dedicated `data`
+# branch only (GRP-06), never to `main`. Ignored broadly here so a local
+# `make ingest` run (without the `data`-branch worktree set up) can't get
+# accidentally staged by a stray `git add -A` on `main` (PRD §5).
+data/
 
 # Rendered site output (`make build` / `make site`) — generated per run, never committed.
 public/

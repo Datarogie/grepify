@@ -321,7 +321,7 @@ Validation: `grepify validate` (also a CI check on every MR) - schema-validates 
 ### Ops
 
 - **F-OPS-01** Single entrypoint CLI: `grepify ingest|extract|trends|digest|build|validate|health|backfill`.
-- **F-OPS-02** CI workflows: `pipeline` (cron 3x/day: ingest→extract→build+deploy; digest steps gated by time-of-day), `validate` (on MR), `deploy` (Pages).
+- **F-OPS-02** CI workflows: `pipeline` (cron 3x/day: ingest→extract→build+deploy, including the Pages deploy in the same job since it needs that run's build artifact — GRP-06 revision, folds the originally-separate `deploy` workflow into `pipeline`; digest steps gated by time-of-day), `validate` (on MR).
 - **F-OPS-03** GitLab portability: no GH-only features in app code; CI logic lives in `make` targets; `.gitlab-ci.yml` written and kept green from M3.
 - **F-OPS-04** Run manifest: every run writes `data/runs/<run_id>.json` (counts, durations, budget usage) - powers health page and debugging from phone.
 
