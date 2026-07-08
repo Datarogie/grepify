@@ -17,10 +17,10 @@ from typer.testing import CliRunner
 
 from grepify.cli import app
 from grepify.errors import FetchError
-from grepify.ingest.base import RawItem
+from grepify.ingest.base import Fetcher, RawItem
 from grepify.ingest.fake import FakeFetcher
 from grepify.ingest.registry import FetcherRegistry
-from grepify.models import RunManifest, SourceKind
+from grepify.models import RunManifest, Source, SourceKind
 from grepify.paths import DataLayout
 from grepify.run import latest_manifest
 from tests.conftest import write_config
@@ -50,12 +50,38 @@ _GROUP_INGEST = """
         url: https://example.com/bad/feed
 """
 
+_GROUP_WITH_UNEXPECTED_EXCEPTION = """
+    group: g2
+    name: G2
+    category: ai
+    sources:
+      - id: good-src
+        kind: rss
+        url: https://example.com/good/feed
+      - id: boom-src
+        kind: reddit
+        subreddit: boom
+"""
+
 
 def _invoke(config_root: Path, data_root: Path, command: str) -> object:
     return runner.invoke(
         app,
         ["--config-root", str(config_root), "--data-root", str(data_root), command],
     )
+
+
+def _run_id_from_output(output: str) -> str:
+    """Pull the trailing ``run <run_id>`` token the ``ingest`` command prints.
+
+    Two invocations issued back-to-back can land in the same wall-clock
+    second, so ``run_id``'s lexical sort order (``latest_manifest``'s
+    assumption) isn't reliable enough to pick out *this* invocation's
+    manifest — read it directly by the run_id this call actually printed.
+    """
+    match = re.search(r"run (\S+)\s*$", output.strip())
+    assert match is not None, output
+    return match.group(1)
 
 
 def test_validate_ok_exits_zero(tmp_path: Path) -> None:
@@ -134,17 +160,47 @@ def test_ingest_wired_isolates_failures_and_writes_health(
     assert by_id["good-src"]["last_status"] == "ok"
 
 
-def _run_id_from_output(output: str) -> str:
-    """Pull the trailing ``run <run_id>`` token the ``ingest`` command prints.
+class _ExplodingFetcher(Fetcher):
+    """A fetcher that raises a non-``FetchError`` exception (unexpected-failure path)."""
 
-    Two invocations issued back-to-back can land in the same wall-clock
-    second, so ``run_id``'s lexical sort order (``latest_manifest``'s
-    assumption) isn't reliable enough to pick out *this* invocation's
-    manifest — read it directly by the run_id this call actually printed.
-    """
-    match = re.search(r"run (\S+)\s*$", output.strip())
-    assert match is not None, output
-    return match.group(1)
+    @property
+    def kind(self) -> SourceKind:
+        return SourceKind.REDDIT
+
+    def fetch(self, source: Source) -> list[RawItem]:
+        raise ValueError("boom-unexpected")
+
+
+def _fake_registry_with_exploding_reddit() -> FetcherRegistry:
+    reg = FetcherRegistry()
+    reg.register(
+        FakeFetcher(
+            SourceKind.RSS,
+            default=[RawItem(url="https://example.com/a", title="A", external_id="a")],
+        )
+    )
+    reg.register(_ExplodingFetcher())
+    return reg
+
+
+def test_ingest_isolates_unexpected_exception_at_cli_level(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    cfg = write_config(tmp_path / "sources", groups={"g2.yml": _GROUP_WITH_UNEXPECTED_EXCEPTION})
+    data = tmp_path / "data"
+    monkeypatch.setattr("grepify.cli.build_registry", _fake_registry_with_exploding_reddit)
+
+    result = _invoke(cfg, data, "ingest")
+    assert result.exit_code == 0
+    assert "1 ok" in result.stdout
+    assert "1 error" in result.stdout
+
+    run_id = _run_id_from_output(result.stdout)
+    manifest = RunManifest.model_validate_json(
+        DataLayout(data).run_manifest(run_id).read_text(encoding="utf-8")
+    )
+    assert manifest.counts["sources_error"] == 1
+    assert any("boom-unexpected" in note for note in manifest.notes)
 
 
 def test_ingest_rerun_is_idempotent(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

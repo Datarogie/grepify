@@ -127,6 +127,40 @@ def test_digest_and_fetch_log_round_trip(tmp_path: Path) -> None:
     repo.close()
 
 
+def test_iter_fetch_log_preserves_append_order_on_timestamp_ties(tmp_path: Path) -> None:
+    """GRP-16: two attempts landing in the same wall-clock second (started_at
+    is second-precision text) must still come back in true call order, not
+    reordered by a tie-break on something like `run_id`, which ends in random
+    entropy and has no relation to real chronology. Health-snapshot's
+    trailing-consecutive-failure computation depends on this (grepify.health).
+    """
+    repo = JsonlSqliteRepository(tmp_path)
+    same_started_at = "2026-07-08T12:00:00+00:00"
+    # run_id chosen so an alphabetic tie-break would invert the real call order.
+    repo.log_fetch(
+        FetchLogEntry(
+            source_id="s1",
+            run_id="zzz-run",
+            started_at=same_started_at,
+            status=FetchStatus.ERROR,
+            error="boom",
+        )
+    )
+    repo.log_fetch(
+        FetchLogEntry(
+            source_id="s1",
+            run_id="aaa-run",
+            started_at=same_started_at,
+            status=FetchStatus.OK,
+            items_new=1,
+        )
+    )
+
+    entries = list(repo.iter_fetch_log())
+    assert [e.run_id for e in entries] == ["zzz-run", "aaa-run"]
+    repo.close()
+
+
 def test_count_before_rebuild_raises(tmp_path: Path) -> None:
     repo = JsonlSqliteRepository(tmp_path)
     with pytest.raises(RepositoryError):

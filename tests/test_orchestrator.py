@@ -5,12 +5,15 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from pathlib import Path
 
+import pytest
+
 from grepify.clock import FixedClock
 from grepify.config.filesystem import FilesystemConfigProvider
 from grepify.errors import FetchError
 from grepify.ingest.base import Fetcher, RawItem
 from grepify.ingest.fake import FakeFetcher
-from grepify.ingest.orchestrator import IngestServices, run_ingest
+from grepify.ingest.orchestrator import ITEM_CAP_DEFAULT, IngestServices, run_ingest
+from grepify.ingest.reddit import _ITEM_CAP as _REDDIT_CLIENT_SIDE_CAP
 from grepify.ingest.registry import FetcherRegistry
 from grepify.models import FetchStatus, Source, SourceKind
 from grepify.repository import JsonlSqliteRepository
@@ -139,6 +142,37 @@ def test_per_run_cap_truncates_raw_items(tmp_path: Path) -> None:
     summary = run_ingest(services, run_id="run-1", item_cap=10)
     by_id = {r.source_id: r for r in summary.results}
     assert by_id["good-src"].items_new == 10
+
+
+def test_unregistered_source_kind_raises_and_stops_the_run(tmp_path: Path) -> None:
+    groups = {
+        "g.yml": """
+            group: g
+            name: G
+            category: ai
+            sources:
+              - id: x-src
+                kind: x
+                handle: someone
+        """
+    }
+    cfg_root = write_config(tmp_path / "sources", groups=groups)
+    services = IngestServices(
+        config=FilesystemConfigProvider(cfg_root),
+        repository=JsonlSqliteRepository(tmp_path / "data"),
+        registry=FetcherRegistry(),  # nothing registered for `x` - systemic, not a FetchError
+        clock=FixedClock(datetime(2026, 7, 8, 12, 0, tzinfo=UTC)),
+    )
+    with pytest.raises(KeyError):
+        run_ingest(services, run_id="run-1")
+
+
+def test_item_cap_matches_reddit_fetchers_client_side_cap() -> None:
+    # Guards against the two 50-item caps (orchestrator's ITEM_CAP_DEFAULT and
+    # RedditFetcher's own client-side _ITEM_CAP) silently drifting apart -
+    # the module docstring's "no double-truncation" claim depends on them
+    # agreeing.
+    assert ITEM_CAP_DEFAULT == _REDDIT_CLIENT_SIDE_CAP
 
 
 def test_fetch_log_written_with_expected_fields(tmp_path: Path) -> None:

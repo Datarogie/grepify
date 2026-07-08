@@ -176,6 +176,12 @@ def _run_source(
         return _finish(attempt, FetchStatus.OK, items_new=items_new)
     except FetchError as exc:
         return _finish(attempt, FetchStatus.ERROR, error=str(exc))
+    except KeyError:
+        # An unregistered source.kind is a systemic config/wiring bug (see
+        # FetcherRegistry.fetch), not a per-source hiccup - it must propagate
+        # and fail the run, so it is deliberately not isolated like the
+        # broader `except Exception` below.
+        raise
     except Exception as exc:
         return _finish(attempt, FetchStatus.ERROR, error=f"{type(exc).__name__}: {exc}")
 

@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from grepify.health import CONSECUTIVE_FAILURE_THRESHOLD, compute_health, write_health_snapshot
+from grepify.health import (
+    CONSECUTIVE_FAILURE_THRESHOLD,
+    HealthSnapshot,
+    compute_health,
+    write_health_snapshot,
+)
 from grepify.models import FetchLogEntry, FetchStatus
 from grepify.paths import DataLayout
 
@@ -102,10 +107,20 @@ def test_empty_history_yields_empty_snapshot() -> None:
 
 def test_write_health_snapshot_writes_json(tmp_path: Path) -> None:
     layout = DataLayout(tmp_path)
-    entries = [_entry("s1", "r1", "2026-07-01T00:00:00+00:00", FetchStatus.OK)]
+    entries = [
+        _entry("s1", "r1", "2026-07-01T00:00:00+00:00", FetchStatus.OK),
+        _entry("s2", "r1", "2026-07-01T00:00:00+00:00", FetchStatus.ERROR, error="dead"),
+    ]
     write_health_snapshot(entries, layout, run_id="r1", generated_at="2026-07-01T00:05:00+00:00")
 
     assert layout.health_file.exists()
-    written = layout.health_file.read_text(encoding="utf-8")
-    assert '"run_id": "r1"' in written
-    assert '"source_id": "s1"' in written
+    written = HealthSnapshot.model_validate_json(layout.health_file.read_text(encoding="utf-8"))
+    assert written.run_id == "r1"
+    assert written.generated_at == "2026-07-01T00:05:00+00:00"
+    by_id = {s.source_id: s for s in written.sources}
+    assert by_id["s1"].last_status is FetchStatus.OK
+    assert by_id["s1"].consecutive_failures == 0
+    assert by_id["s2"].last_status is FetchStatus.ERROR
+    assert by_id["s2"].last_error == "dead"
+    assert by_id["s2"].consecutive_failures == 1
+    assert by_id["s2"].flagged is False
