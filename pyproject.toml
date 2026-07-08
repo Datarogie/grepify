@@ -1,0 +1,59 @@
+[project]
+name = "grepify"
+version = "0.1.0"
+description = "Personal, configurable news/video/social aggregator (grep the firehose)."
+requires-python = ">=3.12"
+readme = "README.md"
+dependencies = [
+    "typer>=0.12",
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+grepify = "grepify.cli:app"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "pytest>=8.2",
+    "types-pyyaml>=6.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["grepify"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+# Core rule set. Explicit and conservative so agents in later sessions inherit a
+# stable lint contract rather than chasing churn from newly-enabled defaults.
+select = ["E", "F", "I", "N", "UP", "B", "SIM", "PL", "RUF"]
+ignore = [
+    "PLR2004", # magic-value comparisons are fine in tests / small constants
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["PLR2004", "S101"]
+
+[tool.mypy]
+# Strict on core (the shipped package). Tests are excluded from strict typing.
+python_version = "3.12"
+strict = true
+files = ["grepify"]
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

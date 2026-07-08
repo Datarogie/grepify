@@ -1,0 +1,59 @@
+# Grepify make targets.
+#
+# CI is just a scheduler: every pipeline step is a make target that also runs
+# locally (PRD §5). `make check` is the definition-of-done gate for every MR.
+
+.DEFAULT_GOAL := help
+UV ?= uv
+
+.PHONY: help install fmt lint typecheck test check \
+        ingest extract trends digest build validate health backfill
+
+help: ## List available targets
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
+		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
+
+install: ## Sync the dev environment
+	$(UV) sync --group dev
+
+fmt: ## Auto-format
+	$(UV) run ruff format .
+	$(UV) run ruff check --fix .
+
+lint: ## Lint + format check (no changes)
+	$(UV) run ruff check .
+	$(UV) run ruff format --check .
+
+typecheck: ## Strict type-check the core package
+	$(UV) run mypy
+
+test: ## Run the test suite
+	$(UV) run pytest
+
+check: lint typecheck test ## Full DoD gate: lint + typecheck + test
+
+# --- Pipeline entrypoints (PRD §8 F-OPS-01). Stubbed in E0; filled by later epics. ---
+
+ingest: ## Fetch enabled sources (E1)
+	$(UV) run grepify ingest
+
+extract: ## LLM keyword extraction (E2)
+	$(UV) run grepify extract
+
+trends: ## Compute trend datasets (E3/E4)
+	$(UV) run grepify trends
+
+digest: ## Generate category digests (E4)
+	$(UV) run grepify digest
+
+build: ## Render the static site (E3)
+	$(UV) run grepify build
+
+validate: ## Schema-validate config (CI check on every MR)
+	$(UV) run grepify validate
+
+health: ## Print the latest run manifest
+	$(UV) run grepify health
+
+backfill: ## Re-process / re-extract historical data (E6)
+	$(UV) run grepify backfill

@@ -1,0 +1,32 @@
+# settings.example.yml — copy to sources/settings.yml and adjust.
+#
+# This is the cloneability template (PRD §5). No secrets ever live here or in
+# sources/settings.yml — the LLM key, X session cookies, and Slack tokens are
+# CI masked variables only. See docs/setup.md.
+
+llm:
+  # Named profiles (PRD §5). Personal v1 uses gemini-free; work profiles activate
+  # only in the remote-labs fork. The active profile's budget gate is enforced.
+  active_profile: gemini-free
+  max_items_per_call: 25 # batch titles+summaries per extraction call
+  profiles:
+    gemini-free:
+      endpoint: openai-compat
+      model: gemini-3.1-flash-lite
+      max_calls_per_run: 40
+    claude:
+      endpoint: anthropic
+      model: claude-haiku-4-5
+      max_calls_per_run: 40
+
+windows:
+  cloud_days: 7 # trailing window for the keyword cloud
+  digest_daily_hours: 24
+  digest_weekly: iso_week
+
+limits:
+  transcript_max_chars: 60000
+  transcript_langs: [en]
+
+# Digest day boundary + cron gating are pinned to this zone, not UTC (PRD §5).
+timezone: America/Edmonton

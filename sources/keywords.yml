@@ -1,0 +1,11 @@
+# Human-in-the-loop keyword curation (PRD §7). Applied at trend-computation time,
+# so edits are retroactive and non-destructive.
+aliases:
+  # "surface form": canonical
+  "gen ai": genai
+mute:
+  - webinar
+  - sponsored
+pin:
+  - anthropic
+  - dbt
