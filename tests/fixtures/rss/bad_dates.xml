@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+<channel>
+  <title>Data Eng Roundup</title>
+  <link>https://example.com/data-eng-roundup</link>
+  <description>Weekly analytics engineering links.</description>
+  <item>
+    <title>Backfilling Without Tears</title>
+    <link>https://example.com/data-eng-roundup/backfilling-without-tears</link>
+    <guid>de-roundup-041</guid>
+    <pubDate>whenever, probably last week</pubDate>
+    <description>A malformed pubDate that feedparser cannot parse.</description>
+  </item>
+  <item>
+    <title>dbt Incremental Models, Revisited</title>
+    <link>https://example.com/data-eng-roundup/dbt-incremental-revisited</link>
+    <guid>de-roundup-042</guid>
+    <pubDate>zzzzzzzz not even close to a date zzzzzzzz</pubDate>
+    <description>An out-of-range date string that isn't a valid RFC-822/ISO date.</description>
+  </item>
+  <item>
+    <title>Column Lineage at Scale</title>
+    <link>https://example.com/data-eng-roundup/column-lineage-at-scale</link>
+    <guid>de-roundup-043</guid>
+    <pubDate>Thu, 09 Jul 2026 08:30:00 +0000</pubDate>
+    <description>One well-formed date alongside the two bad ones above.</description>
+  </item>
+</channel>
+</rss>

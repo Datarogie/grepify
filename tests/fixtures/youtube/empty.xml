@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns="http://www.w3.org/2005/Atom">
+  <link rel="self" href="https://www.youtube.com/feeds/videos.xml?channel_id=UCemptychannel00000000"/>
+  <id>yt:channel:UCemptychannel00000000</id>
+  <yt:channelId>UCemptychannel00000000</yt:channelId>
+  <title>Brand New Channel</title>
+  <link rel="alternate" href="https://www.youtube.com/channel/UCemptychannel00000000"/>
+  <author>
+    <name>Brand New Channel</name>
+    <uri>https://www.youtube.com/channel/UCemptychannel00000000</uri>
+  </author>
+</feed>

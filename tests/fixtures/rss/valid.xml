@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>Ahead of AI</title>
+  <link>https://example.com/ahead-of-ai</link>
+  <description>Newsletter on AI research, digested.</description>
+  <language>en-us</language>
+  <atom:link href="https://example.com/ahead-of-ai/feed" rel="self" type="application/rss+xml"/>
+  <item>
+    <title>Scaling Laws Revisited</title>
+    <link>https://example.com/ahead-of-ai/scaling-laws-revisited</link>
+    <guid isPermaLink="false">urn:uuid:1111-scaling-laws</guid>
+    <pubDate>Mon, 06 Jul 2026 09:00:00 +0000</pubDate>
+    <author>sebastian@example.com (Sebastian R.)</author>
+    <description>A look back at what scaling laws got right and wrong this year.</description>
+  </item>
+  <item>
+    <title>Open Weights, Closed Data</title>
+    <link>https://example.com/ahead-of-ai/open-weights-closed-data</link>
+    <guid isPermaLink="false">urn:uuid:2222-open-weights</guid>
+    <pubDate>Tue, 07 Jul 2026 09:00:00 +0000</pubDate>
+    <author>sebastian@example.com (Sebastian R.)</author>
+    <description>Why weight releases without data/methodology disclosure limit reproducibility.</description>
+  </item>
+  <item>
+    <title>Notes from ICML Hallway Tracks</title>
+    <link>https://example.com/ahead-of-ai/icml-hallway-tracks</link>
+    <guid isPermaLink="false">urn:uuid:3333-icml-hallway</guid>
+    <pubDate>Wed, 08 Jul 2026 09:00:00 +0000</pubDate>
+    <author>sebastian@example.com (Sebastian R.)</author>
+    <description>Unofficial takeaways nobody puts in the proceedings.</description>
+  </item>
+</channel>
+</rss>

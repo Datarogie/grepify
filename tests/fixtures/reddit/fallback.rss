@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
+  <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+  <updated>2026-07-08T12:00:00+00:00</updated>
+  <id>/r/LocalLLaMA/new.rss</id>
+  <link rel="self" href="https://www.reddit.com/r/LocalLLaMA/new.rss" type="application/atom+xml"/>
+  <link rel="alternate" href="https://www.reddit.com/r/LocalLLaMA/new/" type="text/html"/>
+  <title>newest submissions</title>
+  <entry>
+    <author>
+      <name>/u/quant_curious</name>
+      <uri>https://www.reddit.com/user/quant_curious</uri>
+    </author>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <content type="html">Got a used 3090 and finally fitting a quantized 70B.</content>
+    <id>t3_abc001</id>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/abc001/anyone_else_running_a_70b_model_locally_now/"/>
+    <updated>2026-07-08T08:00:00+00:00</updated>
+    <published>2026-07-08T08:00:00+00:00</published>
+    <title>Anyone else running a 70B model locally now?</title>
+  </entry>
+  <entry>
+    <author>
+      <name>/u/benchbot</name>
+      <uri>https://www.reddit.com/user/benchbot</uri>
+    </author>
+    <category term="LocalLLaMA" label="r/LocalLLaMA"/>
+    <content type="html">New benchmark suite for local inference engines.</content>
+    <id>t3_abc002</id>
+    <link href="https://www.reddit.com/r/LocalLLaMA/comments/abc002/new_benchmark_suite_for_local_inference_engines/"/>
+    <updated>2026-07-08T09:00:00+00:00</updated>
+    <published>2026-07-08T09:00:00+00:00</published>
+    <title>New benchmark suite for local inference engines</title>
+  </entry>
+</feed>

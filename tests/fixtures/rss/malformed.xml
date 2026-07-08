@@ -1,0 +1,3 @@
+This is not XML at all. A feed host returned an HTML error page or a
+truncated response body instead of the RSS document that was requested.
+<<< totally broken >>> &&& nothing here is well-formed markup.

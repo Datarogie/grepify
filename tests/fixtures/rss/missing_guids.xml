@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+<channel>
+  <title>InfoWorld AI</title>
+  <link>https://example.com/infoworld-ai</link>
+  <description>AI tooling coverage, no guids in this feed variant.</description>
+  <item>
+    <title>Vector Databases: A Buyer's Checklist</title>
+    <link>https://example.com/infoworld-ai/vector-db-checklist</link>
+    <pubDate>Fri, 03 Jul 2026 07:15:00 +0000</pubDate>
+    <description>No guid element at all - external_id must come back None.</description>
+  </item>
+  <item>
+    <title>Serverless Inference Gets Cheaper</title>
+    <link>https://example.com/infoworld-ai/serverless-inference-cheaper</link>
+    <pubDate>Sat, 04 Jul 2026 07:15:00 +0000</pubDate>
+    <description>Same as above - identity falls back to canonical_url downstream.</description>
+  </item>
+</channel>
+</rss>

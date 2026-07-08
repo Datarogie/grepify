@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns:media="http://search.yahoo.com/mrss/" xmlns="http://www.w3.org/2005/Atom">
+  <link rel="self" href="https://www.youtube.com/feeds/videos.xml?channel_id=UC1234567890abcdefghijk"/>
+  <id>yt:channel:UC1234567890abcdefghijk</id>
+  <yt:channelId>UC1234567890abcdefghijk</yt:channelId>
+  <title>Two Minute Papers</title>
+  <link rel="alternate" href="https://www.youtube.com/channel/UC1234567890abcdefghijk"/>
+  <author>
+    <name>Two Minute Papers</name>
+    <uri>https://www.youtube.com/channel/UC1234567890abcdefghijk</uri>
+  </author>
+  <entry>
+    <id>yt:video:vid0001AAA</id>
+    <yt:videoId>vid0001AAA</yt:videoId>
+    <yt:channelId>UC1234567890abcdefghijk</yt:channelId>
+    <title>This New AI Sees Around Corners!</title>
+    <link rel="alternate" href="https://www.youtube.com/watch?v=vid0001AAA"/>
+    <author>
+      <name>Two Minute Papers</name>
+      <uri>https://www.youtube.com/channel/UC1234567890abcdefghijk</uri>
+    </author>
+    <published>2026-07-05T14:00:05+00:00</published>
+    <updated>2026-07-05T14:03:20+00:00</updated>
+    <media:group>
+      <media:title>This New AI Sees Around Corners!</media:title>
+      <media:content url="https://www.youtube.com/v/vid0001AAA?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+      <media:thumbnail url="https://i.ytimg.com/vi/vid0001AAA/hqdefault.jpg" width="480" height="360"/>
+      <media:description>A new non-line-of-sight imaging paper, explained.</media:description>
+    </media:group>
+  </entry>
+  <entry>
+    <id>yt:video:vid0002BBB</id>
+    <yt:videoId>vid0002BBB</yt:videoId>
+    <yt:channelId>UC1234567890abcdefghijk</yt:channelId>
+    <title>OpenAI's New Model Learned WHAT?!</title>
+    <link rel="alternate" href="https://www.youtube.com/watch?v=vid0002BBB"/>
+    <author>
+      <name>Two Minute Papers</name>
+      <uri>https://www.youtube.com/channel/UC1234567890abcdefghijk</uri>
+    </author>
+    <published>2026-07-07T14:00:05+00:00</published>
+    <updated>2026-07-07T14:00:05+00:00</updated>
+    <media:group>
+      <media:title>OpenAI's New Model Learned WHAT?!</media:title>
+      <media:content url="https://www.youtube.com/v/vid0002BBB?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+      <media:thumbnail url="https://i.ytimg.com/vi/vid0002BBB/hqdefault.jpg" width="480" height="360"/>
+      <media:description>Emergent behavior in a new release, dissected.</media:description>
+    </media:group>
+  </entry>
+</feed>
