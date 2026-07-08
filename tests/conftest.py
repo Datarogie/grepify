@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import json
 import textwrap
+from collections.abc import Sequence
 from pathlib import Path
+from typing import Any
 
 from grepify.ingest.http import HttpResponse
 from grepify.models import Item, ItemKeyword, Source, SourceKind
@@ -128,6 +131,68 @@ def make_source(
         group_id="g1",
         added_at="2026-07-07T00:00:00+00:00",
     )
+
+
+def openai_envelope(
+    text: str, *, prompt_tokens: int | None = 11, completion_tokens: int | None = 7
+) -> bytes:
+    """Wrap ``text`` as an OpenAI-compatible chat-completions response body."""
+    usage: dict[str, int] = {}
+    if prompt_tokens is not None:
+        usage["prompt_tokens"] = prompt_tokens
+    if completion_tokens is not None:
+        usage["completion_tokens"] = completion_tokens
+    payload: dict[str, Any] = {"choices": [{"message": {"role": "assistant", "content": text}}]}
+    if usage:
+        payload["usage"] = usage
+    return json.dumps(payload).encode("utf-8")
+
+
+def envelope_response(text: str, **usage: int | None) -> HttpResponse:
+    """A 200 :class:`HttpResponse` carrying an OpenAI-compat body for ``text``."""
+    return HttpResponse(status_code=200, content=openai_envelope(text, **usage), headers={})
+
+
+class ScriptedCompletionTransport:
+    """Test double for :class:`~grepify.llm.transport.CompletionTransport`.
+
+    Returns pre-scripted responses/exceptions in call order (one per
+    ``post_json`` call) and records each request as ``(url, headers, payload)``
+    on ``.posts`` — so a test can assert that a budget-refused call sent nothing.
+    Popping past the script is a test bug (``IndexError``), not client behavior.
+    """
+
+    def __init__(self, script: list[HttpResponse | Exception]) -> None:
+        self.script: list[HttpResponse | Exception] = list(script)
+        self.posts: list[tuple[str, dict[str, str], dict[str, Any]]] = []
+
+    def post_json(
+        self, url: str, *, headers: dict[str, str], payload: dict[str, Any], timeout: float
+    ) -> HttpResponse:
+        self.posts.append((url, dict(headers), payload))
+        outcome = self.script.pop(0)
+        if isinstance(outcome, Exception):
+            raise outcome
+        return outcome
+
+
+class FakeFallbackExtractor:
+    """Deterministic stand-in for the GRP-22 YAKE fallback extractor.
+
+    Returns ``canned`` keywords for the item_ids it knows, records the batches
+    it was asked to handle on ``.calls``, and (by default) yields a single
+    per-item keyword so a fallback batch always produces rows.
+    """
+
+    def __init__(self, canned: dict[str, list[str]] | None = None) -> None:
+        self.canned = canned
+        self.calls: list[list[str]] = []
+
+    def extract(self, items: Sequence[Item]) -> dict[str, list[str]]:
+        self.calls.append([item.item_id for item in items])
+        if self.canned is not None:
+            return {item.item_id: self.canned.get(item.item_id, []) for item in items}
+        return {item.item_id: [f"fallback-{item.item_id}"] for item in items}
 
 
 def make_keyword(item_id: str, keyword: str, rank: int = 1) -> ItemKeyword:
