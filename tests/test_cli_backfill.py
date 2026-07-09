@@ -169,3 +169,64 @@ def test_backfill_rerun_does_not_reselect_already_backfilled_item(
     assert second.exit_code == 0
     assert "0 llm batches" in second.stdout
     assert "0 still-fallback batches" in second.stdout
+
+
+def test_backfill_without_llm_api_key_still_runs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Keyless local endpoints (LlmProfile.endpoint='openai-compat' against e.g.
+    # a local model server) never set LLM_API_KEY; the CLI must not require it.
+    monkeypatch.setenv("LLM_BASE_URL", "https://x/v1")
+    monkeypatch.delenv("LLM_API_KEY", raising=False)
+    monkeypatch.setattr(
+        "grepify.cli.build_client",
+        _scripted_build_client([json.dumps([{"item_id": "item-1", "keywords": ["genai"]}])]),
+    )
+
+    cfg = write_config(tmp_path / "sources", groups={"g1.yml": _GROUP})
+    data = tmp_path / "data"
+    _seed_fallback_item(data)
+
+    result = _invoke(cfg, data)
+    assert result.exit_code == 0
+    assert "1 llm batches" in result.stdout
+
+
+_SETTINGS_ONE_ITEM_PER_CALL = """
+    llm:
+      active_profile: gemini-free
+      max_items_per_call: 1
+      profiles:
+        gemini-free:
+          endpoint: openai-compat
+          model: gemini-3.1-flash-lite
+          max_calls_per_run: 40
+    timezone: America/Edmonton
+"""
+
+
+def test_backfill_budget_exhaustion_is_noted_in_manifest(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("LLM_BASE_URL", "https://x/v1")
+    cfg = write_config(
+        tmp_path / "sources", groups={"g1.yml": _GROUP}, settings=_SETTINGS_ONE_ITEM_PER_CALL
+    )
+    data = tmp_path / "data"
+    _seed_fallback_item(data, item_id="item-1")
+    _seed_fallback_item(data, item_id="item-2")
+
+    # max_items_per_call=1 -> two batches; --max-calls 1 -> only the first
+    # batch reaches the transport, the second is refused by the budget gate.
+    monkeypatch.setattr(
+        "grepify.cli.build_client",
+        _scripted_build_client([json.dumps([{"item_id": "item-1", "keywords": ["genai"]}])]),
+    )
+    result = _invoke(cfg, data, "--max-calls", "1")
+    assert result.exit_code == 0
+
+    manifest = latest_manifest(DataLayout(data))
+    assert manifest is not None
+    assert manifest.counts["batches_llm"] == 1
+    assert manifest.counts["batches_fallback"] == 1
+    assert any("budget exhausted" in note for note in manifest.notes)

@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import json
 from datetime import UTC, datetime
+from pathlib import Path
 
 from grepify.clock import FixedClock
 from grepify.extract.backfill import run_fallback_backfill, select_fallback_items
 from grepify.llm.client import LlmClient, RetryPolicy
-from grepify.models import ExtractionMethod, ItemKeyword, LlmLogEntry
+from grepify.models import ExtractionMethod, Item, ItemKeyword, LlmLogEntry
+from grepify.repository.jsonl_sqlite import JsonlSqliteRepository
 from tests.conftest import (
     FakeFallbackExtractor,
     ScriptedCompletionTransport,
@@ -53,6 +55,14 @@ def test_untagged_item_is_not_selected() -> None:
 
 def test_no_items_no_keywords_returns_empty() -> None:
     assert select_fallback_items([], []) == []
+
+
+def test_keyword_rows_for_an_unknown_item_id_are_ignored() -> None:
+    # A keyword row referencing an item_id absent from `items` (e.g. stale/
+    # orphaned truth) must not crash selection or fabricate a phantom item.
+    items = [make_item("a")]
+    keywords = [_fallback_row("a"), _fallback_row("orphan")]
+    assert [item.item_id for item in select_fallback_items(items, keywords)] == ["a"]
 
 
 # --- run_fallback_backfill -----------------------------------------------------
@@ -128,3 +138,67 @@ def test_still_fallback_on_repeated_llm_failure() -> None:
     assert result.batches_fallback == 1
     assert [kw.keyword for kw in result.keywords] == ["fb-again"]
     assert all(kw.method is ExtractionMethod.FALLBACK for kw in result.keywords)
+
+
+# --- documented limitation: exact-text collision blocks convergence ----------
+
+
+def test_exact_text_collision_with_existing_fallback_row_leaves_item_still_fallback(
+    tmp_path: Path,
+) -> None:
+    """Known limitation (see backfill.py module docstring): the LLM re-extraction
+    can agree, word for word, with the keyword YAKE already stored. Truth's
+    ``(item_id, keyword)`` primary key doesn't carry ``method``, so the write is
+    dropped as a duplicate and the item is still "entirely fallback" afterwards —
+    it would be re-selected by a *later* backfill invocation. This is a real,
+    reproducible gap flagged for Kyle as a PRD-diff candidate, not silently
+    fixed by changing the locked §6 schema.
+    """
+    repository = JsonlSqliteRepository(tmp_path / "data")
+    try:
+        item = Item(
+            item_id="a",
+            source_id="src-1",
+            kind=make_item("a").kind,
+            external_id="a",
+            canonical_url="https://example.com/a",
+            title="title a",
+            summary="summary for a",
+            published_at="2026-07-08T09:00:00+00:00",
+            fetched_at="2026-07-08T10:00:00+00:00",
+            content_hash="hash-a",
+        )
+        repository.add_items([item])
+        repository.add_item_keywords(
+            [
+                ItemKeyword(
+                    item_id="a",
+                    keyword="ai",
+                    rank=1,
+                    method=ExtractionMethod.FALLBACK,
+                    model=None,
+                    extracted_at="2026-07-08T10:05:00+00:00",
+                )
+            ]
+        )
+
+        items = list(repository.iter_items())
+        keywords = list(repository.iter_item_keywords())
+        client, _logs = _client([_kw_text({"a": ["ai"]})])  # LLM agrees with YAKE, verbatim
+
+        result = run_fallback_backfill(
+            items, keywords, client, run_id="r1", clock=_CLOCK, fallback=FakeFallbackExtractor()
+        )
+        assert result.batches_llm == 1  # the LLM call itself succeeded
+        assert [kw.method for kw in result.keywords] == [ExtractionMethod.LLM]
+
+        written = repository.add_item_keywords(result.keywords)
+        assert written == 0  # dropped: (item_id, keyword) already exists as truth
+
+        # Re-derive candidates the way a *second* `backfill` invocation would.
+        refreshed_items = list(repository.iter_items())
+        refreshed_keywords = list(repository.iter_item_keywords())
+        still_selected = select_fallback_items(refreshed_items, refreshed_keywords)
+        assert [i.item_id for i in still_selected] == ["a"]  # still "entirely fallback"
+    finally:
+        repository.close()
