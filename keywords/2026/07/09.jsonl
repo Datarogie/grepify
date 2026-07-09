@@ -9626,3 +9626,15 @@
 {"item_id":"7d92b6cb9c40765a9f08c785b857a20a29283c4c9f2502fa13c6776c1a955581","keyword":"model for cross-embodiment","rank":6,"method":"fallback","model":null,"extracted_at":"2026-07-09T03:25:00+00:00"}
 {"item_id":"7d92b6cb9c40765a9f08c785b857a20a29283c4c9f2502fa13c6776c1a955581","keyword":"cross-embodiment robot","rank":7,"method":"fallback","model":null,"extracted_at":"2026-07-09T03:25:00+00:00"}
 {"item_id":"7d92b6cb9c40765a9f08c785b857a20a29283c4c9f2502fa13c6776c1a955581","keyword":"group robbyant","rank":8,"method":"fallback","model":null,"extracted_at":"2026-07-09T03:25:00+00:00"}
+{"item_id":"62421143d0e9baa2b3fb088f51acb8cbfc9bc7f2ccdc67963a6660cde77fc9c6","keyword":"microsoft","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-09T04:53:41+00:00"}
+{"item_id":"62421143d0e9baa2b3fb088f51acb8cbfc9bc7f2ccdc67963a6660cde77fc9c6","keyword":"ai economy institute","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-09T04:53:41+00:00"}
+{"item_id":"62421143d0e9baa2b3fb088f51acb8cbfc9bc7f2ccdc67963a6660cde77fc9c6","keyword":"artificial intelligence","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-09T04:53:41+00:00"}
+{"item_id":"62421143d0e9baa2b3fb088f51acb8cbfc9bc7f2ccdc67963a6660cde77fc9c6","keyword":"frontier ai firms","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-09T04:53:41+00:00"}
+{"item_id":"62421143d0e9baa2b3fb088f51acb8cbfc9bc7f2ccdc67963a6660cde77fc9c6","keyword":"future of work","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-09T04:53:41+00:00"}
+{"item_id":"62421143d0e9baa2b3fb088f51acb8cbfc9bc7f2ccdc67963a6660cde77fc9c6","keyword":"workplace transformation","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-09T04:53:41+00:00"}
+{"item_id":"6591915f9af49e132b2bcddf86ce29e66a643b6381f598673231e71cea097e95","keyword":"volley automation","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-09T04:53:41+00:00"}
+{"item_id":"6591915f9af49e132b2bcddf86ce29e66a643b6381f598673231e71cea097e95","keyword":"robotic parking systems","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-09T04:53:41+00:00"}
+{"item_id":"6591915f9af49e132b2bcddf86ce29e66a643b6381f598673231e71cea097e95","keyword":"manhattan","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-09T04:53:41+00:00"}
+{"item_id":"6591915f9af49e132b2bcddf86ce29e66a643b6381f598673231e71cea097e95","keyword":"real estate technology","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-09T04:53:41+00:00"}
+{"item_id":"6591915f9af49e132b2bcddf86ce29e66a643b6381f598673231e71cea097e95","keyword":"legion investment group","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-09T04:53:41+00:00"}
+{"item_id":"6591915f9af49e132b2bcddf86ce29e66a643b6381f598673231e71cea097e95","keyword":"smart cities","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-09T04:53:41+00:00"}
