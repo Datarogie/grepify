@@ -10,8 +10,11 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 
+import pytest
+
 from grepify.clock import FixedClock
 from grepify.config.schemas import KeywordsConfig
+from grepify.errors import DataQualityError
 from grepify.extract.pipeline import run_extract_pipeline, select_untagged_items
 from grepify.keywords import KeywordRules
 from grepify.llm.client import LlmClient, RetryPolicy
@@ -159,6 +162,27 @@ def test_llm_empty_result_is_flagged_no_keywords_not_raised() -> None:
     )
     assert rows == []
     assert summary.no_keywords_item_ids == ["a"]
+
+
+def test_alias_mapping_to_an_over_length_keyword_raises_data_quality_error() -> None:
+    # Alias substitution can lengthen a keyword (unlike normalize_keyword,
+    # which only ever shrinks it) — a misconfigured alias mapping to a
+    # >60-char canonical string must still fail the run loudly (PRD §10.7),
+    # not slip through as if the length gate only guarded a regression.
+    items = [make_item("a")]
+    client = _client([_kw_text({"a": ["gen ai"]})])
+    rules = KeywordRules.from_config(KeywordsConfig(aliases={"gen ai": "x" * 61}))
+
+    with pytest.raises(DataQualityError, match="exceed 60 chars"):
+        run_extract_pipeline(
+            items,
+            [],
+            client,
+            run_id="r1",
+            clock=_CLOCK,
+            fallback=FakeFallbackExtractor(),
+            rules=rules,
+        )
 
 
 def test_force_reextracts_already_tagged_items() -> None:
