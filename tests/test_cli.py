@@ -110,14 +110,14 @@ def test_stub_records_manifest_then_health_prints_it(tmp_path: Path) -> None:
     cfg = write_config(tmp_path / "sources")
     data = tmp_path / "data"
 
-    extract = _invoke(cfg, data, "extract")
-    assert extract.exit_code == 0
-    assert "stub" in extract.stdout
+    trends = _invoke(cfg, data, "trends")
+    assert trends.exit_code == 0
+    assert "stub" in trends.stdout
     assert list((data / "runs").glob("*.json"))
 
     health = _invoke(cfg, data, "health")
     assert health.exit_code == 0
-    assert '"command": "extract"' in health.stdout
+    assert '"command": "trends"' in health.stdout
 
 
 def _fake_registry() -> FetcherRegistry:

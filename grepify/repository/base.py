@@ -51,7 +51,9 @@ class Repository(ABC):
     @abstractmethod
     def add_item_keywords(self, keywords: Sequence[ItemKeyword]) -> int:
         """Append new keyword rows. Returns the count written; existing
-        ``(item_id, keyword)`` pairs are skipped."""
+        ``(item_id, keyword, method)`` triples are skipped — ``method`` is
+        part of the key so an ``llm`` row and a ``fallback`` row can coexist
+        for the same keyword text (PRD §6, GRP-25 schema revision)."""
 
     @abstractmethod
     def add_digest(self, digest: Digest) -> None:

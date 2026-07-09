@@ -14,31 +14,24 @@ a capped budget, e.g. 200 calls), not pipeline-cron wiring — GRP-25 owns
 wiring ordinary ``extract`` into the cron and its data-quality assertions.
 
 Truth is append-only (PRD §5) and ``add_item_keywords`` is idempotent by
-``(item_id, keyword)`` — a successful backfill adds new ``method='llm'`` rows
-without deleting the old fallback ones, so an item that gains at least one
-*new* ``llm`` row is no longer "entirely fallback" and drops out of future
-backfill candidate sets. Old fallback rows for keywords the new extraction
-didn't happen to repeat are not retroactively removed; that is an accepted
-consequence of the locked append-only truth design (PRD §5), not a bug in
-this module.
+``(item_id, keyword, method)`` — a successful backfill adds new
+``method='llm'`` rows without deleting the old fallback ones, so an item that
+gains at least one *new* ``llm`` row is no longer "entirely fallback" and
+drops out of future backfill candidate sets. Old fallback rows for keywords
+the new extraction didn't happen to repeat are not retroactively removed;
+that is an accepted consequence of the locked append-only truth design
+(PRD §5), not a bug in this module.
 
-**Known limitation (flagged as a PRD-diff candidate, not fixed here):** if the
-LLM's re-extraction returns a keyword whose *text* exactly matches one already
-stored as ``method='fallback'`` for that item, ``(item_id, keyword)`` already
-exists in truth, so ``add_item_keywords`` writes nothing for that pair — the
-item can still be "entirely fallback" after a successful LLM call and get
-re-selected next run. The primary key doesn't carry ``method``, so there is no
-way to record "this text was independently corroborated by the LLM" without
-either changing the locked §6 schema (``item_keywords`` primary key) or adding
-new persisted state outside it — both are architecture decisions for Kyle to
-make, not something this module changes unilaterally (CLAUDE.md: "no
-architecture changes without asking"). This is self-limiting in practice:
-``backfill`` is a manual command with its own call cap, not an automatic
-retry loop (the CSR "no unbounded loops" rule is about unattended retries,
-which this isn't), and exact text collision between YAKE's raw n-gram output
-and an LLM's phrasing is uncommon (see the extractor's own docstring/tests)
-but not impossible — reproduced in
-``test_backfill.py::test_exact_text_collision_with_existing_fallback_row_leaves_item_still_fallback``.
+**Resolved (GRP-25, Kyle-approved PRD §6 diff):** earlier revisions of this
+module flagged a convergence gap here — if the LLM's re-extraction returned a
+keyword whose *text* exactly matched one already stored as
+``method='fallback'``, the old ``(item_id, keyword)`` primary key made
+``add_item_keywords`` drop the write as a duplicate, so the item stayed
+"entirely fallback" and kept getting re-selected. ``method`` is now part of
+the primary key (PRD §6), so an ``llm`` row and a ``fallback`` row with
+identical keyword text coexist as distinct rows — the LLM row is written, and
+the item correctly drops out of ``select_fallback_items``. See
+``test_backfill.py`` for the regression test covering this convergence.
 
 Failure modes
 -------------

@@ -158,7 +158,11 @@ create table item_keywords (
   method         text not null,             -- 'llm' | 'fallback'
   model          text,                      -- provenance
   extracted_at   text not null,
-  primary key (item_id, keyword)
+  primary key (item_id, keyword, method)    -- GRP-25 revision (Kyle-approved): method joins the
+                                             -- key so a later llm re-extraction can coexist with
+                                             -- an existing fallback row of the same keyword text
+                                             -- instead of being silently dropped as a duplicate
+                                             -- (closes the backfill convergence gap PR #8 flagged)
 );
 create index idx_kw_keyword on item_keywords(keyword);
 
