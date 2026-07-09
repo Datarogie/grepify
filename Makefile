@@ -56,7 +56,7 @@ validate: ## Schema-validate config (CI check on every MR)
 health: ## Print the latest run manifest
 	$(UV) run grepify health
 
-backfill: ## Re-process / re-extract historical data (E6)
+backfill: ## Re-extract method='fallback' rows through the real LLM (GRP-22); broader E6 modes are later work
 	$(UV) run grepify backfill
 
 # --- CI-only helpers (GRP-06). Kept as make targets, not inline workflow ---

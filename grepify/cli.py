@@ -2,10 +2,13 @@
 
 Subcommands: ``ingest extract trends digest build validate health backfill``.
 ``ingest`` is wired to the E1 orchestrator (GRP-15/16); ``validate`` is fully
-wired to the config layer. ``extract``/``trends``/``digest``/``build``/
-``backfill`` remain stubs that record a run manifest so the operator tooling
-(``health``) works end to end — later epics replace each stub body without
-changing the CLI surface.
+wired to the config layer; ``backfill`` re-extracts ``method='fallback'`` rows
+through a real LLM client (GRP-22). ``extract``/``trends``/``digest``/``build``
+remain stubs that record a run manifest so the operator tooling (``health``)
+works end to end — later epics replace each stub body without changing the
+CLI surface. (``backfill``'s scope here is GRP-22's fallback-only
+re-extraction; broader E6/GRP-60 maintenance modes — reindex, vacuum, prune —
+are later work behind the same subcommand.)
 
 Failure modes
 -------------
@@ -13,6 +16,12 @@ Failure modes
 - ``ingest`` never fails the process for a single dead source (isolated in the
   orchestrator, PRD §9); it only propagates systemic failures (bad config,
   unreadable truth).
+- ``backfill`` exits non-zero if ``LLM_BASE_URL`` is unset (nothing to call);
+  a misconfigured LLM profile (bad endpoint/missing model) propagates
+  :class:`~grepify.errors.LlmError` as a systemic failure, same as ``ingest``
+  propagates :class:`~grepify.errors.ConfigError` for bad config. Once running,
+  per-batch LLM failures degrade to the fallback extractor (PRD §9) rather
+  than failing the command.
 - Pipeline stubs never fail the process; they write a manifest noting the
   not-yet-implemented epic and return 0.
 - ``health`` with no recorded runs prints a friendly notice, exit 0.
@@ -20,6 +29,7 @@ Failure modes
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated
@@ -28,8 +38,10 @@ import typer
 
 from grepify.clock import Clock, SystemClock, to_iso
 from grepify.config.filesystem import FilesystemConfigProvider
+from grepify.extract import YakeFallbackExtractor, run_fallback_backfill
 from grepify.health import write_health_snapshot
 from grepify.ingest.orchestrator import IngestServices, build_registry, run_ingest
+from grepify.llm import build_client
 from grepify.models import RunManifest
 from grepify.paths import DataLayout
 from grepify.repository.jsonl_sqlite import JsonlSqliteRepository
@@ -141,10 +153,82 @@ def build(ctx: typer.Context) -> None:
     _record_stub(ctx, "build", "E3")
 
 
+BackfillMaxCallsOpt = Annotated[
+    int, typer.Option(help="Cap on real LLM calls this run (playbook S7 recommends 200).")
+]
+
+
 @app.command()
-def backfill(ctx: typer.Context) -> None:
-    """Re-process / re-extract historical data (E6)."""
-    _record_stub(ctx, "backfill", "E6")
+def backfill(ctx: typer.Context, max_calls: BackfillMaxCallsOpt = 200) -> None:
+    """Re-extract items whose keywords are entirely ``method='fallback'`` (GRP-22).
+
+    Manual/one-time command — not wired into the pipeline cron (GRP-25). Reads
+    the LLM endpoint from ``settings.yml``'s active profile but resolves the
+    deployment secrets from the environment (``LLM_BASE_URL`` required,
+    ``LLM_API_KEY`` optional for keyless local endpoints), never from
+    committed config (PRD §5).
+    """
+    state: AppState = ctx.obj
+    layout = DataLayout(state.data_root)
+    run_id = new_run_id(state.clock)
+    started_at = to_iso(state.clock.now())
+
+    base_url = os.environ.get("LLM_BASE_URL")
+    if not base_url:
+        typer.echo("backfill: LLM_BASE_URL is not set; nothing to do", err=True)
+        raise typer.Exit(code=1)
+
+    config = FilesystemConfigProvider(state.config_root)
+    repository = JsonlSqliteRepository(state.data_root)
+    try:
+        settings = config.settings()
+        profile = settings.llm.profiles[settings.llm.active_profile]
+        capped_profile = profile.model_copy(update={"max_calls_per_run": max_calls})
+        client = build_client(
+            capped_profile,
+            api_key=os.environ.get("LLM_API_KEY") or None,
+            base_url=base_url,
+            log_sink=repository.log_llm,
+            clock=state.clock,
+        )
+        items = list(repository.iter_items())
+        keywords = list(repository.iter_item_keywords())
+        result = run_fallback_backfill(
+            items,
+            keywords,
+            client,
+            run_id=run_id,
+            clock=state.clock,
+            fallback=YakeFallbackExtractor(),
+            max_items_per_call=settings.llm.max_items_per_call,
+        )
+        written = repository.add_item_keywords(result.keywords)
+    finally:
+        repository.close()
+
+    manifest = RunManifest(
+        run_id=run_id,
+        command="backfill",
+        started_at=started_at,
+        finished_at=to_iso(state.clock.now()),
+        ok=True,
+        counts={
+            "batches_total": result.batches_total,
+            "batches_llm": result.batches_llm,
+            "batches_fallback": result.batches_fallback,
+            "keywords_written": written,
+        },
+        notes=(
+            ["llm budget exhausted before all candidates were re-extracted"]
+            if result.budget_exhausted
+            else []
+        ),
+    )
+    write_manifest(layout, manifest)
+    typer.echo(
+        f"backfill: {result.batches_llm} llm batches, {result.batches_fallback} still-fallback "
+        f"batches, {written} new keyword rows; run {run_id}"
+    )
 
 
 # --- other wired commands -----------------------------------------------------
