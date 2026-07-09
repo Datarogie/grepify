@@ -44,6 +44,16 @@ dismissal in writing. Repeat until the subagent passes the session.
   messages (binding rule in `CLAUDE.md`): no "Generated with Claude Code", no
   `Co-Authored-By: Claude`, no `Claude-Session:` / `claude.ai/code` links.
 
+#### Handling PR review comments
+
+**Never delete a review, a review comment, or a pending review — including
+your own.** Address feedback by replying on the thread and/or resolving it
+once handled. A "pending review" blocking a reply is not an invitation to
+clear it: it may be a reviewer's own unsubmitted comments, and deleting it
+deletes their input, not just a stray artifact. If a reply is blocked for
+some other reason, stop and ask rather than deleting anything tied to
+review state.
+
 #### Phone-testable (MANDATORY from S2 onward)
 
 From S2 on, every PR body carries this section, in exactly this shape:
