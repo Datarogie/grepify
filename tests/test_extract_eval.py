@@ -200,3 +200,22 @@ def test_report_with_no_labels_says_so() -> None:
     report = score_predictions(cases, {})
     text = format_report(report)
     assert "n/a (0/2 labeled" in text
+
+
+def test_report_rows_show_the_title_not_just_the_item_id() -> None:
+    # A bare item_id fragment forces cross-referencing the fixture for every
+    # row, defeating the point of a report meant to be pasted into an MR for
+    # human review (PRD §10.5).
+    cases = [_case("a", ["genai"])]
+    report = score_predictions(cases, {"a": ["genai"]})
+    text = format_report(report)
+    assert "title a" in text
+
+
+def test_report_truncates_long_titles() -> None:
+    long_title = "x" * 100
+    case = EvalCase(item_id="a", title=long_title, expected_keywords=["genai"])
+    report = score_predictions([case], {"a": ["genai"]})
+    text = format_report(report)
+    assert long_title not in text
+    assert "…" in text

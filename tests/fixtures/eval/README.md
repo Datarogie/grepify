@@ -13,9 +13,14 @@ One JSON object per line:
 {"item_id": "...", "title": "...", "summary": "...", "expected_keywords": []}
 ```
 
-- `item_id` / `title` / `summary` are copied verbatim from real ingested
-  items — this is what `title`+`summary` extraction actually sees (PRD
-  §8 F-EXT-01).
+- `item_id` and `title` are copied verbatim from real ingested items on the
+  `data` branch. `summary` is the real ingested summary with HTML tags
+  stripped and whitespace collapsed for phone readability — the *words* are
+  unchanged, but production extraction (`grepify/extract/prompt.py`) sends
+  the raw, HTML-laden summary (capped at 500 chars) to the LLM, so this
+  fixture is a close proxy for real extraction input, not a byte-exact copy.
+  A summary with heavy markup could score slightly differently here than in
+  a real pipeline run for that reason.
 - `expected_keywords` is **empty on purpose**. That's the manual labeling
   task (playbook S7k): fill each item's list with the keywords a human would
   expect the extractor to find, e.g. `["genai", "anthropic", "policy"]`.
@@ -26,7 +31,10 @@ One JSON object per line:
 - Items can be left with `expected_keywords: []` indefinitely — `make eval`
   skips unlabeled items when computing the mean score (but still shows their
   predicted keywords, so you can see what the model currently guesses while
-  you decide on labels).
+  you decide on labels). Known limitation: an empty list is the *only*
+  sentinel for "not labeled yet," so there's no way to positively label "this
+  item should legitimately have zero keywords" — give it at least one
+  keyword even if extraction should find little.
 
 ## Labeling from a phone
 

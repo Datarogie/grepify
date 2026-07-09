@@ -187,12 +187,24 @@ def format_report(report: EvalReport, *, heading: str = "grepify eval") -> str:
             f"({report.labeled_count} labeled / {report.unlabeled_count} unlabeled)"
         )
     lines.append("")
-    lines.append("| item_id | jaccard | predicted | expected |")
+    lines.append("| title | jaccard | predicted | expected |")
     lines.append("|---|---|---|---|")
     for case in report.cases:
         score_text = f"{case.score:.3f}" if case.score is not None else "TODO"
         lines.append(
-            f"| {case.item_id[:12]} | {score_text} | {', '.join(case.predicted)} | "
+            f"| {_truncate_title(case.title)} | {score_text} | {', '.join(case.predicted)} | "
             f"{', '.join(case.expected)} |"
         )
     return "\n".join(lines)
+
+
+_TITLE_COL_MAX = 60
+
+
+def _truncate_title(title: str) -> str:
+    """Keep the report's title column readable; a bare item_id (the previous
+    behavior) forces a reader to cross-reference the fixture for every row,
+    defeating the point of a human-pasteable MR report (PRD §10.5)."""
+    if len(title) <= _TITLE_COL_MAX:
+        return title
+    return title[: _TITLE_COL_MAX - 1].rstrip() + "…"
