@@ -11,6 +11,7 @@ from grepify.errors import RepositoryError
 from grepify.models import (
     Digest,
     DigestKind,
+    ExtractionMethod,
     FetchLogEntry,
     FetchStatus,
     Source,
@@ -71,6 +72,23 @@ def test_keywords_idempotent_on_composite_key(tmp_path: Path) -> None:
     kws = [make_keyword("i1", "genai"), make_keyword("i1", "llm", rank=2)]
     assert repo.add_item_keywords(kws) == 2
     assert repo.add_item_keywords(kws) == 0
+    repo.rebuild_cache()
+    assert repo.count_item_keywords() == 2
+    repo.close()
+
+
+def test_keyword_key_includes_method_llm_and_fallback_rows_coexist(tmp_path: Path) -> None:
+    # GRP-25 schema revision (PRD §6): method joins the primary key so an llm
+    # row and a fallback row with identical keyword text are both truth, not
+    # a duplicate write — this is what lets backfill converge (test_backfill.py).
+    repo = JsonlSqliteRepository(tmp_path)
+    fallback_row = make_keyword("i1", "ai").model_copy(
+        update={"method": ExtractionMethod.FALLBACK, "model": None}
+    )
+    llm_row = make_keyword("i1", "ai")  # method='llm' by default
+    assert repo.add_item_keywords([fallback_row]) == 1
+    assert repo.add_item_keywords([llm_row]) == 1  # same (item_id, keyword), different method
+    assert repo.add_item_keywords([llm_row]) == 0  # exact duplicate still skipped
     repo.rebuild_cache()
     assert repo.count_item_keywords() == 2
     repo.close()

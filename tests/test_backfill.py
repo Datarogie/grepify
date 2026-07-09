@@ -140,19 +140,18 @@ def test_still_fallback_on_repeated_llm_failure() -> None:
     assert all(kw.method is ExtractionMethod.FALLBACK for kw in result.keywords)
 
 
-# --- documented limitation: exact-text collision blocks convergence ----------
+# --- GRP-25 regression: exact-text collision no longer blocks convergence ----
 
 
-def test_exact_text_collision_with_existing_fallback_row_leaves_item_still_fallback(
+def test_exact_text_collision_with_existing_fallback_row_still_converges(
     tmp_path: Path,
 ) -> None:
-    """Known limitation (see backfill.py module docstring): the LLM re-extraction
-    can agree, word for word, with the keyword YAKE already stored. Truth's
-    ``(item_id, keyword)`` primary key doesn't carry ``method``, so the write is
-    dropped as a duplicate and the item is still "entirely fallback" afterwards —
-    it would be re-selected by a *later* backfill invocation. This is a real,
-    reproducible gap flagged for Kyle as a PRD-diff candidate, not silently
-    fixed by changing the locked §6 schema.
+    """Regression for the gap flagged in backfill.py's earlier docstring: the LLM
+    re-extraction can agree, word for word, with the keyword YAKE already stored.
+    Truth's ``(item_id, keyword, method)`` primary key (GRP-25, Kyle-approved PRD
+    §6 diff) carries ``method``, so the new ``llm`` row is written alongside the
+    existing ``fallback`` row instead of being dropped as a duplicate, and the
+    item correctly drops out of ``select_fallback_items``.
     """
     repository = JsonlSqliteRepository(tmp_path / "data")
     try:
@@ -193,12 +192,12 @@ def test_exact_text_collision_with_existing_fallback_row_leaves_item_still_fallb
         assert [kw.method for kw in result.keywords] == [ExtractionMethod.LLM]
 
         written = repository.add_item_keywords(result.keywords)
-        assert written == 0  # dropped: (item_id, keyword) already exists as truth
+        assert written == 1  # method is in the key now: the llm row is new truth
 
         # Re-derive candidates the way a *second* `backfill` invocation would.
         refreshed_items = list(repository.iter_items())
         refreshed_keywords = list(repository.iter_item_keywords())
         still_selected = select_fallback_items(refreshed_items, refreshed_keywords)
-        assert [i.item_id for i in still_selected] == ["a"]  # still "entirely fallback"
+        assert still_selected == []  # converged: item now carries an llm row too
     finally:
         repository.close()

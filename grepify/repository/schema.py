@@ -62,7 +62,7 @@ create table item_keywords (
   method         text not null,
   model          text,
   extracted_at   text not null,
-  primary key (item_id, keyword)
+  primary key (item_id, keyword, method)
 );
 create index idx_kw_keyword on item_keywords(keyword);
 

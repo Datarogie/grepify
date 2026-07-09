@@ -68,13 +68,14 @@ class JsonlSqliteRepository(Repository):
 
     def add_item_keywords(self, keywords: Sequence[ItemKeyword]) -> int:
         existing = self._existing_keys(
-            self._layout.keywords_dir, lambda d: f"{d['item_id']}\x00{d['keyword']}"
+            self._layout.keywords_dir,
+            lambda d: f"{d['item_id']}\x00{d['keyword']}\x00{d['method']}",
         )
         return self._append_deduped(
             records=keywords,
             base_dir=self._layout.keywords_dir,
             date_of=lambda k: k.extracted_at,
-            key_of=lambda k: f"{k.item_id}\x00{k.keyword}",
+            key_of=lambda k: f"{k.item_id}\x00{k.keyword}\x00{k.method}",
             existing_keys=existing,
         )
 
@@ -100,7 +101,10 @@ class JsonlSqliteRepository(Repository):
 
     def iter_item_keywords(self) -> Iterator[ItemKeyword]:
         rows = self._read_all(self._layout.keywords_dir, ItemKeyword)
-        rows.sort(key=lambda k: (k.item_id, k.rank, k.keyword))
+        # `method` is part of the primary key (an item can carry both an `llm`
+        # and a `fallback` row for the same keyword text), so it must be in the
+        # sort key too for a fully deterministic order.
+        rows.sort(key=lambda k: (k.item_id, k.rank, k.keyword, str(k.method)))
         return iter(rows)
 
     def iter_digests(self) -> Iterator[Digest]:

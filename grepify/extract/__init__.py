@@ -10,16 +10,23 @@ Public surface later E2 issues (GRP-24 eval, GRP-25 pipeline wiring) build on:
 - :func:`build_messages` + :data:`PROMPT_VERSION` — prompt v1.
 - :func:`select_fallback_items` + :func:`run_fallback_backfill` — the
   ``method='fallback'`` re-extraction backfill (GRP-22).
+- :func:`select_untagged_items` + :func:`run_extract_pipeline` — ordinary
+  extraction wired into the pipeline: never-extracted items, normalized +
+  quality-gated before the caller writes them (GRP-25).
+- :func:`assert_data_quality` — the PRD §10.7 post-extract gate (GRP-25).
 
 The LLM provider itself (client, budget breaker, retries, ``llm_log``) is
 :mod:`grepify.llm` (GRP-20). Normalization + alias/mute application is
-:mod:`grepify.keywords` (GRP-23) — deliberately outside this package, since it
-runs downstream at trend-computation time, not extraction time (PRD §6).
+:mod:`grepify.keywords` (GRP-23); :mod:`grepify.extract.pipeline` (GRP-25) is
+where this package first calls it, ahead of a keyword row ever reaching truth
+— see that module's docstring for why applying it here doesn't compromise
+§6's retroactive-alias guarantee for older rows.
 
 Failure modes
 -------------
 None of its own — a re-export aggregator. See :mod:`grepify.extract.batcher`,
-:mod:`grepify.extract.fallback`, and :mod:`grepify.extract.backfill` for
+:mod:`grepify.extract.fallback`, :mod:`grepify.extract.backfill`,
+:mod:`grepify.extract.pipeline`, and :mod:`grepify.extract.quality` for
 module-level failure modes.
 """
 
@@ -34,17 +41,28 @@ from grepify.extract.batcher import (
     run_extract,
 )
 from grepify.extract.fallback import YakeFallbackExtractor
+from grepify.extract.pipeline import (
+    ExtractPipelineResult,
+    run_extract_pipeline,
+    select_untagged_items,
+)
 from grepify.extract.prompt import PROMPT_VERSION, build_messages
+from grepify.extract.quality import DataQualityReport, assert_data_quality
 
 __all__ = [
     "DEFAULT_MAX_ITEMS_PER_CALL",
     "DEFAULT_MAX_KEYWORDS",
     "PROMPT_VERSION",
+    "DataQualityReport",
+    "ExtractPipelineResult",
     "ExtractResult",
     "FallbackExtractor",
     "YakeFallbackExtractor",
+    "assert_data_quality",
     "build_messages",
     "run_extract",
+    "run_extract_pipeline",
     "run_fallback_backfill",
     "select_fallback_items",
+    "select_untagged_items",
 ]

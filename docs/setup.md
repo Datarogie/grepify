@@ -51,9 +51,14 @@ Set these as masked CI variables — **never commit them** (`.env` is gitignored
 
 | Secret | Used by | When |
 |---|---|---|
-| `LLM_API_KEY` | keyword extraction + digests | M2 |
+| `LLM_BASE_URL` | keyword extraction + digests — the active profile's OpenAI-compat endpoint | M2 |
+| `LLM_API_KEY` | keyword extraction + digests (optional for keyless local endpoints) | M2 |
 | X session cookies | twscrape | M5 |
 | Slack webhook / bot token | digest push | v1.5 |
+
+`grepify extract` (and `grepify backfill`) exit non-zero if `LLM_BASE_URL` is
+unset — without it there is no endpoint to call, so the command has nothing
+to do. `LLM_API_KEY` may be left unset for a keyless local endpoint.
 
 ## 5. Enable the cron
 

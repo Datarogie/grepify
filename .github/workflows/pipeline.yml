@@ -72,6 +72,9 @@ jobs:
         run: make ingest
 
       - name: Extract
+        env:
+          LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
         run: make extract
 
       # Both steps call the same stub command today (`grepify digest` doesn't

@@ -61,3 +61,11 @@ class BudgetExceededError(LlmError):
     I/O (``max_calls_per_run``, PRD §5). A subclass of :class:`LlmError` so the
     batcher's fallback path catches it, distinguished so callers can stop
     issuing LLM calls for the remainder of the run."""
+
+
+class DataQualityError(GrepifyError):
+    """A post-extract data-quality assertion (PRD §10.7) was violated —
+    systemic, not isolated: unlike :class:`LlmError`, this stops the run
+    rather than degrading, because it signals a bug in extraction/normalization
+    itself rather than an unreachable LLM (PRD §10.7: "Violations fail the run
+    loudly - no silent behavior changes")."""
