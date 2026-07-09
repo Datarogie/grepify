@@ -15,12 +15,21 @@ One JSON object per line:
 
 - `item_id` and `title` are copied verbatim from real ingested items on the
   `data` branch. `summary` is the real ingested summary with HTML tags
-  stripped and whitespace collapsed for phone readability — the *words* are
-  unchanged, but production extraction (`grepify/extract/prompt.py`) sends
-  the raw, HTML-laden summary (capped at 500 chars) to the LLM, so this
-  fixture is a close proxy for real extraction input, not a byte-exact copy.
-  A summary with heavy markup could score slightly differently here than in
-  a real pipeline run for that reason.
+  stripped, whitespace collapsed, and **platform/publisher boilerplate
+  removed** (WordPress "The post ... appeared first on ..." footers, "Read
+  More" stubs, Reddit's "submitted by /u/user [link] [comments]" footer,
+  YouTube channel-promo blocks — social links, sponsor plugs, "Subscribe..."
+  CTAs, trailing hashtag spam) — none of that is part of what the item is
+  actually *about*, and leaving it in would let it leak into labels (an
+  earlier draft of item 23 below picked up "sqlite" as a keyword purely
+  because a sponsor plug mentioned it). Two items (18, 23) turned out to
+  have *nothing but* boilerplate in their real summary; those have
+  `summary: null` and are labeled from the title alone. Production
+  extraction (`grepify/extract/prompt.py`) sends the raw, uncleaned summary
+  (capped at 500 chars) to the LLM, so this fixture is a close proxy for
+  real extraction input on the substance, not a byte-exact copy — a heavily
+  boilerplate-laden item could score slightly differently here than in a
+  real pipeline run for that reason.
 - `expected_keywords` currently holds a **first-pass draft**, written by the
   agent (not the LLM under test) reading each title/summary — a starting
   point for the manual labeling task (playbook S7k), not a finished label
@@ -36,6 +45,13 @@ One JSON object per line:
   *only* sentinel for "not labeled," so there's no way to positively label
   "this item should legitimately have zero keywords" — give it at least one
   keyword even if extraction should find little.
+- Bare years (`"2025"`, `"2026"`) are deliberately **not** used as keywords,
+  even when a year appears in the title/summary — `published_at` and the
+  trend timeline (E3/E4) already carry when something happened, so a year
+  isn't a topical keyword in the way a keyword-cloud entry needs to be; it'd
+  just be redundant noise. If a year is genuinely the subject (e.g. an
+  item's whole point is a 2025-vs-2026 comparison), prefer a keyword that
+  names *what's* being compared over the years themselves.
 
 ## Labeling from a phone
 
