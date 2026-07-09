@@ -10,6 +10,10 @@ issues build on:
   (:class:`CloudDataset`, :class:`Stats`, :class:`SourceCount`,
   :class:`ItemSummary`, :class:`DigestSummary`), plus :func:`window_ending_at` /
   :func:`previous_window` / :func:`open_cache`.
+- Page helpers (GRP-32/33/34) — :func:`collapse_near_duplicates`,
+  :func:`paginate`, :func:`item_matches_filter`, :class:`ItemGroup`,
+  :class:`Page`.
+- Build orchestrator (GRP-35) — :func:`build_site` + :class:`BuildResult`.
 
 Determinism (F-SIT-08 / S8): the clock is injected (never read in the render
 path), all dict/set iteration is sorted before templating, and snapshot tests
@@ -24,6 +28,14 @@ None of its own — a re-export aggregator. See :mod:`grepify.site.render`,
 
 from __future__ import annotations
 
+from grepify.site.build import BuildResult, build_site
+from grepify.site.pages import (
+    ItemGroup,
+    Page,
+    collapse_near_duplicates,
+    item_matches_filter,
+    paginate,
+)
 from grepify.site.render import (
     NAV,
     NavLink,
@@ -55,20 +67,27 @@ __all__ = [
     "CLOUD_MIN_REM",
     "NAV",
     "STYLE_TOKENS",
+    "BuildResult",
     "CloudDataset",
     "DigestSummary",
+    "ItemGroup",
     "ItemSummary",
     "KeywordCount",
     "NavLink",
+    "Page",
     "PageContext",
     "SiteMeta",
     "SourceCount",
     "Stats",
     "TrendQueries",
     "Window",
+    "build_site",
     "cloud_font_rem",
+    "collapse_near_duplicates",
     "create_environment",
+    "item_matches_filter",
     "open_cache",
+    "paginate",
     "previous_window",
     "render_page",
     "render_stylesheet",

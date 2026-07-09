@@ -1,0 +1,64 @@
+# GitLab CI — mirror of the GitHub workflows (GRP-36, PRD §8 F-OPS-02/03).
+#
+# Portability by design: all CI logic lives in `make` targets (F-OPS-03), so
+# this file only wires triggers → the same targets `.github/workflows/*.yml`
+# call. Two flows, matching GitHub:
+#   * validate  — on merge requests + default-branch pushes → make check/validate
+#   * pages     — on schedule (+ manual "web") → ingest→extract→(gated)digest→
+#                 build, publishing public/ to GitLab Pages
+#
+# Data-branch design (GRP-06) carries over unchanged: the pipeline writes JSONL
+# truth into the `data` branch worktree at ./data via `make data-branch` /
+# `make commit-data`; the default branch never receives a data commit.
+#
+# Secrets (LLM_BASE_URL, LLM_API_KEY, and a push token for the data branch) are
+# GitLab CI/CD variables (masked), never in the repo (PRD §5). The scheduled
+# `pages` job is the only one that consumes them — merge-request pipelines never
+# reference a secret, mirroring the GitHub split.
+
+stages:
+  - validate
+  - pages
+
+default:
+  image: ghcr.io/astral-sh/uv:python3.12-bookworm
+  before_script:
+    - make install
+
+# MR + default-branch gate (mirrors validate.yml). Never touches a secret.
+validate:
+  stage: validate
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "schedule"
+  script:
+    - make check
+    - make validate
+
+# Scheduled pipeline + Pages deploy folded into one job (mirrors pipeline.yml,
+# which folds build+deploy per GRP-06). GitLab publishes the `public/` artifact
+# of a job named `pages` to Pages automatically.
+pages:
+  stage: pages
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "web" # on-demand run from the UI
+  resource_group: pipeline # serialize overlapping runs (≈ GH concurrency group)
+  variables:
+    # project-Pages sub-path (https://<group>.gitlab.io/<project>/), from the
+    # project name so a fork deploys with no code change (cloneability, PRD §5).
+    GREPIFY_BASE_PATH: "/$CI_PROJECT_NAME/"
+  script:
+    - git config user.name "grepify-bot"
+    - git config user.email "grepify-bot@users.noreply.gitlab.com"
+    - make data-branch
+    - eval "$(make digest-gate)" # sets shell vars daily=/weekly=
+    - make ingest
+    - make extract
+    - if [ "$daily" = "true" ]; then make digest; fi
+    - if [ "$weekly" = "true" ]; then make digest; fi
+    - make commit-data
+    - make build
+  artifacts:
+    paths:
+      - public

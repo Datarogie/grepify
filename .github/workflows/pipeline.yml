@@ -92,16 +92,15 @@ jobs:
       - name: Commit pipeline data (to the `data` branch)
         run: make commit-data
 
-      # `make build` is still the E3 stub (records a manifest, no output) —
-      # kept in the pipeline now so its place in the sequence is set before
-      # GRP-35 gives it real output (site = main code + data-branch state);
-      # `make site` is what actually populates `public/` until then (the
-      # checked-in placeholder page).
-      - name: Build
+      # GRP-35: `make build` now renders the real site into `public/` (site =
+      # main code + data-branch state, rebuilt from JSONL truth in the worktree
+      # at ./data). GREPIFY_BASE_PATH is the project-Pages sub-path
+      # (https://<owner>.github.io/<repo>/), derived from the repo name so a
+      # fork deploys correctly with no code change (cloneability, PRD §5).
+      - name: Build site
+        env:
+          GREPIFY_BASE_PATH: "/${{ github.event.repository.name }}/"
         run: make build
-
-      - name: Assemble site
-        run: make site
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

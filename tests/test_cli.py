@@ -120,6 +120,40 @@ def test_stub_records_manifest_then_health_prints_it(tmp_path: Path) -> None:
     assert '"command": "trends"' in health.stdout
 
 
+def test_build_writes_site_and_manifest(tmp_path: Path) -> None:
+    cfg = write_config(tmp_path / "sources", groups={"ai-research.yml": _GROUP_OK})
+    data = tmp_path / "data"
+    out = tmp_path / "public"
+    result = runner.invoke(
+        app,
+        [
+            "--config-root",
+            str(cfg),
+            "--data-root",
+            str(data),
+            "build",
+            "--output-dir",
+            str(out),
+            "--base-path",
+            "/grepify/",
+        ],
+    )
+    assert result.exit_code == 0, result.stdout
+    assert (out / "index.html").is_file()
+    assert (out / "items" / "index.html").is_file()
+    assert (out / "sources" / "index.html").is_file()
+    assert (out / "health" / "index.html").is_file()
+    assert (out / "static" / "style.css").is_file()
+    # links carry the base path; sources page lists the configured source
+    assert "/grepify/static/style.css" in (out / "index.html").read_text(encoding="utf-8")
+    assert "ahead-of-ai" in (out / "sources" / "index.html").read_text(encoding="utf-8")
+
+    manifest = latest_manifest(DataLayout(data))
+    assert manifest is not None
+    assert manifest.command == "build"
+    assert manifest.counts["pages_written"] == 4
+
+
 def _fake_registry() -> FetcherRegistry:
     """One RSS ``FakeFetcher``: ``good-src`` returns an item, ``bad-src`` errors."""
     reg = FetcherRegistry()

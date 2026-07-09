@@ -47,7 +47,7 @@ trends: ## Compute trend datasets (E3/E4)
 digest: ## Generate category digests (E4)
 	$(UV) run grepify digest
 
-build: ## Render the static site (E3)
+build: ## Render the real static site into public/ (E3, GRP-35). GREPIFY_BASE_PATH sets the deploy sub-path.
 	$(UV) run grepify build
 
 validate: ## Schema-validate config (CI check on every MR)
@@ -74,6 +74,5 @@ data-branch: ## Check out the dedicated `data` branch as a worktree at ./data (b
 commit-data: ## Commit + push data/ changes to the `data` branch worktree with rebase-retry ([skip ci] loop guard)
 	$(UV) run python scripts/commit_pipeline_data.py --repo-dir data --branch data
 
-site: ## Assemble public/ for the Pages deploy (placeholder until GRP-35 emits the real SSG output)
-	mkdir -p public
-	cp -r site-placeholder/. public/
+site: build ## Assemble public/ for the Pages deploy — now the real SSG output (GRP-35 replaced the placeholder)
+	@echo "site assembled into public/ by 'make build'"

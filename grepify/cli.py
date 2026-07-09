@@ -5,9 +5,11 @@ Subcommands: ``ingest extract trends digest build validate health backfill``.
 the E2 pipeline (GRP-25: untagged-item selection, real LLM client, keyword
 normalization, PRD §10.7 data-quality gate); ``validate`` is fully wired to
 the config layer; ``backfill`` re-extracts ``method='fallback'`` rows through
-a real LLM client (GRP-22). ``trends``/``digest``/``build`` remain stubs that
-record a run manifest so the operator tooling (``health``) works end to
-end — later epics replace each stub body without changing the CLI surface.
+a real LLM client (GRP-22). ``build`` is wired to the E3 site renderer
+(GRP-35: cache rebuild → Jinja SSG → ``public/``). ``trends``/``digest``
+remain stubs that record a run manifest so the operator tooling (``health``)
+works end to end — later epics replace each stub body without changing the
+CLI surface.
 (``backfill``'s scope here is GRP-22's fallback-only re-extraction; broader
 E6/GRP-60 maintenance modes — reindex, vacuum, prune — are later work behind
 the same subcommand.)
@@ -55,6 +57,7 @@ from grepify.models import RunManifest
 from grepify.paths import DataLayout
 from grepify.repository.jsonl_sqlite import JsonlSqliteRepository
 from grepify.run import latest_manifest, new_run_id, write_manifest
+from grepify.site.build import build_site
 
 app = typer.Typer(add_completion=False, help="grep the firehose — grepify CLI.")
 
@@ -246,10 +249,68 @@ def digest(ctx: typer.Context) -> None:
     _record_stub(ctx, "digest", "E4")
 
 
+OutputDirOpt = Annotated[Path, typer.Option(help="Output directory for the rendered site.")]
+BasePathOpt = Annotated[
+    str,
+    typer.Option(
+        envvar="GREPIFY_BASE_PATH",
+        help="Root path the site is served under (e.g. '/grepify/' for project Pages).",
+    ),
+]
+
+
 @app.command()
-def build(ctx: typer.Context) -> None:
-    """Render the static site (E3)."""
-    _record_stub(ctx, "build", "E3")
+def build(
+    ctx: typer.Context,
+    output_dir: OutputDirOpt = Path("public"),
+    base_path: BasePathOpt = "/",
+) -> None:
+    """Render the static site into ``public/`` from the cache + config (GRP-35).
+
+    Rebuilds the SQLite cache from JSONL truth, then renders the home, items
+    browser (trailing-90d, near-dup collapsed, client-filterable), sources, and
+    health pages plus the tokenised stylesheet. Pure function of cache + config
+    + the injected clock (F-SIT-08) — no network, no LLM. ``--base-path``
+    prefixes every internal link so the same build works at a project-Pages
+    sub-path or a root deploy (read from ``GREPIFY_BASE_PATH`` in CI).
+    """
+    state: AppState = ctx.obj
+    layout = DataLayout(state.data_root)
+    run_id = new_run_id(state.clock)
+    started_at = to_iso(state.clock.now())
+
+    config = FilesystemConfigProvider(state.config_root)
+    repository = JsonlSqliteRepository(state.data_root)
+    try:
+        result = build_site(
+            config=config,
+            repository=repository,
+            layout=layout,
+            clock=state.clock,
+            run_id=run_id,
+            output_dir=output_dir,
+            base_path=base_path,
+        )
+    finally:
+        repository.close()
+
+    manifest = RunManifest(
+        run_id=run_id,
+        command="build",
+        started_at=started_at,
+        finished_at=to_iso(state.clock.now()),
+        ok=True,
+        counts={
+            "pages_written": result.pages_written,
+            "items_emitted": result.items_emitted,
+            "items_total": result.items_total,
+        },
+    )
+    write_manifest(layout, manifest)
+    typer.echo(
+        f"build: {result.pages_written} pages, {result.items_emitted} items emitted "
+        f"(of {result.items_total} total) → {result.output_dir}; run {run_id}"
+    )
 
 
 BackfillMaxCallsOpt = Annotated[

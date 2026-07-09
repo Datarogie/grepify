@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex">
+<title>grepify — items (page 1)</title>
+<link rel="stylesheet" href="/grepify/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+<a class="brand" href="/grepify/">grepify</a>
+<nav class="site-nav" aria-label="Primary">
+<a href="/grepify/">Home</a>
+<a href="/grepify/items/" aria-current="page">Items</a>
+<a href="/grepify/sources/">Sources</a>
+<a href="/grepify/health/">Health</a>
+</nav>
+</header>
+<main id="main" class="site-main">
+<h1>Items</h1>
+<p class="muted">Page 1 of 1 · trailing 90 days</p>
+
+<form class="filters" aria-label="Filter items">
+<label>Kind <select id="filter-kind"><option value="">all</option></select></label>
+<label>Source <select id="filter-source"><option value="">all</option></select></label>
+<label>Keyword <input id="filter-keyword" type="search" placeholder="substring"></label>
+<button type="button" id="filter-clear">Clear</button>
+</form>
+
+<ul class="feed" id="items-list">
+<li class="item" data-item-id="i3" data-kind="rss" data-source="s1" data-keywords="agents anthropic">
+<a href="https://ex.com/i3" rel="noopener noreferrer">Anthropic releases Claude</a>
+<div class="meta">s1 · rss · 2026-07-07</div>
+<div class="meta"><span class="tag">#agents</span> <span class="tag">#anthropic</span> </div>
+</li>
+<li class="item" data-item-id="i2" data-kind="youtube" data-source="s2" data-keywords="genai">
+<a href="https://ex.com/i2" rel="noopener noreferrer">OpenAI ships GPT-5!</a>
+<div class="meta">s2 · youtube · 2026-07-06</div>
+<div class="meta"><span class="tag">#genai</span> </div>
+<details class="similar">
+<summary>1 similar</summary>
+<ul class="feed">
+<li><a href="https://ex.com/i1" rel="noopener noreferrer">OpenAI ships GPT-5</a><div class="meta">s1 · 2026-07-05</div></li>
+</ul>
+</details>
+</li>
+</ul>
+<p class="muted" id="items-empty" hidden>No items match these filters.</p>
+
+<nav class="pager" aria-label="Pagination">
+</nav>
+
+<script src="/grepify/static/filters.js" defer></script>
+</main>
+<footer class="site-footer">
+<span>Generated 2026-07-08T00:00:00+00:00</span>
+<span>run 20260709T120000Z-testrun</span>
+</footer>
+</body>
+</html>

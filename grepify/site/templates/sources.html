@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}grepify — sources{% endblock %}
+{% block content %}
+<h1>Sources</h1>
+<p class="muted">{{ source_count }} sources across {{ grouped | length }} groups</p>
+
+{% for group, sources in grouped %}
+<h2>{{ group.name }} <span class="muted">({{ group.category }}{% if not group.enabled %}, disabled{% endif %})</span></h2>
+{% if sources %}
+<table>
+<thead><tr><th>Source</th><th>Kind</th><th>Enabled</th><th>Feed</th></tr></thead>
+<tbody>
+{% for s in sources %}
+<tr>
+<td>{{ s.name }}</td>
+<td>{{ s.kind }}</td>
+<td>{% if s.enabled %}<span class="status-ok">yes</span>{% else %}<span class="status-warn">no</span>{% endif %}</td>
+<td><a href="{{ s.url }}" rel="noopener noreferrer">feed</a></td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% else %}
+<p class="muted">No sources in this group.</p>
+{% endif %}
+{% else %}
+<p class="muted">No source groups configured.</p>
+{% endfor %}
+{% endblock %}

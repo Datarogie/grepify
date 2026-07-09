@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}grepify — home{% endblock %}
+{% block content %}
+<h1>grepify</h1>
+
+<section aria-label="Statistics">
+<ul class="stats">
+<li><span class="stat-value">{{ stats.item_count }}</span><span class="stat-label">items ({{ cloud.window.days }}d)</span></li>
+<li><span class="stat-value">{{ stats.source_count }}</span><span class="stat-label">sources</span></li>
+<li><span class="stat-value">{{ stats.keyword_count }}</span><span class="stat-label">keywords</span></li>
+<li><span class="stat-value">{{ stats.mention_count }}</span><span class="stat-label">mentions</span></li>
+<li><span class="stat-value">{{ stats.top_keyword or "—" }}</span><span class="stat-label">top keyword</span></li>
+<li><span class="stat-value">{{ stats.top_source or "—" }}</span><span class="stat-label">top source</span></li>
+</ul>
+</section>
+
+<h2>Keyword cloud</h2>
+{% if cloud.keywords %}
+<div class="cloud">
+{% for kw in cloud.keywords %}
+<a href="{{ meta.base_path }}items/#keyword={{ kw.keyword | urlencode }}" style="font-size: {{ cloud_font_rem(kw.count, min_count=cloud.min_count, max_count=cloud.max_count) }}rem" title="{{ kw.count }} mentions">{{ kw.keyword }}{% if kw.delta > 0 %} <span class="delta-up">+{{ kw.delta }}</span>{% endif %}</a>
+{% endfor %}
+</div>
+{% else %}
+<p class="muted">No keywords in the current window yet.</p>
+{% endif %}
+
+<h2>Latest digests</h2>
+{% if latest_digests %}
+<ul class="feed">
+{% for d in latest_digests %}
+<li><a href="{{ meta.base_path }}digest/{{ d.kind }}/{{ d.digest_id }}/">{{ d.title }}</a><div class="meta">{{ d.kind }} · {{ d.period_start[:10] }} → {{ d.period_end[:10] }}</div></li>
+{% endfor %}
+</ul>
+{% else %}
+<p class="muted">No digests yet — they arrive in M4.</p>
+{% endif %}
+
+<h2>Latest items</h2>
+{% if latest_items %}
+<ul class="feed">
+{% for item in latest_items %}
+<li>
+<a href="{{ item.canonical_url }}" rel="noopener noreferrer">{{ item.title }}</a>
+<div class="meta">{{ item.source_name }} · {{ item.kind }} · {{ item.published_at[:10] }}</div>
+{% set tags = item_tags.get(item.item_id, []) %}
+{% if tags %}
+<div class="meta">{% for kw in tags %}<span class="tag">#{{ kw }}</span> {% endfor %}</div>
+{% endif %}
+</li>
+{% endfor %}
+</ul>
+{% else %}
+<p class="muted">No items yet.</p>
+{% endif %}
+
+<h2>Top sources</h2>
+{% if top_sources %}
+<ul class="feed">
+{% for s in top_sources %}
+<li>{{ s.name }} <span class="meta">{{ s.kind }} · {{ s.count }} items</span></li>
+{% endfor %}
+</ul>
+{% else %}
+<p class="muted">No sources with items in the current window.</p>
+{% endif %}
+{% endblock %}
