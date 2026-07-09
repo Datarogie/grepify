@@ -8,7 +8,7 @@ UV ?= uv
 
 .PHONY: help install fmt lint typecheck test check \
         ingest extract trends digest build validate health backfill \
-        digest-gate data-branch commit-data site
+        digest-gate data-branch commit-data site eval
 
 help: ## List available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -58,6 +58,9 @@ health: ## Print the latest run manifest
 
 backfill: ## Re-extract method='fallback' rows through the real LLM (GRP-22); broader E6 modes are later work
 	$(UV) run grepify backfill
+
+eval: ## Score the extract prompt/model against the GRP-24 labeled set (PRD §10.5); manual, not part of `check`/CI
+	$(UV) run python scripts/eval.py
 
 # --- CI-only helpers (GRP-06). Kept as make targets, not inline workflow ---
 # --- shell, per F-OPS-03 (GitLab portability). ---------------------------
