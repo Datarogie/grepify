@@ -5,6 +5,12 @@
 test fixture, not pipeline truth** — pulled once from real ingested items on
 the `data` branch, committed here, and never regenerated automatically.
 
+Topic mix: mostly AI/ML news (the largest source category), plus a
+deliberate analytics-engineering contingent — dbt/Locally Optimistic-style
+posts (data modeling, semantic layers, data-product/stakeholder framing,
+medallion architecture) alongside general data-engineering reddit threads —
+so the set isn't just "AI news" with a token data-eng item or two.
+
 ## Format
 
 One JSON object per line:
