@@ -9,6 +9,20 @@ the prior task's branch as base. When an earlier PR merges to main, rebase the
 rest onto main (`git rebase --onto main <old-base> <branch>`) and repoint the
 next PR's base.
 
+Standing rules for this tranche (Kyle, 2026-07-10) - apply to ALL future PRs:
+  - Every PR uses the template at .github/pull_request_template.md (PR #25, off main).
+    It MUST include a "How to test" section that is PHONE-FIRST: default to steps
+    doable on a phone and say exactly what Kyle should SEE; mark any step that needs
+    a computer "(computer)". If a change has no user-visible surface (backend/CLI/
+    data), say so and point to the automated evidence. Existing PRs #22/#23/#24 were
+    backfilled with this section.
+  - Ready-to-merge sweep before opening OR updating any PR, and again after commits
+    land: (a) no em/en dashes in the diff; (b) NO AI-authorship attribution in commit
+    messages, PR bodies, OR the commit author identity (no Co-Authored-By /
+    Claude-Session / "Generated with/by" / claude.ai/code). Commit MESSAGES are
+    currently clean; the commit AUTHOR is still "Claude <noreply@anthropic.com>" -
+    pending Kyle's decision (see Open decisions).
+
 Tasks:
   T1 digest-pause switch        [pushed, PR #22 (base main), CI green, review APPROVE]
   T2 renormalize command (GRP-60)[pushed, PR #23 (base t1), CI green, review fixed]
@@ -70,6 +84,13 @@ Documented follow-ups (post-v1, NOT in T1-T8 - see plan section 5):
     build later. Do NOT slip into the current stack.
 
 Open decisions:
+  - COMMIT AUTHOR IDENTITY (pending Kyle): commits are authored as
+    `Claude <noreply@anthropic.com>`. Messages/bodies are attribution-clean. Kyle
+    wants AI attribution scrubbed; the author field is the last marker. Options:
+    (a) leave; (b) set git user.name/email to Kyle's for FUTURE commits only;
+    (c) rewrite author on the already-pushed branches (force-push #22/#23/#24/#25).
+    Need Kyle's git name + email for (b)/(c). Once decided, set
+    `git config user.name/user.email` at session start so new commits are clean.
   - Reddit = option ii (best-effort: reduce cadence, stop flagging so /health is not
     26 red rows; NOT the OAuth API, NOT dropped). T6 unblocked.
   - COMMIT AUTHOR: commits are authored as `Claude <noreply@anthropic.com>` (the
