@@ -210,3 +210,46 @@
 {"item_id":"ffe772d5626295fa16fa0fc12fd1f62c1a5e53cb20717e4e30ab30d1d38b64aa","keyword":"embodied intelligence","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
 {"item_id":"ffe772d5626295fa16fa0fc12fd1f62c1a5e53cb20717e4e30ab30d1d38b64aa","keyword":"moba attention","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
 {"item_id":"ffe772d5626295fa16fa0fc12fd1f62c1a5e53cb20717e4e30ab30d1d38b64aa","keyword":"agentic ai","rank":7,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
+{"item_id":"975930b25ff32358b7c403c053c4f9ebb844cb84975350e146a379fa0acbf024","keyword":"llm","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"975930b25ff32358b7c403c053c4f9ebb844cb84975350e146a379fa0acbf024","keyword":"orchestration frameworks","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"975930b25ff32358b7c403c053c4f9ebb844cb84975350e146a379fa0acbf024","keyword":"langchain","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"975930b25ff32358b7c403c053c4f9ebb844cb84975350e146a379fa0acbf024","keyword":"llamaindex","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"975930b25ff32358b7c403c053c4f9ebb844cb84975350e146a379fa0acbf024","keyword":"api development","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"51d1ac6f30a27b41b92d98990d1b3d2c87b83013461bd36d4f81459489401766","keyword":"meta","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"51d1ac6f30a27b41b92d98990d1b3d2c87b83013461bd36d4f81459489401766","keyword":"artificial intelligence","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"51d1ac6f30a27b41b92d98990d1b3d2c87b83013461bd36d4f81459489401766","keyword":"ai models","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"51d1ac6f30a27b41b92d98990d1b3d2c87b83013461bd36d4f81459489401766","keyword":"tech industry","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"32e3c37cfd7a1e5890e5bc07e1aeb99abc1fb5e87c2b36316aaa0e43d563f69f","keyword":"ai","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"32e3c37cfd7a1e5890e5bc07e1aeb99abc1fb5e87c2b36316aaa0e43d563f69f","keyword":"regulation","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"32e3c37cfd7a1e5890e5bc07e1aeb99abc1fb5e87c2b36316aaa0e43d563f69f","keyword":"red tape","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"32e3c37cfd7a1e5890e5bc07e1aeb99abc1fb5e87c2b36316aaa0e43d563f69f","keyword":"financial sector","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"c683c3087ad84b4ffe71e5a3f77b29dfe3440947b4019ffcb070ec5ed344451e","keyword":"openai","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"c683c3087ad84b4ffe71e5a3f77b29dfe3440947b4019ffcb070ec5ed344451e","keyword":"google","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"c683c3087ad84b4ffe71e5a3f77b29dfe3440947b4019ffcb070ec5ed344451e","keyword":"china","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"c683c3087ad84b4ffe71e5a3f77b29dfe3440947b4019ffcb070ec5ed344451e","keyword":"ai services","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"c683c3087ad84b4ffe71e5a3f77b29dfe3440947b4019ffcb070ec5ed344451e","keyword":"export controls","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"1f02d2c779a668bc8c2a95dbec938ebbab8f04daadd420a09a809f2a8afc801b","keyword":"telstra","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"1f02d2c779a668bc8c2a95dbec938ebbab8f04daadd420a09a809f2a8afc801b","keyword":"network outage","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"1f02d2c779a668bc8c2a95dbec938ebbab8f04daadd420a09a809f2a8afc801b","keyword":"vicki brady","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"1f02d2c779a668bc8c2a95dbec938ebbab8f04daadd420a09a809f2a8afc801b","keyword":"telecommunications","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"0be74f38ed93d7800ba82f458c5bce37fbbb8f872e19634d234201773dc06675","keyword":"ai","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"0be74f38ed93d7800ba82f458c5bce37fbbb8f872e19634d234201773dc06675","keyword":"superforecasting","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"0be74f38ed93d7800ba82f458c5bce37fbbb8f872e19634d234201773dc06675","keyword":"financial markets","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"0be74f38ed93d7800ba82f458c5bce37fbbb8f872e19634d234201773dc06675","keyword":"federal reserve","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"832855082461ae77fd81b56e6376d6f9534db5f184e7d55614304286a6107f77","keyword":"rachel reeves","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"832855082461ae77fd81b56e6376d6f9534db5f184e7d55614304286a6107f77","keyword":"ai skills","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"832855082461ae77fd81b56e6376d6f9534db5f184e7d55614304286a6107f77","keyword":"financial services","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"832855082461ae77fd81b56e6376d6f9534db5f184e7d55614304286a6107f77","keyword":"workforce retraining","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"445fa0e8a77732e140cfb940e01adb272a0561f336fb2544e4da40ab3519af74","keyword":"sk hynix","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"445fa0e8a77732e140cfb940e01adb272a0561f336fb2544e4da40ab3519af74","keyword":"semiconductors","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"445fa0e8a77732e140cfb940e01adb272a0561f336fb2544e4da40ab3519af74","keyword":"ai chips","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"445fa0e8a77732e140cfb940e01adb272a0561f336fb2544e4da40ab3519af74","keyword":"nasdaq","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"445fa0e8a77732e140cfb940e01adb272a0561f336fb2544e4da40ab3519af74","keyword":"ipo","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"cc998375b1123a785bad2f3126b33feaffa45aacd8a1c9334389d3ebd08d2d36","keyword":"un ai summit","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"cc998375b1123a785bad2f3126b33feaffa45aacd8a1c9334389d3ebd08d2d36","keyword":"ai governance","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"cc998375b1123a785bad2f3126b33feaffa45aacd8a1c9334389d3ebd08d2d36","keyword":"ai for good","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"cc998375b1123a785bad2f3126b33feaffa45aacd8a1c9334389d3ebd08d2d36","keyword":"technology regulation","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"7159564b3f45197934ec03ae2d7723d7cb93ffcf33ac836f01c52f4125d399f7","keyword":"vision ai","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"7159564b3f45197934ec03ae2d7723d7cb93ffcf33ac836f01c52f4125d399f7","keyword":"singapore","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"7159564b3f45197934ec03ae2d7723d7cb93ffcf33ac836f01c52f4125d399f7","keyword":"construction industry","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"7159564b3f45197934ec03ae2d7723d7cb93ffcf33ac836f01c52f4125d399f7","keyword":"workplace safety","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
