@@ -118,8 +118,17 @@ class TranscriptStore:
     def read(self, transcript_ref: str) -> str | None:
         """Return the stored transcript text for ``transcript_ref``, or ``None``
         if the blob is missing/unreadable (best-effort - a consumer that wants an
-        excerpt just gets none, GRP-53)."""
-        path = self._layout.root / transcript_ref
+        excerpt just gets none, GRP-53).
+
+        Refs are internally generated relative posix paths, but this reads from
+        truth (which can travel on the shared ``data`` branch), so a tampered ref
+        is defended against: a ref that escapes the data root (absolute path,
+        ``..`` traversal) yields ``None`` rather than reading an arbitrary file.
+        """
+        root = self._layout.root.resolve()
+        path = (root / transcript_ref).resolve()
+        if root not in path.parents:
+            return None
         try:
             return gzip.decompress(path.read_bytes()).decode("utf-8")
         except (OSError, EOFError, gzip.BadGzipFile, UnicodeDecodeError):

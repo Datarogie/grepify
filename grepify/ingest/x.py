@@ -83,7 +83,7 @@ def latest_since_ids(items: Iterable[Item]) -> dict[str, str]:
     Maps each X source's ``source_id`` to the highest tweet id already stored for
     it (compared numerically - tweet ids are snowflake ints of varying length,
     so lexicographic max would be wrong). Non-X items and items whose
-    ``external_id`` is not a positive integer are ignored. The ``ingest`` CLI
+    ``external_id`` is not an integer are ignored. The ``ingest`` CLI
     turns this into a :data:`SinceIdProvider` (``mapping.get``); deriving from
     truth keeps the watermark from drifting from what was actually written and
     needs no separate committed state (see the module docstring).

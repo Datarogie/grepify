@@ -108,6 +108,7 @@ def ingest(ctx: typer.Context) -> None:
 
     config = FilesystemConfigProvider(state.config_root)
     repository = JsonlSqliteRepository(state.data_root)
+    x_config_note: str | None = None
     try:
         settings = config.settings()
         # E5 wiring, all best-effort and self-isolating (PRD §13): the transcript
@@ -117,12 +118,21 @@ def ingest(ctx: typer.Context) -> None:
         # tweet ids already in truth (F-ING-05).
         transcript_store = _transcript_store(layout, settings)
         since_ids = latest_since_ids(repository.iter_items())
+        # A malformed GREPIFY_X_ACCOUNTS secret must not take the whole run down:
+        # X is best-effort and disabled by default (PRD §13), so a bad X secret
+        # degrades to a logged skip (tweet_source=None + a manifest note), exactly
+        # like a rate limit - never failing rss/youtube/reddit ingestion.
+        try:
+            tweet_source = build_tweet_source()
+        except ValueError as exc:
+            tweet_source = None
+            x_config_note = f"x accounts secret ignored (malformed): {exc}"
         summary = run_ingest(
             IngestServices(
                 config=config,
                 repository=repository,
                 registry=build_registry(
-                    tweet_source=build_tweet_source(),
+                    tweet_source=tweet_source,
                     since_ids=since_ids.get,
                     transcript_store=transcript_store,
                 ),
@@ -139,6 +149,9 @@ def ingest(ctx: typer.Context) -> None:
     finally:
         repository.close()
 
+    notes = [f"{r.source_id}: {r.error}" for r in summary.results if r.error]
+    if x_config_note:
+        notes.append(x_config_note)
     manifest = RunManifest(
         run_id=run_id,
         command="ingest",
@@ -153,7 +166,7 @@ def ingest(ctx: typer.Context) -> None:
             "items_new": summary.items_new,
         },
         durations_ms={"total_ms": summary.duration_ms},
-        notes=[f"{r.source_id}: {r.error}" for r in summary.results if r.error],
+        notes=notes,
     )
     write_manifest(layout, manifest)
     typer.echo(

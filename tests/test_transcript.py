@@ -100,6 +100,13 @@ def test_read_missing_ref_returns_none(tmp_path: Path) -> None:
     assert store.read("transcripts/nope.txt.gz") is None
 
 
+def test_read_rejects_path_escape(tmp_path: Path) -> None:
+    # Defensive: a tampered ref in truth that escapes the data root reads nothing.
+    store = _store(tmp_path, FakeTranscriptClient({}))
+    assert store.read("../../etc/passwd") is None
+    assert store.read("/etc/passwd") is None
+
+
 def test_stored_bytes_are_deterministic(tmp_path: Path) -> None:
     client = FakeTranscriptClient({"vid0001AAA": "same text"})
     ref = _store(tmp_path, client).ensure("vid0001AAA")

@@ -243,6 +243,26 @@ def test_ingest_isolates_unexpected_exception_at_cli_level(
     assert any("boom-unexpected" in note for note in manifest.notes)
 
 
+def test_malformed_x_accounts_secret_does_not_fail_the_run(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A bad GREPIFY_X_ACCOUNTS secret degrades to a logged skip, not a run
+    failure (X is best-effort, PRD §13): the rss/reddit sources still ingest and
+    a manifest note records the ignored secret."""
+    cfg = write_config(tmp_path / "sources", groups={"g1.yml": _GROUP_INGEST})
+    data = tmp_path / "data"
+    monkeypatch.setattr("grepify.cli.build_registry", _fake_registry)
+    monkeypatch.setenv("GREPIFY_X_ACCOUNTS", "{not json")
+
+    result = _invoke(cfg, data, "ingest")
+
+    assert result.exit_code == 0
+    assert "1 ok" in result.stdout  # good-src still ingested
+    manifest = latest_manifest(DataLayout(data))
+    assert manifest is not None
+    assert any("x accounts secret ignored" in note for note in manifest.notes)
+
+
 def test_ingest_rerun_is_idempotent(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     cfg = write_config(tmp_path / "sources", groups={"g1.yml": _GROUP_INGEST})
     data = tmp_path / "data"
