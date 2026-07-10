@@ -7,7 +7,7 @@ From empty repo to v1.5, session by session. Companion to `grepify-prd-and-issue
 - One session = one group below. Fresh context each time. The agent reads only: `docs/prd.md`, the epic brief, and the issues in scope.
 - Session ends with: `make check` green, MR opened with issue IDs in title, snapshot/eval deltas stated in MR description.
 - Kyle's per-session effort: paste the prompt, answer any blocking question, review MR from phone, merge.
-- Model routing: **Opus-class** (opus 4.8) for sessions marked O - interface design, prompts, judgment. **Sonnet-class** (latest sonnet) for sessions marked S - well-specified implementation. If a Sonnet session stalls on ambiguity twice, restart it on Opus rather than pushing.
+- Model routing: **Opus-class** (opus 4.8) for sessions marked O - interface design, prompts, judgment. **Sonnet-class** (latest sonnet) for sessions marked S - well-specified implementation. **Fable-class** (fable 5) for sessions marked F - design/identity judgment work, used for the site-refresh interleave. If a Sonnet session stalls on ambiguity twice, restart it on Opus rather than pushing.
 - WIP discipline: max 2 sessions in flight (matches your CLAUDE.md cap). [P]-marked sessions are the only safe parallels.
 
 ## Session 0 - manual, 10 min, no agent
@@ -31,6 +31,8 @@ From empty repo to v1.5, session by session. Companion to `grepify-prd-and-issue
 | S7k | - | **Kyle manual: GRP-24 labels** - label 30 items on phone (agent pre-generates candidate file in S7). | eval baseline recorded |
 | S8 | S | **E3 brief (incl. determinism rules: sorted iteration, injected clock) + GRP-30..36** - Jinja site, trend queries (GRP-31 is the one Opus-ish item; acceptable on Sonnet with the brief, escalate if math gets hand-wavy), GitLab CI file. Big session - split 30/31 vs 32-36 if context strains. | site live on Pages; snapshots green |
 | S9 | O | **E4 brief + GRP-40..45** - digests per category, keyword pages, tz gating. Prompt work = Opus. | first real daily digest reads well (Kyle judgment) → **tag v1.0.0** |
+| SR1 | F | **Site-refresh interleave: brief + identity mock** - UI redesign hand-off brief (docs/design/ui-redesign-brief.md, PR #15), then the "morning wire" identity mock for Home / Digest detail / Keyword (docs/design/identity-mock.html, PR #16). Design work only, no SSG code. | Kyle approves the mock direction from phone |
+| SR2 | F | **Site-refresh interleave: port the morning wire into the SSG** - tokens (dark + token-level light theme), style.css.jinja rewrite with embedded League Gothic data URI, cloud w1..w5 buckets, theme toggle, all seven page types, goldens regenerated once. Styling iteration inside the locked GRP-30 decisions (brief §7), no PRD change. | site live in the new identity; snapshots green; phone eyeball in both themes |
 | S10 | O | **E5 brief + GRP-50..53** - twscrape (burner account, secrets added now), X in site, transcripts. Isolated + best-effort; failure here never blocks. | X items flowing or explicitly parked with runbook note |
 | S11 | S | **E6: GRP-60, 62, 63** - maintenance cmds, GitLab cutover, size guardrails. | one green pipeline on GitLab before DNS/bookmark switch |
 | S12 | O | **GRP-61 runbook + GRP-64 name final** - runbook reviewed against every incident hit in S1-S11. | phone-operable runbook |

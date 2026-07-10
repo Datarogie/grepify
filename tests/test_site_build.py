@@ -302,6 +302,7 @@ def test_static_assets_written(tmp_path: Path) -> None:
     _, out = build_canned(tmp_path)
     assert (out / "static" / "style.css").is_file()
     assert (out / "static" / "filters.js").is_file()
+    assert (out / "static" / "theme.js").is_file()  # referenced by every page head
 
 
 def test_missing_health_renders_empty_page(tmp_path: Path) -> None:

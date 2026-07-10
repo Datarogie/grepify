@@ -5,7 +5,8 @@ issues build on:
 
 - Render skeleton (GRP-30) - :func:`create_environment`, :func:`render_page`,
   :func:`render_stylesheet`, :class:`SiteMeta`/:class:`PageContext`/:class:`NavLink`,
-  :func:`cloud_font_rem`, :data:`STYLE_TOKENS`, and :func:`sparkline_svg`.
+  :func:`cloud_weight_bucket`, :data:`STYLE_TOKENS`/:data:`LIGHT_STYLE_TOKENS`,
+  and :func:`sparkline_svg`.
 - Trend queries (GRP-31) - :class:`TrendQueries` and its datasets
   (:class:`CloudDataset`, :class:`Stats`, :class:`SourceCount`,
   :class:`ItemSummary`, :class:`DigestSummary`), plus :func:`window_ending_at` /
@@ -42,13 +43,13 @@ from grepify.site.render import (
     NavLink,
     PageContext,
     SiteMeta,
-    cloud_font_rem,
+    cloud_weight_bucket,
     create_environment,
     render_page,
     render_stylesheet,
 )
 from grepify.site.sparkline import sparkline_svg
-from grepify.site.tokens import CLOUD_MAX_REM, CLOUD_MIN_REM, STYLE_TOKENS
+from grepify.site.tokens import CLOUD_BUCKETS, LIGHT_STYLE_TOKENS, STYLE_TOKENS
 from grepify.site.trends import (
     CloudDataset,
     DigestSummary,
@@ -64,8 +65,8 @@ from grepify.site.trends import (
 )
 
 __all__ = [
-    "CLOUD_MAX_REM",
-    "CLOUD_MIN_REM",
+    "CLOUD_BUCKETS",
+    "LIGHT_STYLE_TOKENS",
     "NAV",
     "STYLE_TOKENS",
     "BuildResult",
@@ -84,7 +85,7 @@ __all__ = [
     "Window",
     "build_pages",
     "build_site",
-    "cloud_font_rem",
+    "cloud_weight_bucket",
     "collapse_near_duplicates",
     "create_environment",
     "item_matches_filter",

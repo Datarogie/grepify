@@ -7,11 +7,15 @@
 <meta name="robots" content="noindex">
 <title>grepify - home</title>
 <link rel="stylesheet" href="/grepify/static/style.css">
+<script src="/grepify/static/theme.js"></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="site-header">
-<a class="brand" href="/grepify/">grepify</a>
+<div class="masthead-row">
+<a class="brand" href="/grepify/">grepify<span class="caret" aria-hidden="true"></span></a>
+<button type="button" class="theme-toggle" id="theme-toggle" aria-pressed="false" hidden>theme: dark</button>
+</div>
 <nav class="site-nav" aria-label="Primary">
 <a href="/grepify/" aria-current="page">Home</a>
 <a href="/grepify/digest/">Digests</a>
@@ -21,7 +25,7 @@
 </nav>
 </header>
 <main id="main" class="site-main">
-<h1>grepify</h1>
+<h1 class="visually-hidden">grepify home</h1>
 
 <section aria-label="Statistics">
 <ul class="stats">
@@ -29,17 +33,17 @@
 <li><span class="stat-value">2</span><span class="stat-label">sources</span></li>
 <li><span class="stat-value">4</span><span class="stat-label">keywords</span></li>
 <li><span class="stat-value">5</span><span class="stat-label">mentions</span></li>
-<li><span class="stat-value">genai</span><span class="stat-label">top keyword</span></li>
-<li><span class="stat-value">Source One</span><span class="stat-label">top source</span></li>
+<li><span class="stat-value small">genai</span><span class="stat-label">top keyword</span></li>
+<li><span class="stat-value small">Source One</span><span class="stat-label">top source</span></li>
 </ul>
 </section>
 
 <h2>Keyword cloud</h2>
 <div class="cloud">
-<a href="/grepify/items/#keyword=genai" style="font-size: 2.4rem" title="2 mentions">genai <span class="delta-up">+2</span></a>
-<a href="/grepify/items/#keyword=agentic%20coding" style="font-size: 0.85rem" title="1 mentions">agentic coding <span class="delta-up">+1</span></a>
-<a href="/grepify/items/#keyword=agents" style="font-size: 0.85rem" title="1 mentions">agents <span class="delta-up">+1</span></a>
-<a href="/grepify/items/#keyword=anthropic" style="font-size: 0.85rem" title="1 mentions">anthropic <span class="delta-up">+1</span></a>
+<a href="/grepify/items/#keyword=genai" class="w5" title="2 mentions">genai <span class="delta-up">+2</span></a>
+<a href="/grepify/items/#keyword=agentic%20coding" class="w1" title="1 mentions">agentic coding <span class="delta-up">+1</span></a>
+<a href="/grepify/items/#keyword=agents" class="w1" title="1 mentions">agents <span class="delta-up">+1</span></a>
+<a href="/grepify/items/#keyword=anthropic" class="w1" title="1 mentions">anthropic <span class="delta-up">+1</span></a>
 </div>
 
 <h2>Latest digests</h2>

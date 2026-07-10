@@ -16,13 +16,13 @@ import pytest
 from grepify.site import (
     PageContext,
     SiteMeta,
-    cloud_font_rem,
+    cloud_weight_bucket,
     create_environment,
     render_page,
     render_stylesheet,
     sparkline_svg,
 )
-from grepify.site.tokens import STYLE_TOKENS
+from grepify.site.tokens import LIGHT_STYLE_TOKENS, STYLE_TOKENS
 
 GOLDEN = Path(__file__).parent / "fixtures" / "site"
 
@@ -72,14 +72,21 @@ def test_base_path_prefixes_every_internal_link() -> None:
     env = create_environment()
     html = render_page(env, "base.html", PageContext(meta=_meta(), active="home"))
     assert '<link rel="stylesheet" href="/grepify/static/style.css">' in html
-    assert '<a class="brand" href="/grepify/">grepify</a>' in html
+    assert '<script src="/grepify/static/theme.js"></script>' in html
+    brand = '<a class="brand" href="/grepify/">grepify<span class="caret"'
+    assert brand in html
 
 
 def test_no_external_fonts_or_trackers() -> None:
-    # F-SIT-07: system font stack only, no third-party requests.
+    # F-SIT-07: no third-party requests. The one display face (League Gothic)
+    # is embedded as an inline data URI, never fetched.
     css = render_stylesheet(create_environment())
-    assert "fonts.googleapis" not in css and "@import" not in css and "http" not in css
-    assert "-apple-system" in css
+    # scheme-prefixed URLs only: the base64 font payload may legitimately
+    # contain the bare substring "http"
+    assert "fonts.googleapis" not in css and "@import" not in css
+    assert "http://" not in css and "https://" not in css
+    assert 'src: url("data:font/woff2;base64,' in css
+    assert "ui-monospace" in css  # body/mono faces stay on system stacks
 
 
 # --- style tokens ------------------------------------------------------------
@@ -88,6 +95,16 @@ def test_no_external_fonts_or_trackers() -> None:
 def test_tokens_render_as_css_custom_properties() -> None:
     css = render_stylesheet(create_environment())
     for name, value in STYLE_TOKENS.items():
+        assert f"  --{name}: {value};" in css
+
+
+def test_light_theme_is_a_token_level_block() -> None:
+    # the light theme re-grounds the same token names inside a data-theme
+    # block - components never know which theme is active
+    css = render_stylesheet(create_environment())
+    assert ':root[data-theme="light"]' in css
+    for name, value in LIGHT_STYLE_TOKENS.items():
+        assert name in STYLE_TOKENS  # same names, re-grounded values only
         assert f"  --{name}: {value};" in css
 
 
@@ -129,18 +146,23 @@ def test_sparkline_rejects_nonpositive_dimensions() -> None:
         sparkline_svg([1.0, 2.0], width=0.0)
 
 
-# --- cloud font sizing -------------------------------------------------------
+# --- cloud weight buckets ----------------------------------------------------
 
 
-def test_cloud_font_rem_monotonic_and_bounded() -> None:
-    small = cloud_font_rem(1, min_count=1, max_count=100)
-    big = cloud_font_rem(100, min_count=1, max_count=100)
-    mid = cloud_font_rem(10, min_count=1, max_count=100)
-    assert small < mid < big
-    assert small == pytest.approx(0.85, abs=0.01)  # CLOUD_MIN_REM
-    assert big == pytest.approx(2.4, abs=0.01)  # CLOUD_MAX_REM
+def test_cloud_weight_bucket_monotonic_and_bounded() -> None:
+    small = cloud_weight_bucket(1, min_count=1, max_count=100)
+    big = cloud_weight_bucket(100, min_count=1, max_count=100)
+    mid = cloud_weight_bucket(10, min_count=1, max_count=100)
+    assert small <= mid <= big
+    assert small == 1  # min count → lightest bucket (w1)
+    assert big == 5  # max count → heaviest bucket (w5, CLOUD_BUCKETS)
 
 
-def test_cloud_font_rem_single_count_is_midpoint() -> None:
-    # every term the same count → midpoint size, no divide-by-zero
-    assert cloud_font_rem(5, min_count=5, max_count=5) == pytest.approx(1.625, abs=0.001)
+def test_cloud_weight_bucket_single_count_is_middle() -> None:
+    # every term the same count → middle bucket, no divide-by-zero
+    assert cloud_weight_bucket(5, min_count=5, max_count=5) == 3
+
+
+def test_cloud_weight_bucket_covers_every_bucket() -> None:
+    buckets = {cloud_weight_bucket(n, min_count=1, max_count=100) for n in range(1, 101)}
+    assert buckets == {1, 2, 3, 4, 5}
