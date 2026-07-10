@@ -250,6 +250,19 @@ h2 {
 }
 .delta-up { color: var(--rise); }
 .delta-down { color: var(--text-faint); }
+.cloud-legend {
+  font-family: var(--font-mono); font-size: var(--fs-xs);
+  color: var(--text-faint);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--sp-4);
+  margin-bottom: var(--sp-2);
+}
+.cloud-legend .swatch {
+  display: inline-block; width: 0.7em; height: 0.7em;
+  background: var(--match-wash);
+  box-shadow: inset 0 0 0 1px var(--match);
+  vertical-align: baseline;
+}
 
 /* ---- feeds (digest list, item list) ---------------------------- */
 .feed { list-style: none; padding: 0; margin: 0; }

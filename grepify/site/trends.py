@@ -92,11 +92,12 @@ def previous_window(window: Window) -> Window:
 
 @dataclass(frozen=True)
 class KeywordCount:
-    """One cloud term: its in-window count and delta vs the previous window."""
+    """One cloud term: its in-window count, delta, and rising flag (F-TRD-03)."""
 
     keyword: str
     count: int
     delta: int
+    rising: bool
 
 
 @dataclass(frozen=True)
@@ -294,8 +295,22 @@ class TrendQueries:
         *,
         previous: Window | None = None,
         limit: int = DEFAULT_CLOUD_LIMIT,
+        rising_min_count: int,
+        rising_ratio: float,
     ) -> CloudDataset:
-        """Top ``limit`` keywords by in-window count, with deltas (F-TRD-01)."""
+        """Top ``limit`` keywords by in-window count, with deltas + rising flag
+        (F-TRD-01/F-TRD-03). ``rising_min_count``/``rising_ratio`` are threaded
+        in from ``settings.digest`` by the caller (build orchestrator), never
+        defaulted here, so the cloud and the digest prompt always agree on the
+        same config-driven thresholds.
+
+        The import of :func:`~grepify.digest.rising.is_rising` is deferred to
+        call time: ``grepify.digest`` (the package) imports
+        :mod:`grepify.digest.assemble`, which imports this module, so a
+        module-level import here would be circular.
+        """
+        from grepify.digest.rising import is_rising  # noqa: PLC0415 - deferred, see above
+
         current = {kw: len(items) for kw, items in self._merged_counts(window).items()}
         prev_window = previous if previous is not None else previous_window(window)
         prior = {kw: len(items) for kw, items in self._merged_counts(prev_window).items()}
@@ -303,7 +318,17 @@ class TrendQueries:
         # rank by count desc, then keyword asc - total order, byte-stable
         ranked = sorted(current.items(), key=lambda kv: (-kv[1], kv[0]))[:limit]
         keywords = [
-            KeywordCount(keyword=kw, count=count, delta=count - prior.get(kw, 0))
+            KeywordCount(
+                keyword=kw,
+                count=count,
+                delta=count - prior.get(kw, 0),
+                rising=is_rising(
+                    count,
+                    prior.get(kw, 0),
+                    min_count=rising_min_count,
+                    ratio=rising_ratio,
+                ),
+            )
             for kw, count in ranked
         ]
         return CloudDataset(window=window, keywords=keywords)

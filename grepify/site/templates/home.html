@@ -19,9 +19,10 @@
 <div class="cloud">
 {% for kw in cloud.keywords %}
 {% if kw.keyword in keyword_pages %}{% set href = meta.base_path ~ "keyword/" ~ keyword_slug(kw.keyword) ~ "/" %}{% else %}{% set href = meta.base_path ~ "items/#keyword=" ~ (kw.keyword | urlencode) %}{% endif %}
-<a href="{{ href }}" class="w{{ cloud_weight_bucket(kw.count, min_count=cloud.min_count, max_count=cloud.max_count) }}" title="{{ kw.count }} mentions">{{ kw.keyword }}{% if kw.delta > 0 %} <span class="delta-up">+{{ kw.delta }}</span>{% elif kw.delta < 0 %} <span class="delta-down">{{ kw.delta }}</span>{% endif %}</a>
+<a href="{{ href }}" class="w{{ cloud_weight_bucket(kw.count, min_count=cloud.min_count, max_count=cloud.max_count) }}{% if kw.rising %} rising{% endif %}" title="{{ kw.count }} mentions">{{ kw.keyword }}{% if kw.delta > 0 %} <span class="delta-up">+{{ kw.delta }}</span>{% elif kw.delta < 0 %} <span class="delta-down">{{ kw.delta }}</span>{% endif %}</a>
 {% endfor %}
 </div>
+<p class="cloud-legend"><span class="swatch" aria-hidden="true"></span> highlight = rising · <span class="delta-up">+n</span> / <span class="delta-down">-n</span> = {{ cloud.window.days }}d change in mentions</p>
 {% else %}
 <p class="muted">No keywords in the current window yet.</p>
 {% endif %}
