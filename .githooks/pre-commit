@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Commit-hygiene guard (CLAUDE.md hard rules). Blocks a commit when the staged
+# change, or the committing identity, violates the repo's writing conventions.
+#
+# Activated by `core.hooksPath=.githooks` (set by the session-start hook or by
+# `scripts/setup-git-identity.sh`). Escape hatch for genuine external data (real
+# feed names, recorded fixtures that legitimately contain a dash): re-run with
+# `git commit --no-verify`.
+set -euo pipefail
+
+fail() {
+  echo "commit blocked (pre-commit): $1" >&2
+  shift
+  for line in "$@"; do echo "  $line" >&2; done
+  exit 1
+}
+
+# 1) Author identity must not be an AI/agent identity (CLAUDE.md: no attribution).
+email="$(git config user.email 2>/dev/null || true)"
+name="$(git config user.name 2>/dev/null || true)"
+if printf '%s\n%s' "$email" "$name" | grep -qiE 'anthropic|noreply@anthropic|^claude$|claude-session'; then
+  fail "the git author looks like an AI identity ($name <$email>)." \
+    "Set the project identity first: bash scripts/setup-git-identity.sh"
+fi
+
+# Added lines in the staged diff (drop the +++ file headers). `.githooks/` is
+# excluded: these scripts embed the very patterns below as detection strings, so
+# scanning them would self-trip; they are reviewed infra.
+added="$(git diff --cached --diff-filter=ACM -U0 -- . ':(exclude).githooks/' | { grep -E '^\+' || true; } | { grep -Ev '^\+\+\+' || true; })"
+
+# 2) No em/en dashes (U+2014 / U+2013). python3 is reliable where this box's
+#    grep -P is not; chr() keeps this script itself dash-free. Exits 1 on a hit.
+if ! printf '%s' "$added" | python3 -c "import sys; sys.exit(1 if {chr(0x2014), chr(0x2013)} & set(sys.stdin.read()) else 0)"; then
+  fail "a staged line contains an em/en dash (U+2014 / U+2013)." \
+    "Use a spaced hyphen ' - ' or reword. Genuine external data may keep it:" \
+    "re-run with 'git commit --no-verify'."
+fi
+
+# 3) No AI-authorship attribution in staged content (code, comments, docs).
+if printf '%s' "$added" | grep -qiE 'co-authored-by:[[:space:]]*.*(claude|anthropic)|claude-session|generated (with|by) claude|claude\.ai/code'; then
+  fail "a staged line contains AI-authorship attribution." \
+    "Remove Co-Authored-By / Claude-Session / 'Generated with Claude' / claude.ai/code."
+fi
+
+exit 0
