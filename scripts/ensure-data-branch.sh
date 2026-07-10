@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # Ensure the dedicated `data` branch is checked out as a worktree at ./data
 # (GRP-06 revision). Main now carries a ruleset requiring PRs with no bypass,
-# so the pipeline's JSONL truth commits can no longer land on `main` — they go
+# so the pipeline's JSONL truth commits can no longer land on `main` - they go
 # to `data` instead, pushed with the default GITHUB_TOKEN. Creates `data` as
 # an empty orphan branch on first run.
 #
 # Failure modes
 # -------------
 # Any git command failing (auth, corrupt repo) propagates via `set -e` and
-# fails the pipeline run loudly — same posture as commit_data (no silent data
+# fails the pipeline run loudly - same posture as commit_data (no silent data
 # loss). Run from the repository root of an already-checked-out `main`.
 set -euo pipefail
 

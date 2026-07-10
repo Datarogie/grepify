@@ -1,6 +1,6 @@
 # Architecture
 
-Condensed from PRD §5–§7 (the source of truth — read it for rationale). This is
+Condensed from PRD §5-§7 (the source of truth - read it for rationale). This is
 the onboarding reference; when the two disagree, the PRD wins.
 
 ## Shape
@@ -14,13 +14,13 @@ sources/*.yml → ingest → normalize+dedup → JSONL truth → rebuild → SQL
                   └─ fetch_log / health                      └─ build (Jinja SSG → public/) → Pages
 ```
 
-Run 2–4×/day on CI cron. All steps are `make` targets that also run locally; CI
+Run 2-4×/day on CI cron. All steps are `make` targets that also run locally; CI
 is just a scheduler.
 
 ## Storage: JSONL truth + SQLite cache
 
 - **Truth** = append-only JSONL committed to a dedicated **`data` branch**
-  (not `main`, which requires PRs — GRP-06):
+  (not `main`, which requires PRs - GRP-06):
   `data/items/YYYY/MM/DD.jsonl`, `data/keywords/YYYY/MM/DD.jsonl`,
   `data/digests/*.json`, plus `data/logs/{fetch,llm}/…`. Readable diffs, no binary
   blobs in history, retroactive reprocessing = rerun over files. This IS the v2
@@ -35,13 +35,13 @@ is just a scheduler.
 All storage behind one **`Repository`** interface (v1 = JSONL+SQLite; v2 =
 Postgres). All config behind one **`ConfigProvider`** interface (v1 =
 filesystem-YAML; v2 = DB-backed + checkbox UI). Signatures use domain models and
-builtins only — **no SQLite-specific types leak**, so the pipeline, trend
+builtins only - **no SQLite-specific types leak**, so the pipeline, trend
 queries, and digest assembler never know which backend is active.
 
 ## LLM
 
 Named profiles selected by config (`llm.active_profile`); each profile carries a
-**hard budget gate** (`max_calls_per_run`) — bounded retries, circuit breaker, no
+**hard budget gate** (`max_calls_per_run`) - bounded retries, circuit breaker, no
 unbounded loops (CSR incident rule). Model + prompt version recorded per row.
 If the LLM is unavailable or over budget → deterministic **YAKE fallback**, rows
 flagged `method='fallback'` for later re-extraction; the site still builds.
@@ -61,13 +61,13 @@ sources/
   settings.yml   # cadence, windows, llm profiles, budgets
 ```
 
-Digests are generated **per category**, never per user — the one feature whose
+Digests are generated **per category**, never per user - the one feature whose
 cost would scale with users, so it stays category-level even in v2.
 
 ## Data model
 
 Logical schema in PRD §6 (the column set is the contract either backend
-implements). Trends are **not** materialized — cloud/timeline/related-keyword are
+implements). Trends are **not** materialized - cloud/timeline/related-keyword are
 computed at build time by SQL over `item_keywords ⋈ items` for the window.
 
 ## Timezone

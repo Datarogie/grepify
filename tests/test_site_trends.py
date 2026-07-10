@@ -1,7 +1,7 @@
 """Trend queries tests (GRP-31): window math + cloud/stats/sources on a canned DB.
 
 Builds a small JSONL truth via :class:`JsonlSqliteRepository`, rebuilds the
-cache, and drives :class:`TrendQueries` against it — the "canned DB" the AC
+cache, and drives :class:`TrendQueries` against it - the "canned DB" the AC
 calls for. Covers windowing, alias/mute merge, distinct-item counting (llm +
 fallback rows for the same keyword count once), deltas vs the previous window,
 and determinism (identical results twice in a row).

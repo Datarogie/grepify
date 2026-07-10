@@ -11,7 +11,7 @@ Identity (PRD §6 ``item_id = kind + canonical_url|external_id``)
 ``external_id`` when the entry carries one, else the ``canonical_url``. It is
 independent of ``fetched_at`` and ``published_at`` fallbacks, so re-fetching the
 same entry yields the same ``item_id`` and :meth:`Repository.add_items
-<grepify.repository.base.Repository.add_items>` writes zero new rows — this is
+<grepify.repository.base.Repository.add_items>` writes zero new rows - this is
 what makes ingest idempotent (F-ING-07).
 
 Unique-index handling
@@ -30,7 +30,7 @@ Pure functions, no I/O. They can only raise ``pydantic.ValidationError``, and
 only if a :class:`~grepify.models.Item` field constraint is violated (wrong type
 from a malformed ``RawItem``); the field set produced here always satisfies the
 model. Note the ``Item.title`` / ``Item.canonical_url`` columns are ``not null``
-but *not* min-length — an empty string passes; fetchers own display-ready title
+but *not* min-length - an empty string passes; fetchers own display-ready title
 text. Malformed URLs do not raise: :func:`canonicalize_url` passes non-``http(s)``
 /relative URLs through unchanged.
 """
@@ -112,7 +112,7 @@ def compute_item_id(kind: SourceKind, canonical_url: str, external_id: str | Non
 
 def _clean_external_id(external_id: str | None) -> str | None:
     """Coerce an empty / whitespace-only external id to ``None`` (see module
-    docstring — protects the ``(kind, external_id)`` unique index)."""
+    docstring - protects the ``(kind, external_id)`` unique index)."""
     if external_id is None:
         return None
     trimmed = external_id.strip()

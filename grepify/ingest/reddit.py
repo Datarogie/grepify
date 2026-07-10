@@ -1,9 +1,9 @@
-"""GRP-13: Reddit fetcher — ``/r/<sub>/new.json`` with UA + backoff (PRD §8
+"""GRP-13: Reddit fetcher - ``/r/<sub>/new.json`` with UA + backoff (PRD §8
 F-ING-04).
 
-Fetches ``source.url`` — already the canonical
+Fetches ``source.url`` - already the canonical
 ``https://www.reddit.com/r/<sub>/new.json`` URL (PRD §7 / ``ConfigProvider``
-resolves it) — requesting ``limit=50`` directly (F-ING-06's per-run cap) so a
+resolves it) - requesting ``limit=50`` directly (F-ING-06's per-run cap) so a
 pathological subreddit never sends more than the fetcher will keep. A blank
 User-Agent gets Reddit's default client rate-limited/blocked immediately, so a
 descriptive one is always sent.
@@ -12,24 +12,24 @@ Backoff and the ``.rss`` fallback (F-ING-04)
 ---------------------------------------------
 A 429/5xx response (or a transport-level failure) is retried with bounded
 exponential backoff (``_MAX_ATTEMPTS`` attempts total). A non-retryable client
-error (e.g. 403 — the documented "Reddit JSON blocked from CI IPs" failure
+error (e.g. 403 - the documented "Reddit JSON blocked from CI IPs" failure
 mode, PRD §13 risk table) short-circuits immediately rather than wasting
 attempts. Once the JSON endpoint is exhausted either way, this falls back to
-Reddit's documented ``.rss`` endpoint for the same listing (F-ING-04) — parsed
+Reddit's documented ``.rss`` endpoint for the same listing (F-ING-04) - parsed
 with the same ``feedparser`` machinery :mod:`grepify.ingest.rss` uses. The
 fallback itself is a single attempt: F-ING-04's "reduced cadence" for the
 fallback path is a *scheduling* decision (how often this source is fetched at
-all), which belongs to the ingest orchestrator (GRP-15, not yet built) — a
+all), which belongs to the ingest orchestrator (GRP-15, not yet built) - a
 single ``fetch`` call has no notion of cadence.
 
 Field mapping
 -------------
 ``permalink`` becomes ``RawItem.url`` (the stable discussion page, not the
-outbound link — PRD §8 F-ING-04 explicitly calls out storing the permalink).
+outbound link - PRD §8 F-ING-04 explicitly calls out storing the permalink).
 ``selftext`` is passed through in full as ``summary``; the 2k excerpt cap is
 the normalizer's job (GRP-14), not this fetcher's. Reddit's ``score`` has no
-home in :class:`~grepify.ingest.base.RawItem` or the PRD §6 ``items`` schema —
-neither carries a numeric score column — so it is read from the API response
+home in :class:`~grepify.ingest.base.RawItem` or the PRD §6 ``items`` schema -
+neither carries a numeric score column - so it is read from the API response
 and deliberately dropped; there is nowhere in the current contract to put it.
 
 Failure modes
@@ -118,8 +118,8 @@ class RedditFetcher(Fetcher):
         """GET with bounded exponential backoff on transient failures.
 
         Returns the first 2xx response, or ``None`` once attempts are
-        exhausted (caller falls back to ``.rss`` — F-ING-04). A non-retryable
-        HTTP error (e.g. 403/404) also returns ``None`` immediately — retrying
+        exhausted (caller falls back to ``.rss`` - F-ING-04). A non-retryable
+        HTTP error (e.g. 403/404) also returns ``None`` immediately - retrying
         a hard client error would only waste attempts.
         """
         for attempt in range(self._max_attempts):

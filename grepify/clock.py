@@ -2,7 +2,7 @@
 
 Wall-clock access is funneled through :class:`Clock` so that timestamp
 generation is injectable and tests are deterministic. The render path (E3) must
-never call ``datetime.now()`` directly — it receives a clock (PRD §5, playbook
+never call ``datetime.now()`` directly - it receives a clock (PRD §5, playbook
 S8). Run-id and run-manifest generation (E0) use it too.
 
 Failure modes

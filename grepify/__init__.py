@@ -1,4 +1,4 @@
-"""Grepify — grep the firehose.
+"""Grepify - grep the firehose.
 
 Personal, configurable news/video/social aggregator. See docs/prd.md for the
 full spec (the source of truth) and docs/architecture.md for the condensed map.

@@ -1,4 +1,4 @@
-"""GRP-23: keyword normalization + alias/mute application — pure, table-driven."""
+"""GRP-23: keyword normalization + alias/mute application - pure, table-driven."""
 
 from __future__ import annotations
 

@@ -1,6 +1,6 @@
 """GRP-07: guard the committed seed group files (sources/groups/*.yml).
 
-These assert the *real* repo config — not a fixture — so a future edit that
+These assert the *real* repo config - not a fixture - so a future edit that
 breaks the schema, duplicates an id/url_hash, drops a PRD-mandated seed, or
 sneaks in a forbidden category fails the gate loudly (PRD §2 no-crypto, §7
 group/category schema, §14 seeds).
@@ -8,7 +8,7 @@ group/category schema, §14 seeds).
 Failure modes
 -------------
 If ``sources/`` is moved or a group file is malformed, these fail with the
-provider's aggregated errors — the same signal ``grepify validate`` gives in CI.
+provider's aggregated errors - the same signal ``grepify validate`` gives in CI.
 """
 
 from __future__ import annotations
@@ -86,7 +86,7 @@ def test_prd_mandated_seeds_present() -> None:
 
 
 def test_dead_sources_disabled_not_omitted() -> None:
-    # "mark dead ones enabled: false rather than omitting them" — the data-eng
+    # "mark dead ones enabled: false rather than omitting them" - the data-eng
     # seeds whose feed path could not be confirmed ship disabled, still present.
     by_id = {s.source_id: s for s in _provider().sources()}
     assert by_id["dbt-developer-blog"].enabled is False

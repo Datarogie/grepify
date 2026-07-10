@@ -19,7 +19,7 @@ Layout::
 
 Failure modes
 -------------
-Pure path arithmetic — no I/O, so nothing here raises for missing directories.
+Pure path arithmetic - no I/O, so nothing here raises for missing directories.
 A malformed ISO date string raises ``ValueError`` from :func:`date_parts`.
 """
 

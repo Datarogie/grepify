@@ -31,7 +31,7 @@ Failure modes
   (systemic; the build can't proceed on a broken cache).
 - Bad config → :class:`~grepify.errors.ConfigError` from the ``ConfigProvider``.
 - A missing/unreadable ``health.json`` renders an **empty** health page (health
-  is best-effort, PRD §8) — it never fails the build.
+  is best-effort, PRD §8) - it never fails the build.
 - Writing ``public/`` propagates ``OSError`` (e.g. read-only fs), same as every
   other data-root write in the package.
 """
@@ -92,7 +92,7 @@ class BuildResult:
     items_total: int
 
 
-def build_site(  # noqa: PLR0913 — distinct collaborators, all required
+def build_site(  # noqa: PLR0913 - distinct collaborators, all required
     *,
     config: ConfigProvider,
     repository: Repository,
@@ -104,7 +104,7 @@ def build_site(  # noqa: PLR0913 — distinct collaborators, all required
 ) -> BuildResult:
     """Render the whole site into ``output_dir`` from the cache + config."""
     # Project config-derived sources/groups into the cache before the rebuild
-    # so the `sources` table is populated — otherwise top-sources / latest-items
+    # so the `sources` table is populated - otherwise top-sources / latest-items
     # would fall back to raw source_ids instead of display names. (`ingest`
     # loads config in its own process; `build` runs standalone and must too.)
     repository.load_config(config.groups(), config.sources())

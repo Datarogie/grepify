@@ -12,7 +12,7 @@ A source's whole attempt (fetch, normalize, dedup, write) is wrapped so that a
 :class:`~grepify.errors.FetchError` *or any other exception* is caught, logged
 as an ``error`` :class:`~grepify.models.FetchLogEntry`, and the run continues
 with the next source. One dead feed never fails the run. Config/repository
-construction failures (bad YAML, unreadable truth) are *not* caught here —
+construction failures (bad YAML, unreadable truth) are *not* caught here -
 those are systemic and are expected to fail the whole run (PRD §5).
 
 Caps (F-ING-06)
@@ -21,7 +21,7 @@ Every source's raw items are truncated to ``item_cap`` (default 50) right
 after fetch, regardless of whether the fetcher already applies its own
 client-side cap (Reddit requests ``limit=50`` and slices again). Slicing an
 already-capped list to the same bound is a no-op, so this never
-double-truncates incorrectly — the cap is a property of every source kind,
+double-truncates incorrectly - the cap is a property of every source kind,
 not something each fetcher has to get right alone.
 
 Enabled sources

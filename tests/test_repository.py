@@ -80,7 +80,7 @@ def test_keywords_idempotent_on_composite_key(tmp_path: Path) -> None:
 def test_keyword_key_includes_method_llm_and_fallback_rows_coexist(tmp_path: Path) -> None:
     # GRP-25 schema revision (PRD §6): method joins the primary key so an llm
     # row and a fallback row with identical keyword text are both truth, not
-    # a duplicate write — this is what lets backfill converge (test_backfill.py).
+    # a duplicate write - this is what lets backfill converge (test_backfill.py).
     repo = JsonlSqliteRepository(tmp_path)
     fallback_row = make_keyword("i1", "ai").model_copy(
         update={"method": ExtractionMethod.FALLBACK, "model": None}

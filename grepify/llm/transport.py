@@ -2,7 +2,7 @@
 
 The provider depends on the small :class:`CompletionTransport` protocol (a JSON
 POST), not on ``httpx`` directly, so tests inject a canned in-memory transport
-and the module never touches the network — GRP-20/21 are offline-testable by
+and the module never touches the network - GRP-20/21 are offline-testable by
 design (PRD §9/§10). :class:`HttpxCompletionTransport` is what production wires
 in (GRP-25). The transport-neutral :class:`~grepify.ingest.http.HttpResponse` is
 reused so there is one response shape across the codebase.
@@ -10,7 +10,7 @@ reused so there is one response shape across the codebase.
 Failure modes
 -------------
 :meth:`CompletionTransport.post_json` never raises for an HTTP error status
-(4xx/5xx) — it returns the response and lets :class:`~grepify.llm.client.LlmClient`
+(4xx/5xx) - it returns the response and lets :class:`~grepify.llm.client.LlmClient`
 decide (retry 429/5xx, short-circuit other 4xx). It DOES raise
 :class:`~grepify.errors.LlmError` for a failure that produced no response at all
 (connection refused, DNS/TLS failure, timeout); the client treats that as a

@@ -1,8 +1,8 @@
-"""GRP-20: LLM provider — budget breaker, bounded+jittered retries, llm_log.
+"""GRP-20: LLM provider - budget breaker, bounded+jittered retries, llm_log.
 
 The budget circuit breaker is the load-bearing safety code (PRD §5, CSR
 retry-loop lesson); the headline test is that the 41st call at a cap of 40 is
-refused *without a network call*. No test makes a real network call — a scripted
+refused *without a network call*. No test makes a real network call - a scripted
 in-memory transport stands in (PRD §9/§10, offline-testable by design).
 """
 

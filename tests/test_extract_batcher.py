@@ -1,4 +1,4 @@
-"""GRP-21: extract batcher — batching, retry-then-fallback, budget cascade.
+"""GRP-21: extract batcher - batching, retry-then-fallback, budget cascade.
 
 Drives :func:`grepify.extract.run_extract` end to end against a scripted LLM
 client (no network) and a fake fallback extractor standing in for GRP-22.
@@ -199,7 +199,7 @@ def test_network_llm_error_degrades_only_that_batch() -> None:
 
 def test_budget_refused_retry_does_not_inflate_retry_metric() -> None:
     # First call is malformed; the one retry is refused by the budget breaker
-    # (cap of 1) before any network I/O — so it must not count as a retry.
+    # (cap of 1) before any network I/O - so it must not count as a retry.
     client, transport, _ = _client(["not json"], max_calls=1)
     result = run_extract(
         [_item("a")], client, run_id="r", clock=_CLOCK, fallback=FakeFallbackExtractor()

@@ -1,4 +1,4 @@
-"""GRP-16: health snapshot — consecutive-failure computation (PRD §8 F-ING-08)."""
+"""GRP-16: health snapshot - consecutive-failure computation (PRD §8 F-ING-08)."""
 
 from __future__ import annotations
 

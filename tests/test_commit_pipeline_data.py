@@ -1,7 +1,7 @@
 """Tests for scripts/commit_pipeline_data.py (GRP-06 pipeline data-commit glue).
 
 Production usage points ``--repo-dir`` at the `data`-branch worktree, whose
-top level *is* the data content (no nested ``data/`` prefix) — these tests
+top level *is* the data content (no nested ``data/`` prefix) - these tests
 mirror that shape rather than the old same-repo-as-main layout.
 """
 

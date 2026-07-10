@@ -3,19 +3,19 @@
 The single source of truth for the site's palette, spacing, radius, and type
 scale. Tokens are rendered into CSS custom properties (``:root { --… }``) by
 ``templates/style.css.jinja`` so there is exactly one place a colour or spacing
-value is defined — templates reference ``var(--…)`` and never hard-code values.
+value is defined - templates reference ``var(--…)`` and never hard-code values.
 
-The theme is **dark, mobile-first**, with a **system font stack only** — no
+The theme is **dark, mobile-first**, with a **system font stack only** - no
 external fonts, no web-font fetch, no trackers (PRD §8 F-SIT-07).
 
 Determinism: :data:`STYLE_TOKENS` is an ordered ``dict`` (insertion order is
 part of the Python language contract), so iterating it yields the same CSS byte
-sequence every build (F-SIT-08). Callers must not sort or reorder it — the
+sequence every build (F-SIT-08). Callers must not sort or reorder it - the
 authored order *is* the intended CSS order.
 
 Failure modes
 -------------
-None — this module is pure data (module-level constants). Nothing here performs
+None - this module is pure data (module-level constants). Nothing here performs
 I/O or raises.
 """
 
@@ -40,7 +40,7 @@ STYLE_TOKENS: dict[str, str] = {
     "ok": "#3fb950",
     "warn": "#d29922",
     "error": "#f85149",
-    # typography — system stack only (no external fonts, F-SIT-07)
+    # typography - system stack only (no external fonts, F-SIT-07)
     "font-sans": (
         "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, "
         "sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji'"
@@ -65,7 +65,7 @@ STYLE_TOKENS: dict[str, str] = {
 }
 
 # Keyword-cloud sizing (log-scaled, PRD §8 F-SIT-01). The smallest/largest font
-# a cloud term can render at, in rem — the home page interpolates between them by
+# a cloud term can render at, in rem - the home page interpolates between them by
 # log(count). Kept here so the size range is a design token, not a magic number
 # buried in a template or query.
 CLOUD_MIN_REM = 0.85

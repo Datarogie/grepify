@@ -8,10 +8,10 @@ the config layer; ``backfill`` re-extracts ``method='fallback'`` rows through
 a real LLM client (GRP-22). ``build`` is wired to the E3 site renderer
 (GRP-35: cache rebuild → Jinja SSG → ``public/``). ``trends``/``digest``
 remain stubs that record a run manifest so the operator tooling (``health``)
-works end to end — later epics replace each stub body without changing the
+works end to end - later epics replace each stub body without changing the
 CLI surface.
 (``backfill``'s scope here is GRP-22's fallback-only re-extraction; broader
-E6/GRP-60 maintenance modes — reindex, vacuum, prune — are later work behind
+E6/GRP-60 maintenance modes - reindex, vacuum, prune - are later work behind
 the same subcommand.)
 
 Failure modes
@@ -20,7 +20,7 @@ Failure modes
 - ``ingest`` never fails the process for a single dead source (isolated in the
   orchestrator, PRD §9); it only propagates systemic failures (bad config,
   unreadable truth).
-- ``extract`` exits non-zero if ``LLM_BASE_URL`` is unset (nothing to call) —
+- ``extract`` exits non-zero if ``LLM_BASE_URL`` is unset (nothing to call) -
   same convention as ``backfill``, below. A :class:`~grepify.errors.DataQualityError`
   (PRD §10.7 gate failed) propagates and fails the run loudly, writing no
   manifest for that run, same as a systemic config failure. Once running,
@@ -59,7 +59,7 @@ from grepify.repository.jsonl_sqlite import JsonlSqliteRepository
 from grepify.run import latest_manifest, new_run_id, write_manifest
 from grepify.site.build import build_site
 
-app = typer.Typer(add_completion=False, help="grep the firehose — grepify CLI.")
+app = typer.Typer(add_completion=False, help="grep the firehose - grepify CLI.")
 
 
 @dataclass
@@ -157,9 +157,9 @@ def extract(ctx: typer.Context, force: ForceOpt = False) -> None:
     before writing to truth. Reads the LLM endpoint from ``settings.yml``'s
     active profile but resolves the deployment secrets from the environment
     (``LLM_BASE_URL`` required, ``LLM_API_KEY`` optional for keyless local
-    endpoints), never from committed config (PRD §5) — same convention as
+    endpoints), never from committed config (PRD §5) - same convention as
     ``backfill``. ``--force`` bypasses untagged-item selection entirely and
-    re-extracts every item in truth (F-EXT-04) — a deliberate manual escape
+    re-extracts every item in truth (F-EXT-04) - a deliberate manual escape
     hatch (e.g. after a prompt/model change), not wired into the pipeline cron.
     """
     state: AppState = ctx.obj
@@ -270,7 +270,7 @@ def build(
     Rebuilds the SQLite cache from JSONL truth, then renders the home, items
     browser (trailing-90d, near-dup collapsed, client-filterable), sources, and
     health pages plus the tokenised stylesheet. Pure function of cache + config
-    + the injected clock (F-SIT-08) — no network, no LLM. ``--base-path``
+    + the injected clock (F-SIT-08) - no network, no LLM. ``--base-path``
     prefixes every internal link so the same build works at a project-Pages
     sub-path or a root deploy (read from ``GREPIFY_BASE_PATH`` in CI).
     """
@@ -322,7 +322,7 @@ BackfillMaxCallsOpt = Annotated[
 def backfill(ctx: typer.Context, max_calls: BackfillMaxCallsOpt = 200) -> None:
     """Re-extract items whose keywords are entirely ``method='fallback'`` (GRP-22).
 
-    Manual/one-time command — not wired into the pipeline cron (GRP-25). Reads
+    Manual/one-time command - not wired into the pipeline cron (GRP-25). Reads
     the LLM endpoint from ``settings.yml``'s active profile but resolves the
     deployment secrets from the environment (``LLM_BASE_URL`` required,
     ``LLM_API_KEY`` optional for keyless local endpoints), never from

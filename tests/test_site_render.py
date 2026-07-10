@@ -2,7 +2,7 @@
 
 Snapshots (F-SIT-08 / S8): the base layout and the tokenised stylesheet are
 rendered with fixed inputs and compared against committed goldens under
-``tests/fixtures/site/`` — any rendering change is an explicit snapshot update
+``tests/fixtures/site/`` - any rendering change is an explicit snapshot update
 in the diff. Determinism is asserted by rendering twice in a row and requiring
 byte-identical output (the "passes twice in CI" rule).
 """

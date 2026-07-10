@@ -2,7 +2,7 @@
 
 Truth lives in date-partitioned JSONL under the data root (see
 :mod:`grepify.paths`). The SQLite file is a derived query cache, dropped and
-rebuilt from truth on every :meth:`rebuild_cache` call — so a rebuild is both
+rebuilt from truth on every :meth:`rebuild_cache` call - so a rebuild is both
 deterministic (same truth → same cache) and idempotent. Writes are idempotent by
 primary key: re-adding the same record appends nothing.
 
@@ -124,8 +124,8 @@ class JsonlSqliteRepository(Repository):
         # preserve `_read_all`'s file order (day-partitioned ascending, then
         # true append order within a day) as the tie-break. `started_at` is
         # second-precision text and `run_id` ends in random entropy, so
-        # sorting by `(started_at, run_id, ...)` — as the other iter_* methods
-        # do with *stable* identifiers like item_id — would let same-second
+        # sorting by `(started_at, run_id, ...)` - as the other iter_* methods
+        # do with *stable* identifiers like item_id - would let same-second
         # entries land in an arbitrary, non-chronological order instead of
         # the real attempt order health-snapshot consumers rely on (GRP-16).
         rows = self._read_all(self._layout.fetch_log_dir, FetchLogEntry)

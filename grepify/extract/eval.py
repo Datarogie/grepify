@@ -1,18 +1,18 @@
 """Offline eval harness (GRP-24, PRD §10.5): jaccard scoring against a labeled set.
 
-Not part of `make check` or any CI gate — run manually (`make eval`) when the
+Not part of `make check` or any CI gate - run manually (`make eval`) when the
 extract prompt or LLM profile changes, and paste the printed report into the
 MR description (PRD §10.5: "no silent prompt regressions"). This module holds
 the pure, offline-testable half of the harness: the fixture model, the
 jaccard scorer, and the report formatter. It has no LLM/config/repository
-dependency and performs no network I/O — driving the real extraction
+dependency and performs no network I/O - driving the real extraction
 pipeline against the fixture is `scripts/eval.py`'s job (it is not
 worth unit-testing without a network, so it stays a thin script, mirroring
 `scripts/commit_pipeline_data.py`).
 
 The fixture (`tests/fixtures/eval/keyword_eval_candidates.jsonl`) is 30 real
 ingested items (title + summary), hand-curated once and committed as a fixed
-test fixture — not pipeline truth. `expected_keywords` starts empty per item
+test fixture - not pipeline truth. `expected_keywords` starts empty per item
 (a manual labeling task, playbook S7k); unlabeled items are skipped from the
 mean score but still show their predicted keywords in the report.
 
@@ -20,7 +20,7 @@ Failure modes
 --------------
 :func:`load_eval_cases` raises ``ValueError`` (wrapping the underlying
 ``pydantic.ValidationError`` or ``json.JSONDecodeError``, with the offending
-line number) for a malformed fixture line — a bad hand-edit from a phone
+line number) for a malformed fixture line - a bad hand-edit from a phone
 editor, not a runtime concern, so it is left to propagate rather than
 silently skipped or defaulted. Every other function here is a pure
 transform over already-valid :class:`EvalCase` / :class:`~grepify.models.ItemKeyword`
@@ -41,7 +41,7 @@ from grepify.models import Item, ItemKeyword, SourceKind
 
 
 class EvalCase(BaseModel):
-    """One row of the eval fixture. Not a PRD §6 storage record — a test
+    """One row of the eval fixture. Not a PRD §6 storage record - a test
     fixture only :mod:`grepify.extract.eval` and `scripts/eval.py` read."""
 
     model_config = ConfigDict(extra="forbid")
@@ -174,7 +174,7 @@ def score_predictions(
 
 def format_report(report: EvalReport, *, heading: str = "grepify eval") -> str:
     """Render ``report`` as Markdown, ready to paste into an MR description
-    (PRD §10.5 — eval results are pasted manually, never gated in CI)."""
+    (PRD §10.5 - eval results are pasted manually, never gated in CI)."""
     lines = [f"## {heading}"]
     if report.mean_score is None:
         lines.append(

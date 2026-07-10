@@ -9,7 +9,7 @@ hands off.
 
 ### a. Work the scope
 
-Work through the session's scope end to end. Do not stop between issues — keep
+Work through the session's scope end to end. Do not stop between issues - keep
 going while context permits. If context usage approaches **~40%**, stop at a
 clean boundary, commit, and output a **CONTINUATION PROMPT**: the exact text to
 paste into a fresh session, stating what is done, what remains, and which files
@@ -18,7 +18,7 @@ matter.
 ### b. Completion gate
 
 When scope is complete, run `make check` **and** the full test suite. Fix every
-failure before proceeding — no red gate advances.
+failure before proceeding - no red gate advances.
 
 ### c. Self-review gate (fresh-context subagent)
 
@@ -46,7 +46,7 @@ dismissal in writing. Repeat until the subagent passes the session.
 
 #### Handling PR review comments
 
-**Never delete a review, a review comment, or a pending review — including
+**Never delete a review, a review comment, or a pending review - including
 your own.** Address feedback by replying on the thread and/or resolving it
 once handled. A "pending review" blocking a reply is not an invitation to
 clear it: it may be a reviewer's own unsubmitted comments, and deleting it
@@ -58,8 +58,8 @@ review state.
 
 From S2 on, every PR body carries this section, in exactly this shape:
 
-- **WHAT CHANGED** — 2–3 bullets, plain language (no jargon).
-- **HOW TO TEST FROM PHONE** — numbered steps, each with a **direct tappable
+- **WHAT CHANGED** - 2-3 bullets, plain language (no jargon).
+- **HOW TO TEST FROM PHONE** - numbered steps, each with a **direct tappable
   link** (the Actions run URL, the Pages URL, a specific page/anchor). **No step
   may require a terminal.**
 
@@ -88,10 +88,10 @@ HUMAN FEEDBACK (optional - replace or delete this block):
 A filled-in HUMAN FEEDBACK block is **scope-adjusting input**. The receiving
 session must:
 
-- Address feedback **FIRST** — fixes from the last session's phone test are
+- Address feedback **FIRST** - fixes from the last session's phone test are
   **priority 0**, ahead of new scope.
 - Propose PRD / process-doc diffs where feedback implies a **standing** change
-  (never edit `docs/prd.md` silently — propose the diff in the PR, per
+  (never edit `docs/prd.md` silently - propose the diff in the PR, per
   `CLAUDE.md`).
 
 ### f. Stacking on an unmerged previous PR
@@ -99,14 +99,14 @@ session must:
 If the previous session's PR is **unmerged** when a new session starts, the new
 session begins by checking whether its scope **depends on that branch**:
 
-- **If yes** — branch from the previous session's branch (not `main`) and note
+- **If yes** - branch from the previous session's branch (not `main`) and note
   the stacking in the PR body (which branch it stacks on, and that it should
   merge after).
-- **If no** — branch from `main` as usual.
+- **If no** - branch from `main` as usual.
 
 ## Pipeline data-branch design (GRP-06)
 
-`main` carries a repo ruleset requiring PRs with no bypass — the pipeline's
+`main` carries a repo ruleset requiring PRs with no bypass - the pipeline's
 automated JSONL-truth commits (PRD §5) cannot land there. Instead:
 
 - The `pipeline` workflow checks out `main` for code as usual, then checks out
@@ -114,7 +114,7 @@ automated JSONL-truth commits (PRD §5) cannot land there. Instead:
   (`scripts/ensure-data-branch.sh` via `make data-branch`), creating it as an
   empty orphan branch on first run if it doesn't exist yet.
 - `grepify`'s pipeline commands (`ingest`/`extract`/`digest`/`build`) write
-  into `./data` exactly as before (`DataRootOpt` defaults to `data`) — they
+  into `./data` exactly as before (`DataRootOpt` defaults to `data`) - they
   don't know or care which branch that directory tracks.
 - `make commit-data` (`scripts/commit_pipeline_data.py --repo-dir data
   --branch data`) commits and pushes **only** the `data` branch, with the
@@ -124,5 +124,5 @@ automated JSONL-truth commits (PRD §5) cannot land there. Instead:
   pipeline. `paths-ignore: data/**` and `[skip ci]` remain as
   belt-and-suspenders.
 - Later epics that read data at build time (GRP-35 site build) run against
-  the same worktree — "site" is a pure function of `main`'s code + config plus
+  the same worktree - "site" is a pure function of `main`'s code + config plus
   the `data` branch's current state, checked out side by side in one job.

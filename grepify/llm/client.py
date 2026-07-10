@@ -2,12 +2,12 @@
 
 This is the *only* module that talks to a model. Everything risky about calling
 an LLM is contained here so the rest of the pipeline can treat extraction (and,
-later, digests — PRD §6 ``llm_log.purpose``) as an ordinary, budgeted operation:
+later, digests - PRD §6 ``llm_log.purpose``) as an ordinary, budgeted operation:
 
 - **Budget circuit breaker (PRD §5, the CSR retry-loop lesson).** A hard,
   per-run ceiling of ``max_calls_per_run`` *logical* calls. The breaker is
   checked before any network I/O; the call over the cap is refused with
-  :class:`~grepify.errors.BudgetExceededError` — no request is sent, ever. This is a
+  :class:`~grepify.errors.BudgetExceededError` - no request is sent, ever. This is a
   hard stop, never an unbounded loop.
 - **Bounded, jittered retries.** Within one logical call, transient failures
   (transport error, HTTP 429/5xx) are retried at most ``max_attempts`` times
@@ -16,7 +16,7 @@ later, digests — PRD §6 ``llm_log.purpose``) as an ordinary, budgeted operati
   and never actually sleep.
 - **``llm_log`` for every real call (PRD §6).** Exactly one
   :class:`~grepify.models.LlmLogEntry` is written per logical call that reaches
-  the transport — ``status='ok'`` with token usage on success, ``status='error'``
+  the transport - ``status='ok'`` with token usage on success, ``status='error'``
   when retries are exhausted or the envelope is malformed. A budget refusal
   writes no row (it is not a call).
 
@@ -24,7 +24,7 @@ Only ``endpoint='openai-compat'`` is implemented (GRP-20 scope); other endpoints
 (anthropic/vertex/cli, PRD §5) are later work and :func:`build_client` rejects
 them. The endpoint base URL and API key are deployment secrets injected by the
 caller (GRP-25 resolves them from the environment); they are stored privately
-and never logged (PRD §5 security — no credential-bearing config in logs).
+and never logged (PRD §5 security - no credential-bearing config in logs).
 
 Failure modes
 -------------
@@ -122,7 +122,7 @@ class LlmClient:
     for tests that inject a canned :class:`~grepify.llm.transport.CompletionTransport`.
     """
 
-    def __init__(  # noqa: PLR0913 — a config-heavy but flat client seam; knobs bundle into RetryPolicy
+    def __init__(  # noqa: PLR0913 - a config-heavy but flat client seam; knobs bundle into RetryPolicy
         self,
         *,
         model: str,
@@ -215,7 +215,7 @@ class LlmClient:
                     self._url, headers=headers, payload=payload, timeout=self._retry.timeout_seconds
                 )
             except LlmError as exc:
-                last_error = str(exc)  # transport-level failure — retryable
+                last_error = str(exc)  # transport-level failure - retryable
             else:
                 if 200 <= response.status_code < 300:
                     return self._parse_completion(response.content)
@@ -267,7 +267,7 @@ class LlmClient:
             raise LlmError(f"malformed openai-compat response envelope: {exc}") from exc
 
 
-def build_client(  # noqa: PLR0913 — thin factory forwarding config + injected deps to LlmClient
+def build_client(  # noqa: PLR0913 - thin factory forwarding config + injected deps to LlmClient
     profile: LlmProfile,
     *,
     api_key: str | None,
@@ -282,7 +282,7 @@ def build_client(  # noqa: PLR0913 — thin factory forwarding config + injected
     ``base_url`` and ``api_key`` are deployment secrets supplied by the caller
     (never read from committed config, PRD §5). Raises
     :class:`~grepify.errors.LlmError` for a non-``openai-compat`` endpoint or a
-    profile missing its model — both out of scope for GRP-20.
+    profile missing its model - both out of scope for GRP-20.
     """
     if profile.endpoint != "openai-compat":
         raise LlmError(

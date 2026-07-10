@@ -2,12 +2,12 @@
 
 Fetchers depend on the small :class:`Transport` protocol, not on ``httpx``
 directly, so tests inject a canned in-memory transport and never touch the
-network (PRD §9 — fetchers are fully unit-testable without network). The real
+network (PRD §9 - fetchers are fully unit-testable without network). The real
 implementation (:class:`HttpxTransport`) is what production wires in.
 
 Failure modes
 -------------
-:meth:`Transport.get` never raises for an HTTP error status (4xx/5xx) — it
+:meth:`Transport.get` never raises for an HTTP error status (4xx/5xx) - it
 returns an :class:`HttpResponse` carrying that status and lets the caller
 decide (RSS treats 304 as "unchanged", Reddit retries 429/5xx before giving
 up, per §8 F-ING-01/F-ING-04). It DOES raise :class:`~grepify.errors.FetchError`
@@ -15,7 +15,7 @@ for failures that never produced a response at all: connection refused, DNS
 failure, TLS error, or the request exceeding its timeout. :func:`get_or_raise`
 is the one place that translates such a transport exception into a
 per-source-scoped :class:`~grepify.errors.FetchError`, so all three fetchers
-isolate failures identically (PRD §9 — one dead source never fails the run).
+isolate failures identically (PRD §9 - one dead source never fails the run).
 """
 
 from __future__ import annotations
@@ -63,7 +63,7 @@ def get_or_raise(
 ) -> HttpResponse:
     """GET ``url``, translating any transport-level exception into a
     :class:`~grepify.errors.FetchError` scoped to ``source_id`` (per-source
-    isolation, PRD §9). Does not interpret the status code — callers decide
+    isolation, PRD §9). Does not interpret the status code - callers decide
     what counts as success for their protocol.
     """
     try:

@@ -1,9 +1,9 @@
-"""``Repository`` — the single storage contract (PRD §5).
+"""``Repository`` - the single storage contract (PRD §5).
 
 All storage access goes through this interface. v1 is JSONL-truth + SQLite-cache
 (:class:`~grepify.repository.jsonl_sqlite.JsonlSqliteRepository`); v2 is Postgres.
 The pipeline, trend queries, and digest assembler depend only on this ABC and on
-:mod:`grepify.models` — **no backend-specific types appear in any signature**, so
+:mod:`grepify.models` - **no backend-specific types appear in any signature**, so
 swapping backends is an implementation change, not a caller change.
 
 Design rules
@@ -12,7 +12,7 @@ Design rules
   primary key is a no-op (PRD §8 F-ING-07).
 - Reads of *truth* come from JSONL. Reads of *derived* aggregates come from the
   cache, which :meth:`rebuild_cache` regenerates deterministically from truth.
-- Sources and source groups are not truth — they are loaded from the
+- Sources and source groups are not truth - they are loaded from the
   ``ConfigProvider`` into the cache via :meth:`load_config` (PRD §7).
 
 Failure modes
@@ -51,7 +51,7 @@ class Repository(ABC):
     @abstractmethod
     def add_item_keywords(self, keywords: Sequence[ItemKeyword]) -> int:
         """Append new keyword rows. Returns the count written; existing
-        ``(item_id, keyword, method)`` triples are skipped — ``method`` is
+        ``(item_id, keyword, method)`` triples are skipped - ``method`` is
         part of the key so an ``llm`` row and a ``fallback`` row can coexist
         for the same keyword text (PRD §6, GRP-25 schema revision)."""
 

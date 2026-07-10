@@ -1,8 +1,8 @@
 """Page-assembly helpers (GRP-32/33/34): pure transforms feeding the templates.
 
-The logic the item/source/health pages need *before* templating — near-dup
+The logic the item/source/health pages need *before* templating - near-dup
 collapse, pagination, the client-side filter predicate, and the emitted-JSON
-shape — lives here as pure, deterministic functions so it is unit-testable
+shape - lives here as pure, deterministic functions so it is unit-testable
 without a browser (the repo has no Node toolchain by decision, PRD §5). The
 build orchestrator (:mod:`grepify.site.build`) queries the data, calls these to
 shape it, and renders the templates; ``static/filters.js`` is a thin DOM wrapper
@@ -19,7 +19,7 @@ Failure modes
 Pure functions over already-queried :class:`~grepify.site.trends.ItemSummary`
 rows; nothing here does I/O or raises for data (an empty item list yields zero
 pages). :func:`~grepify.ingest.dedup.hamming_distance` raises ``ValueError`` on
-mismatched hash widths — a corrupt cache, surfaced loudly.
+mismatched hash widths - a corrupt cache, surfaced loudly.
 """
 
 from __future__ import annotations
@@ -66,12 +66,12 @@ class Page:
 def collapse_near_duplicates(
     items: list[ItemSummary], *, max_distance: int = NEAR_DUP_MAX_DISTANCE
 ) -> list[ItemGroup]:
-    """Cluster near-duplicate titles (same wire story reposted) — grouping only.
+    """Cluster near-duplicate titles (same wire story reposted) - grouping only.
 
     Items are visited in their given order (the browser hands them newest-first),
     each greedily joined to the first existing group within ``max_distance`` bits
     of any member; the first item of a group is its representative. Never deletes
-    (PRD §6 note 2) — collapse is a UI expander. O(n²), so callers pass a
+    (PRD §6 note 2) - collapse is a UI expander. O(n²), so callers pass a
     windowed/paginated slice, not the whole corpus.
     """
     groups: list[list[ItemSummary]] = []
@@ -112,7 +112,7 @@ def build_pages(
     """Paginate raw items 20/page, then collapse near-dups **within each page**.
 
     Collapsing per page (not over the whole corpus) keeps the O(n²) clustering
-    bounded to O(per_page²) per page — total O(n) across the trailing-90d set,
+    bounded to O(per_page²) per page - total O(n) across the trailing-90d set,
     the "collapses per page/window, not the whole corpus" contract (PRD §6 note
     2, F-SIT-03). A near-dup that straddles a page boundary is not grouped, an
     accepted consequence of per-page collapse; ``items`` is already newest-first
@@ -132,7 +132,7 @@ def build_pages(
     ]
 
 
-def item_matches_filter(  # noqa: PLR0913 — mirrors the JS predicate's inputs exactly
+def item_matches_filter(  # noqa: PLR0913 - mirrors the JS predicate's inputs exactly
     *,
     kind: str,
     source_id: str,

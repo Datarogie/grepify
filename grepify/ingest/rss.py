@@ -1,10 +1,10 @@
-"""GRP-11: RSS/Atom fetcher — conditional GET, timeout, malformed tolerance.
+"""GRP-11: RSS/Atom fetcher - conditional GET, timeout, malformed tolerance.
 
-Fetches ``source.url`` — already the canonical feed URL (PRD §7 /
-``ConfigProvider`` resolves it before the fetcher ever sees it) — and parses it
+Fetches ``source.url`` - already the canonical feed URL (PRD §7 /
+``ConfigProvider`` resolves it before the fetcher ever sees it) - and parses it
 with ``feedparser``, returning one :class:`~grepify.ingest.base.RawItem` per
 entry. Per the fetcher contract (GRP-10), this never computes identity
-(``item_id`` / ``content_hash`` / ``canonical_url``) — that's the normalizer
+(``item_id`` / ``content_hash`` / ``canonical_url``) - that's the normalizer
 (GRP-14).
 
 Conditional GET
@@ -13,21 +13,21 @@ Per-source ETag / Last-Modified pairs live in an in-memory ``dict`` supplied at
 construction (or a private one created per instance). That satisfies F-ING-01's
 conditional-GET requirement for the lifetime of one fetcher instance.
 Persisting the cache *across separate pipeline runs* is the ingest
-orchestrator's concern (GRP-15/16, not yet built — no fetch-state store exists
+orchestrator's concern (GRP-15/16, not yet built - no fetch-state store exists
 in the storage layer yet); the cache is a constructor parameter precisely so
 the orchestrator can inject a persistent mapping later without any change here.
 
 Failure modes
 -------------
 Every per-source failure becomes :class:`~grepify.errors.FetchError`
-(non-fatal, PRD §9): a transport failure (timeout/DNS/connection — see
+(non-fatal, PRD §9): a transport failure (timeout/DNS/connection - see
 :func:`~grepify.ingest.http.get_or_raise`), an HTTP status outside 2xx/304, and
 a feed feedparser could not extract *any* entries from. A feed feedparser
 partially recovered from (``bozo`` set but entries present) is tolerated:
 recovered entries are returned, nothing raised (F-ING-01 malformed-feed
-tolerance). An unmodified feed (HTTP 304) returns ``[]`` — not an error, just
+tolerance). An unmodified feed (HTTP 304) returns ``[]`` - not an error, just
 nothing new since the last conditional GET. A structurally empty feed (valid
-XML, zero entries) also returns ``[]`` — an empty feed is normal, not an error.
+XML, zero entries) also returns ``[]`` - an empty feed is normal, not an error.
 """
 
 from __future__ import annotations

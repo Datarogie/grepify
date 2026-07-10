@@ -1,4 +1,4 @@
-"""GRP-12: YouTube channel-RSS fetcher — no API key, yt:videoId as external_id."""
+"""GRP-12: YouTube channel-RSS fetcher - no API key, yt:videoId as external_id."""
 
 from __future__ import annotations
 

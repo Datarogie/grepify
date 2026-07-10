@@ -3,7 +3,7 @@
 #
 # The pipeline cron runs 3x/day; only one of those runs should attempt the
 # daily digest, and only one run per week the weekly digest. This is a
-# deliberately simple placeholder — GRP-45 (M4) replaces it with a tested,
+# deliberately simple placeholder - GRP-45 (M4) replaces it with a tested,
 # DST-aware pure function once the digest command itself is real (it is still
 # a stub today). Wired here only so the workflow structure and loop-safety
 # guards exist end to end now.
@@ -18,7 +18,7 @@
 # -------------
 # `set -euo pipefail` fails the script (and so the pipeline step) closed if
 # `date`/`TZ` data is unavailable rather than silently gating nothing on or
-# off. No network or repo state is touched — pure clock read plus arithmetic.
+# off. No network or repo state is touched - pure clock read plus arithmetic.
 set -euo pipefail
 
 if [[ -n "${GREPIFY_FAKE_HOUR:-}" ]]; then

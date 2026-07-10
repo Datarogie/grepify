@@ -1,17 +1,17 @@
-# AI subreddits — subreddit JSON endpoints (PRD F-ING-04) — scrubbed from the trendcloud.io /sources AI list (GRP-07).
+# AI subreddits - subreddit JSON endpoints (PRD F-ING-04) - scrubbed from the trendcloud.io /sources AI list (GRP-07).
 #
 # PROVENANCE: source rows (name, feed URL, kind) copied from trendcloud.io's
 # public 118-source AI list. Categorized per the playbook rubric
 # (research = papers/labs/academic; business = funding/market/enterprise;
 # tooling-dev = frameworks/infra/how-to; ambiguous -> tooling-dev).
 #
-# LIVENESS: feeds are NOT pinged here — this build environment blocks outbound
+# LIVENESS: feeds are NOT pinged here - this build environment blocks outbound
 # HTTPS to feed hosts. These are trendcloud's actively-aggregated feeds, so they
 # ship enabled; per-source health tracking (fetch_log / GRP-16) disables any that
 # fail persistently once the fetcher runs. `grepify validate` checks schema +
 # duplicate ids/url_hashes only (live pinging is deferred to GRP-10/11 by design).
 group: reddit-ai
-name: Reddit — AI
+name: Reddit - AI
 category: ai
 enabled: true
 builtin: true

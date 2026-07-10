@@ -4,7 +4,7 @@ Turns a list of items into :class:`~grepify.models.ItemKeyword` rows by batching
 them into strict-JSON LLM calls, validating each response, retrying a malformed
 batch once, and falling back to a deterministic extractor when the LLM can't
 deliver. :func:`run_extract` is the entrypoint the pipeline wiring (GRP-25) will
-drive; it never raises for LLM problems — extraction always yields rows so the
+drive; it never raises for LLM problems - extraction always yields rows so the
 trend surface has data and the site builds (PRD §5/§9).
 
 Batching (F-EXT-01)
@@ -15,13 +15,13 @@ is one :meth:`~grepify.llm.client.LlmClient.complete` call (one budget unit).
 Validation (F-EXT-02), batch-level
 -----------------------------------
 A response is valid iff it parses as JSON, is a list of ``{item_id, keywords}``
-objects, its item_id set **equals** the batch's (echo check — no unknown ids, no
+objects, its item_id set **equals** the batch's (echo check - no unknown ids, no
 duplicates, no omissions), and every keyword passes sanity (2-60 chars after
 trim, contains no URL). Each item's keyword list is then truncated to
 ``max_keywords`` (the count cap is a truncation, not a validation gate, per
 F-EXT-02's explicit list). An empty keyword list for an item is valid (the
 item simply gets no LLM rows); the "every item ≥1 keyword / ``no_keywords``
-flag" data-quality rule is GRP-25. Full normalization + alias/mute is GRP-23 —
+flag" data-quality rule is GRP-25. Full normalization + alias/mute is GRP-23 -
 this module only trims and sanity-checks.
 
 Retry-then-fallback (F-EXT-02)
@@ -35,7 +35,7 @@ default = number of batches) so a pathological run cannot retry without limit.
 
 Failure modes
 -------------
-This module raises nothing of its own for LLM behavior — every LLM failure mode
+This module raises nothing of its own for LLM behavior - every LLM failure mode
 degrades to the fallback extractor. A misbehaving fallback extractor (GRP-22) or
 an invalid :class:`~grepify.models.ItemKeyword` field would surface its own
 exception (``pydantic.ValidationError``); that is a programming fault, not an
@@ -88,7 +88,7 @@ class _MalformedResponseError(Exception):
     """Internal: an LLM response failed validation (never escapes this module)."""
 
 
-def run_extract(  # noqa: PLR0913 — items+client+run context+fallback+tuning are all distinct inputs
+def run_extract(  # noqa: PLR0913 - items+client+run context+fallback+tuning are all distinct inputs
     items: Sequence[Item],
     client: LlmClient,
     *,
@@ -143,7 +143,7 @@ def run_extract(  # noqa: PLR0913 — items+client+run context+fallback+tuning a
             budget_exhausted = True
             parsed = None
         except LlmError:
-            # Network exhausted for this batch — degrade just this batch.
+            # Network exhausted for this batch - degrade just this batch.
             parsed = None
 
         if parsed is None:
@@ -270,7 +270,7 @@ def _llm_rows(
     extracted_at: str,
 ) -> list[ItemKeyword]:
     # `parsed` keyword lists are already trimmed, sanity-checked, and truncated
-    # to max_keywords by `_clean_keywords` during validation — no re-capping here.
+    # to max_keywords by `_clean_keywords` during validation - no re-capping here.
     rows: list[ItemKeyword] = []
     for item in batch:
         for rank, keyword in enumerate(parsed.get(item.item_id, []), start=1):

@@ -1,12 +1,12 @@
 """CLI glue: commit the pipeline's JSONL truth data to the `data` branch (GRP-06).
 
 Thin wrapper around :func:`grepify.repository.commit.commit_data` so the
-Makefile (and therefore any CI system, GH or GitLab — PRD F-OPS-03) can
+Makefile (and therefore any CI system, GH or GitLab - PRD F-OPS-03) can
 trigger a data commit without embedding git plumbing in workflow YAML.
 ``--repo-dir`` defaults to the current directory but in production points at
 the `data`-branch worktree checked out by ``scripts/ensure-data-branch.sh``
 (main's ruleset requires PRs, so truth commits go to a dedicated branch
-instead — see docs/process.md).
+instead - see docs/process.md).
 
 Failure modes
 -------------

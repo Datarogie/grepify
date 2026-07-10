@@ -1,9 +1,9 @@
-"""Domain records — the storage contract.
+"""Domain records - the storage contract.
 
 These pydantic models are the column set of PRD §6, expressed as backend-neutral
 domain objects. They are what the :class:`~grepify.repository.base.Repository`
 interface reads and writes; no backend (SQLite in v1, Postgres in v2) leaks
-into them. Timestamps are ISO-8601 strings (see PRD §6 — text columns; keeps
+into them. Timestamps are ISO-8601 strings (see PRD §6 - text columns; keeps
 JSONL diffs readable and is Postgres-swappable).
 
 Failure modes
@@ -74,7 +74,7 @@ class Source(_Record):
 
 
 class Item(_Record):
-    """A normalized content item (PRD §6 items). Metadata only — no article body."""
+    """A normalized content item (PRD §6 items). Metadata only - no article body."""
 
     item_id: str
     source_id: str

@@ -6,7 +6,7 @@ Public surface every E1/E2/E5 issue builds on:
 - Fetch contract: :class:`RawItem`, :class:`Fetcher`, :class:`FetcherRegistry`,
   and the shipped :class:`FakeFetcher` test double.
 - Concrete fetchers: :class:`RssFetcher`, :class:`YouTubeFetcher`,
-  :class:`RedditFetcher` — each independently unit-testable against fixtures
+  :class:`RedditFetcher` - each independently unit-testable against fixtures
   via the injectable :class:`~grepify.ingest.http.Transport` protocol, no
   network required. Registering them into a :class:`FetcherRegistry` for a
   live run is the ingest orchestrator's job (GRP-15, not yet built).
@@ -15,7 +15,7 @@ Public surface every E1/E2/E5 issue builds on:
 - Near-dup layer: :func:`compute_content_hash`, :func:`hamming_distance`,
   :func:`group_near_duplicates`.
 - Orchestration (GRP-15): :func:`run_ingest`, :class:`IngestServices`,
-  :class:`IngestSummary`, :class:`SourceResult`, :func:`build_registry` — the
+  :class:`IngestSummary`, :class:`SourceResult`, :func:`build_registry` - the
   per-source-isolated run loop the ``ingest`` CLI command drives.
 
 The X fetcher (E5) plugs into the same :class:`Fetcher` contract without
@@ -23,7 +23,7 @@ changing it.
 
 Failure modes
 -------------
-None of its own — this is a pure re-export aggregator. See each submodule's
+None of its own - this is a pure re-export aggregator. See each submodule's
 docstring for its failure modes (``base``/``registry``/``fake`` for the fetch
 contract, ``rss``/``youtube``/``reddit``/``http``/``feedutil`` for the concrete
 fetchers, ``normalize``/``dedup`` for identity + near-dup, ``orchestrator`` for

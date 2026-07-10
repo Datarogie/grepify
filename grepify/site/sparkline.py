@@ -1,7 +1,7 @@
 """Inline-SVG sparkline helper (GRP-30, PRD §5 "sparklines = inline SVG …in Python").
 
 A pure function that turns a series of numbers (e.g. a keyword's daily mention
-timeline, E4/GRP-44) into a self-contained ``<svg>`` string — no JavaScript, no
+timeline, E4/GRP-44) into a self-contained ``<svg>`` string - no JavaScript, no
 external requests, no image files. The output is embedded directly in a page and
 styled via ``currentColor`` so it inherits the surrounding text colour (works in
 the dark theme without a hard-coded fill).
@@ -19,7 +19,7 @@ Failure modes
 - A non-positive ``width``/``height``/``stroke_width`` raises ``ValueError``
   (a programming error, not runtime data).
 - A flat series (all equal, incl. a single point) renders a horizontal line at
-  the vertical midpoint — no divide-by-zero.
+  the vertical midpoint - no divide-by-zero.
 """
 
 from __future__ import annotations

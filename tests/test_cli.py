@@ -77,7 +77,7 @@ def _run_id_from_output(output: str) -> str:
     Two invocations issued back-to-back can land in the same wall-clock
     second, so ``run_id``'s lexical sort order (``latest_manifest``'s
     assumption) isn't reliable enough to pick out *this* invocation's
-    manifest — read it directly by the run_id this call actually printed.
+    manifest - read it directly by the run_id this call actually printed.
     """
     match = re.search(r"run (\S+)\s*$", output.strip())
     assert match is not None, output

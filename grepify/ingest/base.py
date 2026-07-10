@@ -1,8 +1,8 @@
 """Fetcher contract: ``RawItem`` + the ``Fetcher`` interface (GRP-10).
 
 This is the boundary between *fetching* (kind-specific parsing of feed XML,
-channel RSS, reddit JSON, tweet objects — GRP-11/12/13, GRP-50) and
-*normalizing* (identity + hashing — :mod:`grepify.ingest.normalize`, GRP-14).
+channel RSS, reddit JSON, tweet objects - GRP-11/12/13, GRP-50) and
+*normalizing* (identity + hashing - :mod:`grepify.ingest.normalize`, GRP-14).
 
 A :class:`RawItem` is what a fetcher emits for one feed entry, *before* identity
 is computed. Fetchers do the messy per-kind parsing and hand back plain records;
@@ -16,7 +16,7 @@ Failure modes
   per-source failure (timeout, HTTP error, malformed feed, auth challenge, rate
   limit). It is non-fatal by contract: the orchestrator (GRP-15) catches it,
   logs an ``error`` ``fetch_log`` row, and continues (PRD §9). An **empty** feed
-  is a normal ``return []`` — not an error.
+  is a normal ``return []`` - not an error.
 - Constructing a ``RawItem`` with a wrong-typed field raises
   ``pydantic.ValidationError`` at the boundary rather than propagating junk into
   normalization.
@@ -66,5 +66,5 @@ class Fetcher(ABC):
         Contract (see module docstring): an empty feed returns ``[]``; any
         per-source failure raises :class:`~grepify.errors.FetchError` so the run
         can isolate and continue. Implementations must not compute identity or
-        hashes — that is :mod:`grepify.ingest.normalize`'s job.
+        hashes - that is :mod:`grepify.ingest.normalize`'s job.
         """

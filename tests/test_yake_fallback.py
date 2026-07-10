@@ -1,4 +1,4 @@
-"""GRP-22: YAKE fallback extractor — offline, deterministic, never raises."""
+"""GRP-22: YAKE fallback extractor - offline, deterministic, never raises."""
 
 from __future__ import annotations
 
