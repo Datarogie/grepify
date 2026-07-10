@@ -26,7 +26,12 @@ on:
     # (see grepify.digest.gating / `make digest-gate`) is whichever of these
     # lands there given DST.
     - cron: "0 13,19,1 * * *"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      force_digest:
+        description: "Run the daily + weekly digest now, bypassing the time-of-day gate (for on-demand testing; scheduled runs stay gated)."
+        type: boolean
+        default: false
 
 concurrency:
   group: pipeline
@@ -82,16 +87,18 @@ jobs:
       # DST-aware) fires daily on the morning run and weekly on Monday morning.
       # These are the only digest steps that touch the LLM secrets (never the
       # `validate` workflow, PRD §5); an LLM that is down/over budget degrades
-      # to a template digest inside the command (PRD §9/§13).
+      # to a template digest inside the command (PRD §9/§13). A manual
+      # `workflow_dispatch` with `force_digest=true` runs both regardless of the
+      # gate, so a digest can be produced on demand for testing.
       - name: Daily digest
-        if: steps.gate.outputs.daily == 'true'
+        if: steps.gate.outputs.daily == 'true' || github.event.inputs.force_digest == 'true'
         env:
           LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
         run: make digest-daily
 
       - name: Weekly digest
-        if: steps.gate.outputs.weekly == 'true'
+        if: steps.gate.outputs.weekly == 'true' || github.event.inputs.force_digest == 'true'
         env:
           LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}

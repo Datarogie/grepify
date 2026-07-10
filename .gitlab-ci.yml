@@ -57,8 +57,11 @@ pages:
     - make extract
     # Per-category digests (GRP-41/42), gated by the America/Edmonton clock
     # (GRP-45). LLM CI/CD variables are consumed only here, never in `validate`.
-    - if [ "$daily" = "true" ]; then make digest-daily; fi
-    - if [ "$weekly" = "true" ]; then make digest-weekly; fi
+    # Run a manual pipeline with FORCE_DIGEST=true (a CI/CD variable) to bypass
+    # the gate on demand for testing; scheduled runs stay gated (mirrors the
+    # GitHub workflow_dispatch force_digest input).
+    - if [ "$daily" = "true" ] || [ "$FORCE_DIGEST" = "true" ]; then make digest-daily; fi
+    - if [ "$weekly" = "true" ] || [ "$FORCE_DIGEST" = "true" ]; then make digest-weekly; fi
     - make commit-data
     - make build
   artifacts:
