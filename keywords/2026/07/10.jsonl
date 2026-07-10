@@ -168,3 +168,10 @@
 {"item_id":"135e5501b751a281000ae1ae828fa48385ca7abfbb1c584bbdefce2e3f073a25","keyword":"artificial intelligence","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T01:51:34+00:00"}
 {"item_id":"135e5501b751a281000ae1ae828fa48385ca7abfbb1c584bbdefce2e3f073a25","keyword":"consumer brands","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T01:51:34+00:00"}
 {"item_id":"135e5501b751a281000ae1ae828fa48385ca7abfbb1c584bbdefce2e3f073a25","keyword":"investing","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T01:51:34+00:00"}
+{"item_id":"240a9f39fc38eb77bc389f09d76fb329253dfedb348f681f3d93d6a006686ab0","keyword":"tencent","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:25:42+00:00"}
+{"item_id":"240a9f39fc38eb77bc389f09d76fb329253dfedb348f681f3d93d6a006686ab0","keyword":"meta","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:25:42+00:00"}
+{"item_id":"240a9f39fc38eb77bc389f09d76fb329253dfedb348f681f3d93d6a006686ab0","keyword":"manus","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:25:42+00:00"}
+{"item_id":"240a9f39fc38eb77bc389f09d76fb329253dfedb348f681f3d93d6a006686ab0","keyword":"ai agents","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:25:42+00:00"}
+{"item_id":"240a9f39fc38eb77bc389f09d76fb329253dfedb348f681f3d93d6a006686ab0","keyword":"tech acquisitions","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:25:42+00:00"}
+{"item_id":"240a9f39fc38eb77bc389f09d76fb329253dfedb348f681f3d93d6a006686ab0","keyword":"us-china relations","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:25:42+00:00"}
+{"item_id":"240a9f39fc38eb77bc389f09d76fb329253dfedb348f681f3d93d6a006686ab0","keyword":"corporate divestment","rank":7,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:25:42+00:00"}
