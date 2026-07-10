@@ -94,6 +94,73 @@ def test_keyword_key_includes_method_llm_and_fallback_rows_coexist(tmp_path: Pat
     repo.close()
 
 
+def test_rewrite_items_overwrites_in_place(tmp_path: Path) -> None:
+    # GRP-60 truth maintenance: rewrite_items overwrites an existing record by
+    # item_id, keeping it in its date partition and leaving siblings untouched.
+    repo = JsonlSqliteRepository(tmp_path)
+    a = make_item("a", published_at="2026-07-07T10:00:00+00:00")
+    b = make_item("b", published_at="2026-07-07T11:00:00+00:00")  # same day file
+    repo.add_items([a, b])
+
+    rewritten = repo.rewrite_items([a.model_copy(update={"summary": "clean text"})])
+    assert rewritten == 1
+
+    by_id = {i.item_id: i for i in repo.iter_items()}
+    assert by_id["a"].summary == "clean text"
+    assert by_id["b"].summary == "a summary"  # sibling in the same file untouched
+    assert len(by_id) == 2  # no row appended
+    # still in its published-date partition, not moved
+    assert (tmp_path / "items" / "2026" / "07" / "07.jsonl").exists()
+    repo.close()
+
+
+def test_rewrite_items_skips_unknown_and_empty(tmp_path: Path) -> None:
+    repo = JsonlSqliteRepository(tmp_path)
+    repo.add_items([make_item("a")])
+    assert repo.rewrite_items([]) == 0
+    # an item_id not already in truth is skipped, never appended
+    assert repo.rewrite_items([make_item("ghost")]) == 0
+    assert {i.item_id for i in repo.iter_items()} == {"a"}
+    repo.close()
+
+
+def test_delete_item_keywords_removes_only_targeted(tmp_path: Path) -> None:
+    repo = JsonlSqliteRepository(tmp_path)
+    repo.add_item_keywords(
+        [make_keyword("a", "genai"), make_keyword("a", "llm", rank=2), make_keyword("b", "agents")]
+    )
+    deleted = repo.delete_item_keywords(["a"])
+    assert deleted == 2
+    remaining = list(repo.iter_item_keywords())
+    assert [(k.item_id, k.keyword) for k in remaining] == [("b", "agents")]
+    repo.rebuild_cache()
+    assert repo.count_item_keywords() == 1
+    repo.close()
+
+
+def test_delete_item_keywords_emptying_a_partition_removes_the_file(tmp_path: Path) -> None:
+    # Deleting every row in a partition should remove the file, not leave a
+    # 0-byte one; the rewrite is atomic (temp file + replace).
+    repo = JsonlSqliteRepository(tmp_path)
+    repo.add_item_keywords([make_keyword("a", "genai")])
+    day_file = tmp_path / "keywords" / "2026" / "07" / "07.jsonl"
+    assert day_file.exists()
+
+    assert repo.delete_item_keywords(["a"]) == 1
+    assert not day_file.exists()
+    assert list(repo.iter_item_keywords()) == []
+    repo.close()
+
+
+def test_delete_item_keywords_noops_on_empty_or_missing(tmp_path: Path) -> None:
+    repo = JsonlSqliteRepository(tmp_path)
+    repo.add_item_keywords([make_keyword("a", "genai")])
+    assert repo.delete_item_keywords([]) == 0
+    assert repo.delete_item_keywords(["ghost"]) == 0
+    assert len(list(repo.iter_item_keywords())) == 1
+    repo.close()
+
+
 def test_load_config_projects_into_cache(tmp_path: Path) -> None:
     repo = JsonlSqliteRepository(tmp_path)
     group = SourceGroup(group_id="g1", name="G1", category="ai")

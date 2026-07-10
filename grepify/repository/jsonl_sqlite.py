@@ -92,6 +92,46 @@ class JsonlSqliteRepository(Repository):
         path = self._layout.dated_file(self._layout.llm_log_dir, entry.created_at)
         self._append_line(path, entry.model_dump_json())
 
+    # --- truth maintenance (rare, deliberate in-place rewrites) --------------
+
+    def rewrite_items(self, items: Sequence[Item]) -> int:
+        replacements = {item.item_id: item for item in items}
+        if not replacements:
+            return 0
+        rewritten = 0
+        for path in self._truth_files(self._layout.items_dir):
+            out: list[str] = []
+            changed = False
+            for line in self._read_lines(path):
+                replacement = replacements.get(self._line_item_id(path, line))
+                if replacement is None:
+                    out.append(line)
+                else:
+                    out.append(replacement.model_dump_json())
+                    rewritten += 1
+                    changed = True
+            if changed:
+                self._write_lines(path, out)
+        return rewritten
+
+    def delete_item_keywords(self, item_ids: Iterable[str]) -> int:
+        targets = set(item_ids)
+        if not targets:
+            return 0
+        deleted = 0
+        for path in self._truth_files(self._layout.keywords_dir):
+            out: list[str] = []
+            changed = False
+            for line in self._read_lines(path):
+                if self._line_item_id(path, line) in targets:
+                    deleted += 1
+                    changed = True
+                else:
+                    out.append(line)
+            if changed:
+                self._write_lines(path, out)
+        return deleted
+
     # --- truth reads ---------------------------------------------------------
 
     def iter_items(self) -> Iterator[Item]:
@@ -389,3 +429,26 @@ class JsonlSqliteRepository(Repository):
     @staticmethod
     def _read_lines(path: Path) -> list[str]:
         return [line for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+    @staticmethod
+    def _truth_files(directory: Path) -> list[Path]:
+        return sorted(directory.rglob("*.jsonl")) if directory.is_dir() else []
+
+    def _line_item_id(self, path: Path, line: str) -> str:
+        try:
+            return str(json.loads(line)["item_id"])
+        except (json.JSONDecodeError, KeyError) as exc:
+            raise RepositoryError(f"corrupt truth file {path}: {exc}") from exc
+
+    @staticmethod
+    def _write_lines(path: Path, lines: Sequence[str]) -> None:
+        # Crash-safe: write a sibling temp file then atomically replace, so a
+        # truth partition is never left half-written by an interrupted rewrite.
+        # An emptied partition (all rows deleted) is removed rather than left as
+        # a 0-byte file, keeping truth tidy.
+        if not lines:
+            path.unlink(missing_ok=True)
+            return
+        tmp = path.parent / f"{path.name}.tmp"
+        tmp.write_text("".join(f"{line}\n" for line in lines), encoding="utf-8")
+        tmp.replace(path)

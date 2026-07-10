@@ -7,6 +7,7 @@ import pytest
 from grepify.ingest import (
     RawItem,
     canonicalize_url,
+    clean_summary,
     compute_item_id,
     dedup_within_batch,
     normalize,
@@ -161,6 +162,31 @@ def test_summary_preserves_literal_escaped_angle_brackets_as_text() -> None:
     source = make_source("s1")
     item = normalize(_raw(summary="a &lt;b&gt; c and c &gt; a"), source, fetched_at=_FETCHED)
     assert item.summary == "a <b> c and c > a"
+
+
+def test_clean_summary_is_idempotent_and_matches_normalize() -> None:
+    # GRP-60 relies on this: the public cleaner must equal what normalize applies
+    # (so a re-clean can't diverge from a fresh ingest) and be a fixed point on
+    # its own output (so `renormalize` converges and a second run is a no-op).
+    source = make_source("s1")
+    dirty = '<div class="post">Model &amp; agent notes</div>'
+    once = clean_summary(dirty)
+    assert once == "Model & agent notes"
+    assert clean_summary(once) == once  # idempotent
+    assert normalize(_raw(summary=dirty), source, fetched_at=_FETCHED).summary == once
+
+
+def test_clean_summary_truncates_to_2000_chars() -> None:
+    assert len(clean_summary("y" * 5000)) == 2000
+
+
+def test_clean_summary_idempotent_when_truncating_on_whitespace_boundary() -> None:
+    # Regression: collapse-then-truncate can leave a trailing space when the cut
+    # lands on a word boundary; a second pass would strip it and thus rewrite the
+    # item forever. clean_summary must be a fixed point even for that input.
+    once = clean_summary("word " * 500)  # collapses to 2499 chars, cut lands on a space
+    assert not once.endswith(" ")
+    assert clean_summary(once) == once
 
 
 def test_missing_published_at_falls_back_to_fetched_at() -> None:

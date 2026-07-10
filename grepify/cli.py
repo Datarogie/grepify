@@ -1,6 +1,7 @@
 """Single-entrypoint CLI (PRD §8 F-OPS-01): ``grepify <subcommand>``.
 
-Subcommands: ``ingest extract trends digest build validate health backfill``.
+Subcommands: ``ingest extract trends digest build validate health backfill``,
+plus ``maintain renormalize`` (GRP-60 data remediation).
 ``ingest`` is wired to the E1 orchestrator (GRP-15/16); ``extract`` is wired to
 the E2 pipeline (GRP-25: untagged-item selection, real LLM client, keyword
 normalization, PRD §10.7 data-quality gate); ``validate`` is fully wired to
@@ -11,9 +12,11 @@ E4 digest pipeline (GRP-41/42: rebuild cache → assemble per category → one L
 call each → store), with ``digest-gate`` printing the America/Edmonton
 time-of-day gate (GRP-45). ``trends`` remains a stub that records a run
 manifest so the operator tooling (``health``) works end to end.
-(``backfill``'s scope here is GRP-22's fallback-only re-extraction; broader
-E6/GRP-60 maintenance modes - reindex, vacuum, prune - are later work behind
-the same subcommand.)
+(``backfill``'s scope here is GRP-22's fallback-only re-extraction.)
+``maintain renormalize`` (GRP-60) is a one-time data-remediation command:
+re-clean stored summaries, rewrite the changed items to truth, drop their stale
+keyword rows, and force re-extract just those items. Broader maintenance modes
+(reindex, vacuum, prune) are later work behind the same ``maintain`` group.
 
 Failure modes
 -------------
@@ -40,6 +43,10 @@ Failure modes
   degrades each affected category to a deterministic template digest (PRD §9/§13)
   rather than failing the run, and a category below the item threshold is skipped
   (F-DIG-03).
+- ``maintain renormalize`` exits non-zero if ``LLM_BASE_URL`` is unset (same
+  convention as ``extract``); the summary rewrite + keyword-row drop happen only
+  after that check, and the forced re-extract degrades per-batch to the fallback
+  extractor rather than failing the run (PRD §9). A clean corpus is a no-op.
 - ``digest-gate`` is a pure clock read; it never fails.
 - The ``trends`` stub never fails the process; it writes a manifest noting the
   not-yet-implemented epic and returns 0.
@@ -59,12 +66,18 @@ from grepify.clock import Clock, SystemClock, to_iso
 from grepify.config.filesystem import FilesystemConfigProvider
 from grepify.config.schemas import SettingsConfig
 from grepify.digest import digest_gate, format_gate, run_digest_pipeline
-from grepify.extract import YakeFallbackExtractor, run_extract_pipeline, run_fallback_backfill
+from grepify.extract import (
+    ExtractPipelineResult,
+    YakeFallbackExtractor,
+    run_extract_pipeline,
+    run_fallback_backfill,
+)
 from grepify.health import write_health_snapshot
 from grepify.ingest.orchestrator import IngestServices, build_registry, run_ingest
 from grepify.ingest.transcript import TranscriptStore, YouTubeTranscriptApiClient
 from grepify.keywords import KeywordRules
 from grepify.llm import build_client
+from grepify.maintenance import renormalize_summaries
 from grepify.models import DigestKind, RunManifest
 from grepify.paths import DataLayout
 from grepify.repository.jsonl_sqlite import JsonlSqliteRepository
@@ -73,6 +86,10 @@ from grepify.site.build import build_site
 from grepify.site.trends import TrendQueries, open_cache
 
 app = typer.Typer(add_completion=False, help="grep the firehose - grepify CLI.")
+maintain_app = typer.Typer(
+    add_completion=False, help="One-time data-remediation commands (not in the cron)."
+)
+app.add_typer(maintain_app, name="maintain")
 
 
 @dataclass
@@ -547,6 +564,104 @@ def backfill(ctx: typer.Context, max_calls: BackfillMaxCallsOpt = 200) -> None:
     typer.echo(
         f"backfill: {result.batches_llm} llm batches, {result.batches_fallback} still-fallback "
         f"batches, {written} new keyword rows; run {run_id}"
+    )
+
+
+@maintain_app.command(name="renormalize")
+def maintain_renormalize(ctx: typer.Context) -> None:
+    """Re-clean stored summaries and re-extract the items that changed (GRP-60).
+
+    One-time data remediation, not wired into the pipeline cron. Re-applies the
+    current summary cleaner (:func:`grepify.ingest.normalize.clean_summary`) to
+    every stored item, rewrites the ones whose summary changed to truth, drops
+    those items' stale keyword rows, then force re-extracts *just* those items so
+    their keywords regenerate from the corrected text. Reads the LLM endpoint from
+    ``settings.yml``'s active profile but resolves deployment secrets from the
+    environment (``LLM_BASE_URL`` required, ``LLM_API_KEY`` optional), never from
+    committed config (PRD §5) - same convention as ``extract``. Idempotent: on an
+    already-clean corpus it rewrites nothing and re-extracts nothing. The summary
+    rewrite + keyword-row drop happen before the re-extract; if the re-extract is
+    interrupted, the changed items are left cleaned but untagged and a plain
+    ``grepify extract`` (untagged selection) finishes the job - exactly what the
+    O1 remediation procedure runs next.
+    """
+    state: AppState = ctx.obj
+    layout = DataLayout(state.data_root)
+    run_id = new_run_id(state.clock)
+    started_at = to_iso(state.clock.now())
+
+    base_url = os.environ.get("LLM_BASE_URL")
+    if not base_url:
+        typer.echo("maintain renormalize: LLM_BASE_URL is not set; nothing to do", err=True)
+        raise typer.Exit(code=1)
+
+    config = FilesystemConfigProvider(state.config_root)
+    repository = JsonlSqliteRepository(state.data_root)
+    written = 0
+    reextract: ExtractPipelineResult | None = None
+    try:
+        settings = config.settings()
+        result = renormalize_summaries(repository)
+        if result.changed_item_ids:
+            profile = settings.llm.profiles[settings.llm.active_profile]
+            client = build_client(
+                profile,
+                api_key=os.environ.get("LLM_API_KEY") or None,
+                base_url=base_url,
+                log_sink=repository.log_llm,
+                clock=state.clock,
+            )
+            rules = KeywordRules.from_config(config.keywords())
+            changed_ids = set(result.changed_item_ids)
+            changed_items = [i for i in repository.iter_items() if i.item_id in changed_ids]
+            transcript_store = _transcript_store(layout, settings)
+            # force=True + existing=[]: the changed items are already untagged
+            # (their rows were just deleted); re-extract exactly this set.
+            reextract, new_keywords = run_extract_pipeline(
+                changed_items,
+                [],
+                client,
+                run_id=run_id,
+                clock=state.clock,
+                fallback=YakeFallbackExtractor(),
+                rules=rules,
+                force=True,
+                max_items_per_call=settings.llm.max_items_per_call,
+                transcript_reader=transcript_store.read,
+            )
+            written = repository.add_item_keywords(new_keywords)
+    finally:
+        repository.close()
+
+    notes = []
+    if reextract and reextract.no_keywords_item_ids:
+        notes.append(
+            "items with no keywords after re-extraction: "
+            + ", ".join(reextract.no_keywords_item_ids)
+        )
+    if reextract and reextract.budget_exhausted:
+        notes.append("llm budget exhausted before all changed items were re-extracted")
+
+    manifest = RunManifest(
+        run_id=run_id,
+        command="maintain-renormalize",
+        started_at=started_at,
+        finished_at=to_iso(state.clock.now()),
+        ok=True,
+        counts={
+            "items_scanned": result.items_scanned,
+            "items_rewritten": result.items_rewritten,
+            "keyword_rows_deleted": result.keyword_rows_deleted,
+            "items_reextracted": reextract.items_selected if reextract else 0,
+            "keywords_written": written,
+        },
+        notes=notes,
+    )
+    write_manifest(layout, manifest)
+    typer.echo(
+        f"maintain renormalize: {result.items_rewritten} summaries rewritten, "
+        f"{result.keyword_rows_deleted} keyword rows dropped, {written} re-extracted "
+        f"keyword rows written; run {run_id}"
     )
 
 
