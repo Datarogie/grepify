@@ -3,13 +3,13 @@
 Reads ``fetch_log`` history (via :meth:`Repository.iter_fetch_log
 <grepify.repository.base.Repository.iter_fetch_log>`) and computes, per
 source, its most recent status and how many attempts in a row have ended in
-``error``. Five or more consecutive errors flags the source — v1 does **not**
+``error``. Five or more consecutive errors flags the source - v1 does **not**
 auto-disable it (PRD §2 Non-Goals): a flagged source is still retried every
 run, the flag is purely informational for the health page / phone debugging
 (PRD §4 flow 4).
 
 This is a pure computation over whatever fetch-log history it is given, so it
-is entirely fixture-driven in tests — no repository or filesystem needed to
+is entirely fixture-driven in tests - no repository or filesystem needed to
 exercise :func:`compute_health`. :func:`write_health_snapshot` is the thin I/O
 wrapper the ``ingest`` CLI command calls, per the PRD §5 architecture diagram
 (health snapshot branches directly off ingest, not a separate pipeline stage).
@@ -17,7 +17,7 @@ wrapper the ``ingest`` CLI command calls, per the PRD §5 architecture diagram
 Failure modes
 -------------
 :func:`compute_health` is pure and never raises (an empty history yields an
-empty snapshot). :func:`write_health_snapshot` does file I/O — a filesystem
+empty snapshot). :func:`write_health_snapshot` does file I/O - a filesystem
 error (e.g. a read-only data root) propagates uncaught, same as every other
 data-root write in this package (:mod:`grepify.run`).
 """
@@ -49,7 +49,7 @@ class SourceHealth(BaseModel):
 
 
 class HealthSnapshot(BaseModel):
-    """``data/health.json`` contents — every source seen in fetch_log history."""
+    """``data/health.json`` contents - every source seen in fetch_log history."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -65,7 +65,7 @@ def compute_health(
 
     ``entries`` should already be in chronological order per source (the
     order :meth:`Repository.iter_fetch_log
-    <grepify.repository.base.Repository.iter_fetch_log>` guarantees) — this
+    <grepify.repository.base.Repository.iter_fetch_log>` guarantees) - this
     groups by ``source_id`` while preserving that order, so the last entry
     seen for a source is its most recent attempt and consecutive failures are
     a trailing count of ``error`` statuses back from there. Any non-error

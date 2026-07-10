@@ -1,7 +1,7 @@
 """Shared feedparser helpers for the RSS/YouTube fetchers (and Reddit's
-``.rss`` fallback) — GRP-11/12/13.
+``.rss`` fallback) - GRP-11/12/13.
 
-All three walk the same shape — an RSS/Atom feed parsed by ``feedparser`` —
+All three walk the same shape - an RSS/Atom feed parsed by ``feedparser`` -
 even though only RSS and YouTube treat it as their primary source; factoring
 identity/date/title handling here keeps the three fetchers' feed-entry mapping
 identical instead of three near-copies drifting apart.
@@ -11,7 +11,7 @@ Failure modes
 :func:`parse_feed_bytes` raises :class:`~grepify.errors.FetchError` only when
 feedparser could not extract *any* entries from the content (fully unparseable
 markup). A feed feedparser partially recovered (``bozo`` set but entries
-present) is tolerated — PRD §8 F-ING-01's malformed-feed tolerance: broken
+present) is tolerated - PRD §8 F-ING-01's malformed-feed tolerance: broken
 markup elsewhere in the document doesn't cost the entries feedparser could
 still read. :func:`entry_published_at` and :func:`clean_title` are pure and
 never raise: a date feedparser could not parse yields ``None`` (the normalizer
@@ -47,7 +47,7 @@ def parse_feed_bytes(content: bytes, *, source_id: str) -> Any:
 
 def clean_title(raw_title: str) -> str:
     """Best-effort plain-text title: strip markup, unescape entities, collapse
-    whitespace. Fetchers own display-ready title text (E1 brief) — the
+    whitespace. Fetchers own display-ready title text (E1 brief) - the
     normalizer does not sanitize it further."""
     without_tags = _TAG_RE.sub(" ", raw_title)
     return " ".join(html.unescape(without_tags).split())

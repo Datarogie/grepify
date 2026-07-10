@@ -3,17 +3,17 @@
 The v1 static-site layer (PRD §5 "Jinja SSG"). Public surface later E3/E4
 issues build on:
 
-- Render skeleton (GRP-30) — :func:`create_environment`, :func:`render_page`,
+- Render skeleton (GRP-30) - :func:`create_environment`, :func:`render_page`,
   :func:`render_stylesheet`, :class:`SiteMeta`/:class:`PageContext`/:class:`NavLink`,
   :func:`cloud_font_rem`, :data:`STYLE_TOKENS`, and :func:`sparkline_svg`.
-- Trend queries (GRP-31) — :class:`TrendQueries` and its datasets
+- Trend queries (GRP-31) - :class:`TrendQueries` and its datasets
   (:class:`CloudDataset`, :class:`Stats`, :class:`SourceCount`,
   :class:`ItemSummary`, :class:`DigestSummary`), plus :func:`window_ending_at` /
   :func:`previous_window` / :func:`open_cache`.
-- Page helpers (GRP-32/33/34) — :func:`collapse_near_duplicates`,
+- Page helpers (GRP-32/33/34) - :func:`collapse_near_duplicates`,
   :func:`paginate`, :func:`item_matches_filter`, :class:`ItemGroup`,
   :class:`Page`.
-- Build orchestrator (GRP-35) — :func:`build_site` + :class:`BuildResult`.
+- Build orchestrator (GRP-35) - :func:`build_site` + :class:`BuildResult`.
 
 Determinism (F-SIT-08 / S8): the clock is injected (never read in the render
 path), all dict/set iteration is sorted before templating, and snapshot tests
@@ -21,7 +21,7 @@ render twice in a row and assert byte-identical output.
 
 Failure modes
 -------------
-None of its own — a re-export aggregator. See :mod:`grepify.site.render`,
+None of its own - a re-export aggregator. See :mod:`grepify.site.render`,
 :mod:`grepify.site.trends`, :mod:`grepify.site.sparkline`, and
 :mod:`grepify.site.tokens` for module-level failure modes.
 """

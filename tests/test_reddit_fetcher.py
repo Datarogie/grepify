@@ -1,4 +1,4 @@
-"""GRP-13: Reddit fetcher — new.json with UA + backoff, 50-item cap, .rss fallback."""
+"""GRP-13: Reddit fetcher - new.json with UA + backoff, 50-item cap, .rss fallback."""
 
 from __future__ import annotations
 

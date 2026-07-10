@@ -1,4 +1,4 @@
-"""SQLite cache schema (DDL) — the derived query cache of PRD §6.
+"""SQLite cache schema (DDL) - the derived query cache of PRD §6.
 
 This is the v1 cache backend only. It is rebuilt from JSONL truth every run and
 never committed. The *logical* column set (PRD §6) is the contract both backends

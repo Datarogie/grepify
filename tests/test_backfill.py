@@ -1,4 +1,4 @@
-"""GRP-22: fallback re-extraction backfill — selection + orchestration."""
+"""GRP-22: fallback re-extraction backfill - selection + orchestration."""
 
 from __future__ import annotations
 

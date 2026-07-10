@@ -2,7 +2,7 @@
 
 Cron runs must not clobber each other's data commits. Concurrent *runs* are
 prevented by the Actions concurrency group (configured in the CI workflow,
-GRP-06); this helper is the second guard — when a push races a commit that
+GRP-06); this helper is the second guard - when a push races a commit that
 landed after our checkout, it rebases onto the remote head and retries with
 bounded attempts (no unbounded loops, per the budget-gate discipline).
 

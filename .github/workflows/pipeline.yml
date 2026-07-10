@@ -1,6 +1,6 @@
 name: pipeline
 
-# GRP-06: cron pipeline — ingest -> extract -> (gated) digest -> build+deploy.
+# GRP-06: cron pipeline - ingest -> extract -> (gated) digest -> build+deploy.
 # Combines PRD F-OPS-02's "pipeline" and "deploy" workflows into one job: the
 # Pages deploy needs the artifact this same run just built, and PRD §5's
 # architecture diagram already draws build+deploy as one arrow.
@@ -14,9 +14,9 @@ name: pipeline
 #
 # Never triggered by `push`, so it cannot self-retrigger via the data commit
 # it makes (belt-and-suspenders with `[skip ci]` on that commit + validate's
-# `push: branches: [main]` scoping — pushes to `data` can't reach `validate`
+# `push: branches: [main]` scoping - pushes to `data` can't reach `validate`
 # at all, see validate.yml). `concurrency` serializes overlapping cron/manual
-# runs so they can't race on the data commit (PRD §5) — a second, independent
+# runs so they can't race on the data commit (PRD §5) - a second, independent
 # guard from `fetch-depth: 1`'s shallow-clone rebase path in commit_data,
 # which stays correct even without the concurrency group. `fetch-depth: 1`
 # also keeps checkouts cheap (PRD §9 CI-minutes budget).
@@ -78,7 +78,7 @@ jobs:
         run: make extract
 
       # Both steps call the same stub command today (`grepify digest` doesn't
-      # yet distinguish daily/weekly — that's GRP-41/42); kept as separate
+      # yet distinguish daily/weekly - that's GRP-41/42); kept as separate
       # gated steps so the Monday-morning run visibly records two runs, one
       # per digest kind, matching the shape GRP-41/42 will fill in.
       - name: Daily digest

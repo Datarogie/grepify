@@ -3,13 +3,13 @@
 Public surface the extract batcher (GRP-21) and, later, the digest generator
 (E4) build on:
 
-- :class:`LlmClient` — OpenAI-compat chat completions wrapped in a per-run
+- :class:`LlmClient` - OpenAI-compat chat completions wrapped in a per-run
   budget circuit breaker and bounded, jittered retries; writes an ``llm_log``
   row for every real call (PRD §5/§6).
-- :func:`build_client` — construct a client from a config
+- :func:`build_client` - construct a client from a config
   :class:`~grepify.config.schemas.LlmProfile` plus injected deployment secrets.
-- :class:`ChatMessage` / :class:`Completion` — the request/response value types.
-- :class:`CompletionTransport` — the injectable HTTP seam (offline tests inject
+- :class:`ChatMessage` / :class:`Completion` - the request/response value types.
+- :class:`CompletionTransport` - the injectable HTTP seam (offline tests inject
   a canned transport; production uses :class:`HttpxCompletionTransport`).
 
 Budget refusal (:class:`~grepify.errors.BudgetExceededError`) and call failure
@@ -17,7 +17,7 @@ Budget refusal (:class:`~grepify.errors.BudgetExceededError`) and call failure
 
 Failure modes
 -------------
-None of its own — this is a re-export aggregator. See :mod:`grepify.llm.client`
+None of its own - this is a re-export aggregator. See :mod:`grepify.llm.client`
 and :mod:`grepify.llm.transport` for the module-level failure modes.
 """
 

@@ -1,4 +1,4 @@
-"""Filesystem-YAML ``ConfigProvider`` (v1) — reads ``sources/`` (PRD §7).
+"""Filesystem-YAML ``ConfigProvider`` (v1) - reads ``sources/`` (PRD §7).
 
 Layout::
 
@@ -127,7 +127,7 @@ class FilesystemConfigProvider(ConfigProvider):
                     url_hashes[uh] = spec.id
 
         if not self._group_paths():
-            warnings.append("no group files under groups/ — nothing to ingest yet")
+            warnings.append("no group files under groups/ - nothing to ingest yet")
 
         return ValidationReport(
             ok=not errors,

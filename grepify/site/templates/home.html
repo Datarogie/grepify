@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}grepify — home{% endblock %}
+{% block title %}grepify - home{% endblock %}
 {% block content %}
 <h1>grepify</h1>
 
@@ -9,8 +9,8 @@
 <li><span class="stat-value">{{ stats.source_count }}</span><span class="stat-label">sources</span></li>
 <li><span class="stat-value">{{ stats.keyword_count }}</span><span class="stat-label">keywords</span></li>
 <li><span class="stat-value">{{ stats.mention_count }}</span><span class="stat-label">mentions</span></li>
-<li><span class="stat-value">{{ stats.top_keyword or "—" }}</span><span class="stat-label">top keyword</span></li>
-<li><span class="stat-value">{{ stats.top_source or "—" }}</span><span class="stat-label">top source</span></li>
+<li><span class="stat-value">{{ stats.top_keyword or "-" }}</span><span class="stat-label">top keyword</span></li>
+<li><span class="stat-value">{{ stats.top_source or "-" }}</span><span class="stat-label">top source</span></li>
 </ul>
 </section>
 
@@ -33,7 +33,7 @@
 {% endfor %}
 </ul>
 {% else %}
-<p class="muted">No digests yet — they arrive in M4.</p>
+<p class="muted">No digests yet - they arrive in M4.</p>
 {% endif %}
 
 <h2>Latest items</h2>

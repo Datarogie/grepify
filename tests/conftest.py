@@ -158,7 +158,7 @@ class ScriptedCompletionTransport:
 
     Returns pre-scripted responses/exceptions in call order (one per
     ``post_json`` call) and records each request as ``(url, headers, payload)``
-    on ``.posts`` — so a test can assert that a budget-refused call sent nothing.
+    on ``.posts`` - so a test can assert that a budget-refused call sent nothing.
     Popping past the script is a test bug (``IndexError``), not client behavior.
     """
 

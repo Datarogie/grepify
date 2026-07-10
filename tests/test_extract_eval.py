@@ -1,10 +1,10 @@
-"""GRP-24: eval harness — jaccard scorer, fixture loading, report formatting.
+"""GRP-24: eval harness - jaccard scorer, fixture loading, report formatting.
 
 Canned labeled data only (PRD §10.5's own instruction: the scoring logic is
 unit-tested without waiting on real human labels). The one exception is
 `test_committed_fixture_is_30_valid_real_items`, which loads the actual
 committed `tests/fixtures/eval/keyword_eval_candidates.jsonl` to guard the
-fixture's shape (30 rows, unique item_ids, non-empty title/summary) —
+fixture's shape (30 rows, unique item_ids, non-empty title/summary) -
 independent of whether it has been labeled yet.
 """
 

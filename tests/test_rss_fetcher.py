@@ -1,4 +1,4 @@
-"""GRP-11: RSS fetcher — conditional GET, timeout, malformed-feed tolerance."""
+"""GRP-11: RSS fetcher - conditional GET, timeout, malformed-feed tolerance."""
 
 from __future__ import annotations
 

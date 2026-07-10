@@ -2,32 +2,32 @@
 
 Public surface later E2 issues (GRP-24 eval, GRP-25 pipeline wiring) build on:
 
-- :func:`run_extract` + :class:`ExtractResult` — the batcher: chunk items,
+- :func:`run_extract` + :class:`ExtractResult` - the batcher: chunk items,
   call the LLM under its budget breaker, validate the strict-JSON response,
   retry a malformed batch once, then fall back deterministically.
-- :class:`FallbackExtractor` — the Protocol the batcher calls when the LLM
+- :class:`FallbackExtractor` - the Protocol the batcher calls when the LLM
   can't deliver; :class:`YakeFallbackExtractor` implements it (GRP-22).
-- :func:`build_messages` + :data:`PROMPT_VERSION` — prompt v1.
-- :func:`select_fallback_items` + :func:`run_fallback_backfill` — the
+- :func:`build_messages` + :data:`PROMPT_VERSION` - prompt v1.
+- :func:`select_fallback_items` + :func:`run_fallback_backfill` - the
   ``method='fallback'`` re-extraction backfill (GRP-22).
-- :func:`select_untagged_items` + :func:`run_extract_pipeline` — ordinary
+- :func:`select_untagged_items` + :func:`run_extract_pipeline` - ordinary
   extraction wired into the pipeline: never-extracted items, normalized +
   quality-gated before the caller writes them (GRP-25).
-- :func:`assert_data_quality` — the PRD §10.7 post-extract gate (GRP-25).
+- :func:`assert_data_quality` - the PRD §10.7 post-extract gate (GRP-25).
 - :class:`EvalCase` + :func:`load_eval_cases`, :func:`jaccard_similarity`,
-  :func:`score_predictions`, :func:`format_report` — the offline eval harness
+  :func:`score_predictions`, :func:`format_report` - the offline eval harness
   (GRP-24, PRD §10.5), driven by `scripts/eval.py` via `make eval`.
 
 The LLM provider itself (client, budget breaker, retries, ``llm_log``) is
 :mod:`grepify.llm` (GRP-20). Normalization + alias/mute application is
 :mod:`grepify.keywords` (GRP-23); :mod:`grepify.extract.pipeline` (GRP-25) is
 where this package first calls it, ahead of a keyword row ever reaching truth
-— see that module's docstring for why applying it here doesn't compromise
+- see that module's docstring for why applying it here doesn't compromise
 §6's retroactive-alias guarantee for older rows.
 
 Failure modes
 -------------
-None of its own — a re-export aggregator. See :mod:`grepify.extract.batcher`,
+None of its own - a re-export aggregator. See :mod:`grepify.extract.batcher`,
 :mod:`grepify.extract.fallback`, :mod:`grepify.extract.backfill`,
 :mod:`grepify.extract.pipeline`, and :mod:`grepify.extract.quality` for
 module-level failure modes.

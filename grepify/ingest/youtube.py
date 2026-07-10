@@ -1,8 +1,8 @@
-"""GRP-12: YouTube channel-RSS fetcher — no API key (PRD §8 F-ING-02).
+"""GRP-12: YouTube channel-RSS fetcher - no API key (PRD §8 F-ING-02).
 
-Fetches ``source.url`` — already the canonical
+Fetches ``source.url`` - already the canonical
 ``https://www.youtube.com/feeds/videos.xml?channel_id=...`` URL (PRD §7 /
-``ConfigProvider`` resolves it) — and parses YouTube's channel Atom feed the
+``ConfigProvider`` resolves it) - and parses YouTube's channel Atom feed the
 same way :mod:`grepify.ingest.rss` parses RSS, using the feed's
 ``<yt:videoId>`` element (exposed by ``feedparser`` as ``entry.yt_videoid``) as
 ``external_id`` per F-ING-02, falling back to the entry's own ``id`` (YouTube
@@ -10,7 +10,7 @@ sets it to ``yt:video:<videoId>``) if a future feed variant ever omits
 ``yt:videoId``.
 
 No conditional-GET cache here: channel feeds are small (YouTube caps them at
-~15 recent videos) and this issue's scope didn't call for it — reuses the same
+~15 recent videos) and this issue's scope didn't call for it - reuses the same
 transport and malformed-feed tolerance as RSS (:mod:`grepify.ingest.feedutil`).
 
 Failure modes

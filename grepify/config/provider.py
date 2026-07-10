@@ -1,17 +1,17 @@
-"""``ConfigProvider`` — the single config contract (PRD §5, §7).
+"""``ConfigProvider`` - the single config contract (PRD §5, §7).
 
 All config access goes through this interface. v1 is filesystem-YAML
 (:class:`~grepify.config.filesystem.FilesystemConfigProvider`); v2 is DB-backed
 with a checkbox UI over the same group files (they become seed rows). Accessors
 return backend-neutral domain models (:mod:`grepify.models`) and config schemas
-(:mod:`grepify.config.schemas`) — no filesystem types leak into any signature.
+(:mod:`grepify.config.schemas`) - no filesystem types leak into any signature.
 
 Failure modes
 -------------
 - :meth:`groups` / :meth:`sources` / :meth:`keywords` / :meth:`settings` raise
   :class:`~grepify.errors.ConfigError` on malformed config (fail-fast; used by
   the pipeline, which must not run on bad config).
-- :meth:`validate` never raises for config problems — it aggregates every issue
+- :meth:`validate` never raises for config problems - it aggregates every issue
   into a :class:`ValidationReport` so ``grepify validate`` reports them all.
 """
 

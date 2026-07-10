@@ -275,7 +275,7 @@ def test_extract_data_quality_violation_fails_the_run_loudly(
 ) -> None:
     # Force a >60-char "keyword" past the batcher's own sanity check by having
     # the fallback extractor (not the LLM) produce it, so the pipeline's own
-    # quality gate — not the batcher's per-response validation — is what fires.
+    # quality gate - not the batcher's per-response validation - is what fires.
     monkeypatch.setenv("LLM_BASE_URL", "https://x/v1")
     monkeypatch.setattr(
         "grepify.cli.build_client", _scripted_build_client(["not json", "still not json"])

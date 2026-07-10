@@ -9,7 +9,7 @@ and :func:`render_stylesheet` turn them into byte-stable strings.
 
 Determinism (F-SIT-08 / S8)
 ---------------------------
-- ``generated_at`` comes from the **injected clock** via the caller — this
+- ``generated_at`` comes from the **injected clock** via the caller - this
   module never calls ``datetime.now()`` (PRD §5). Templates receive it as a
   string.
 - The environment sets ``trim_blocks``/``lstrip_blocks``/``keep_trailing_newline``
@@ -24,7 +24,7 @@ Failure modes
 - A template referencing an undefined variable renders it as empty (Jinja's
   default ``Undefined``); the build orchestrator (GRP-35) passes complete
   contexts, so this does not mask data gaps in practice.
-- Pure rendering — no I/O here; writing ``public/`` is the orchestrator's job.
+- Pure rendering - no I/O here; writing ``public/`` is the orchestrator's job.
 """
 
 from __future__ import annotations

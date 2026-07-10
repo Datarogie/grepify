@@ -72,7 +72,7 @@ class SourceSpec(_ConfigModel):
 
     @property
     def canonical_url(self) -> str:
-        """Canonical feed identity — the same feed always hashes the same way."""
+        """Canonical feed identity - the same feed always hashes the same way."""
         if self.kind is SourceKind.RSS:
             assert self.url is not None
             return self.url

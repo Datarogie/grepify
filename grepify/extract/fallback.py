@@ -1,4 +1,4 @@
-"""YAKE fallback extractor (GRP-22) — the deterministic, offline safety net.
+"""YAKE fallback extractor (GRP-22) - the deterministic, offline safety net.
 
 Implements the :class:`~grepify.extract.batcher.FallbackExtractor` Protocol
 with `YAKE <https://github.com/LIAAD/yake>`_, a statistical (no model, no
@@ -16,7 +16,7 @@ Failure modes
 -------------
 :meth:`YakeFallbackExtractor.extract` must not raise for ordinary items (it is
 the last line of defense once the LLM has already failed). An item with no
-extractable text (empty title/summary, or text YAKE finds nothing salient in —
+extractable text (empty title/summary, or text YAKE finds nothing salient in -
 verified offline against short/blank/emoji-only/URL-only/degenerate input)
 simply maps to an empty keyword list, same as an LLM response that legitimately
 finds nothing (F-EXT-02: "an empty keyword list for an item is valid").
@@ -42,7 +42,7 @@ class YakeFallbackExtractor:
 
     ``language``/``ngram_size`` are fixed at construction (v1 is English-only,
     PRD §7 ``limits.transcript_langs: [en]``); per-item language switching is
-    not implemented — out of scope until a non-English source exists.
+    not implemented - out of scope until a non-English source exists.
     """
 
     def __init__(

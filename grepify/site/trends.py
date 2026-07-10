@@ -9,7 +9,7 @@ Why this reads SQLite directly (not ``Repository``)
 ---------------------------------------------------
 The v1 site is a static build that PRD §15 replaces wholesale with FastAPI +
 Postgres at v2, so the SSG layer is intentionally cache-aware and thrown away at
-the v2 boundary — the ``Repository`` interface stays backend-neutral for the
+the v2 boundary - the ``Repository`` interface stays backend-neutral for the
 *pipeline*, which is what v2 preserves. :func:`open_cache` opens a read
 connection to the rebuilt cache; the build orchestrator (GRP-35) calls
 ``Repository.rebuild_cache()`` first.
@@ -20,7 +20,7 @@ Aliases and mutes are applied **at query time**, not extraction time, so remaps
 are retroactive: every windowed ``(keyword, item_id)`` row is folded through
 :meth:`grepify.keywords.KeywordRules.apply` before counting. A keyword's count
 is its number of **distinct items** in the window (an ``llm`` row and a
-``fallback`` row for the same keyword on the same item count once — §6's
+``fallback`` row for the same keyword on the same item count once - §6's
 method-in-primary-key design).
 
 Determinism (F-SIT-08 / S8)
@@ -35,7 +35,7 @@ Determinism (F-SIT-08 / S8)
 Failure modes
 -------------
 - A cache missing the expected tables (never rebuilt / corrupt) surfaces the
-  underlying ``sqlite3.OperationalError`` — a systemic build fault, not a
+  underlying ``sqlite3.OperationalError`` - a systemic build fault, not a
   degradation (the build orchestrator owns rebuilding it first).
 - Pure reads otherwise; nothing here writes or touches the network/LLM.
 """
@@ -70,7 +70,7 @@ class Window:
 
 
 def window_ending_at(instant: datetime, *, days: int) -> Window:
-    """Window of ``days`` ending at ``instant`` (injected — never a clock read)."""
+    """Window of ``days`` ending at ``instant`` (injected - never a clock read)."""
     if days <= 0:
         raise ValueError("window days must be positive")
     end = instant
@@ -183,7 +183,7 @@ class TrendQueries:
     def _merged_counts(self, window: Window) -> dict[str, set[str]]:
         """``canonical keyword -> set(item_id)`` in the window, after merge+mute.
 
-        Distinct item ids per merged keyword — the count is ``len(set)``.
+        Distinct item ids per merged keyword - the count is ``len(set)``.
         """
         rows = self._conn.execute(
             "select ik.keyword, ik.item_id "
@@ -212,7 +212,7 @@ class TrendQueries:
         prev_window = previous if previous is not None else previous_window(window)
         prior = {kw: len(items) for kw, items in self._merged_counts(prev_window).items()}
 
-        # rank by count desc, then keyword asc — total order, byte-stable
+        # rank by count desc, then keyword asc - total order, byte-stable
         ranked = sorted(current.items(), key=lambda kv: (-kv[1], kv[0]))[:limit]
         keywords = [
             KeywordCount(keyword=kw, count=count, delta=count - prior.get(kw, 0))
@@ -336,7 +336,7 @@ class TrendQueries:
         """``item_id -> sorted canonical keywords`` for a set of items (merge+mute).
 
         Used by the item lists to show each item's keyword tags without an
-        N+1 query — one pass, folded through the alias/mute rules.
+        N+1 query - one pass, folded through the alias/mute rules.
         """
         ids = sorted(set(item_ids))
         result: dict[str, set[str]] = {iid: set() for iid in ids}

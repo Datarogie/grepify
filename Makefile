@@ -74,5 +74,5 @@ data-branch: ## Check out the dedicated `data` branch as a worktree at ./data (b
 commit-data: ## Commit + push data/ changes to the `data` branch worktree with rebase-retry ([skip ci] loop guard)
 	$(UV) run python scripts/commit_pipeline_data.py --repo-dir data --branch data
 
-site: build ## Assemble public/ for the Pages deploy — now the real SSG output (GRP-35 replaced the placeholder)
+site: build ## Assemble public/ for the Pages deploy - now the real SSG output (GRP-35 replaced the placeholder)
 	@echo "site assembled into public/ by 'make build'"

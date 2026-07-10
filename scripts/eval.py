@@ -1,12 +1,12 @@
 """CLI glue: score the current extract prompt/model against the GRP-24 labeled
 eval set (PRD §10.5). Thin wrapper, mirroring ``scripts/commit_pipeline_data.py``'s
 shape: build the real LLM client + keyword rules from committed config (same
-environment convention as ``grepify extract``/``grepify backfill`` — deployment
+environment convention as ``grepify extract``/``grepify backfill`` - deployment
 secrets from the environment, never from committed config, PRD §5), drive the
 fixture through the real extract pipeline (:mod:`grepify.extract.pipeline`,
 unmodified), and hand the result to :mod:`grepify.extract.eval`'s pure scorer
 for the printed report. Manual/offline (PRD §10.5): not part of `make check`
-or any CI workflow — run this after changing the extract prompt or LLM
+or any CI workflow - run this after changing the extract prompt or LLM
 profile and paste the printed report into the MR description.
 
 Eval runs are deliberately not persisted anywhere in ``data/`` (no repository,
@@ -14,12 +14,12 @@ no run manifest, no ``llm_log`` row): the fixture items are synthetic
 (:func:`~grepify.extract.eval.eval_cases_to_items`), never real ingested
 items, so writing them to truth or the health/manifest surface would pollute
 both with fictitious data. This is the one exception to "every real LLM call
-gets an `llm_log` row" (PRD §5/§6) — deliberate, since no call here is a real
+gets an `llm_log` row" (PRD §5/§6) - deliberate, since no call here is a real
 pipeline call.
 
 Failure modes
 -------------
-Exits non-zero (no report printed) if ``LLM_BASE_URL`` is unset — same
+Exits non-zero (no report printed) if ``LLM_BASE_URL`` is unset - same
 convention as ``grepify extract``/``backfill`` (nothing to call). Once
 running, per-batch LLM failures degrade to the YAKE fallback extractor like
 every other extraction path (PRD §9) rather than failing the run; a

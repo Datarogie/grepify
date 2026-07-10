@@ -1,6 +1,6 @@
-// grepify items browser — client-side filter (GRP-33).
+// grepify items browser - client-side filter (GRP-33).
 // Vanilla, no framework (PRD §5: no Node toolchain, interactivity stays small).
-// Mirrors grepify.site.pages.item_matches_filter EXACTLY — that Python function
+// Mirrors grepify.site.pages.item_matches_filter EXACTLY - that Python function
 // is the pinned contract; keep the two in sync. Operates on the server-rendered
 // rows' data-* attributes (safely autoescaped at build time); the per-page
 // items/page-N.json is the same data emitted as a machine-readable artifact.
@@ -42,7 +42,7 @@
   fill(kindSel, facet("data-kind"));
   fill(sourceSel, facet("data-source"), function (id) { return sourceNames[id] || id; });
 
-  // The predicate — identical semantics to item_matches_filter (AND of active
+  // The predicate - identical semantics to item_matches_filter (AND of active
   // filters; kind/source exact, keyword case-insensitive substring on tags).
   function matches(row, kind, source, keyword) {
     if (kind && row.getAttribute("data-kind") !== kind) return false;
@@ -51,7 +51,7 @@
       var needle = keyword.trim().toLowerCase();
       // data-keywords is a JSON array of (possibly multi-word) keyword phrases,
       // so a phrase like "agentic coding" survives round-trip; substring-match
-      // the needle against each whole phrase — identical to item_matches_filter.
+      // the needle against each whole phrase - identical to item_matches_filter.
       var tags = [];
       try { tags = JSON.parse(row.getAttribute("data-keywords") || "[]"); } catch (e) { tags = []; }
       if (needle && !tags.some(function (t) { return String(t).toLowerCase().indexOf(needle) !== -1; })) {

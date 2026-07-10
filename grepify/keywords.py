@@ -4,7 +4,7 @@ Pure, deterministic transforms applied to already-extracted keyword strings
 (GRP-21/22 already trimmed + sanity-checked them; this is the fuller
 normalization the PRD reserves for downstream consumers, F-EXT-03/F-EXT-05).
 Per PRD §6, alias/mute is "applied at trend-computation time, not extraction
-time, so remaps are retroactive and non-destructive" — this module has no
+time, so remaps are retroactive and non-destructive" - this module has no
 Repository/ConfigProvider dependency and does not run inside the extract
 batcher; it is the shared utility the pipeline wiring (GRP-25) and the trend
 queries (E3 GRP-31) call when reading ``item_keywords`` rows back out.
@@ -13,11 +13,11 @@ Pipeline: :func:`normalize_keyword` (lowercase, trim, collapse whitespace,
 strip trailing punctuation) → alias substitution → mute drop. Singularization
 is mentioned in the PRD §6 schema comment but not in the F-EXT-03 requirement
 list; omitted here (a stemmer/lemmatizer is non-trivial and false-positive
-prone — flagged as a PRD-diff candidate rather than guessed at).
+prone - flagged as a PRD-diff candidate rather than guessed at).
 
 Failure modes
 -------------
-None — every function is a pure string/mapping transform over already-valid
+None - every function is a pure string/mapping transform over already-valid
 input (``ItemKeyword.keyword`` strings, ``KeywordsConfig`` values); nothing
 here raises or performs I/O.
 """
@@ -82,7 +82,7 @@ def apply_to_keyword(row: ItemKeyword, rules: KeywordRules) -> ItemKeyword | Non
     """Apply :class:`KeywordRules` to one stored keyword row.
 
     Returns a copy with ``keyword`` replaced by its canonical form, or ``None``
-    if the row is muted (the caller drops it — truth itself is never mutated).
+    if the row is muted (the caller drops it - truth itself is never mutated).
     """
     canonical = rules.apply(row.keyword)
     if canonical is None:

@@ -5,21 +5,21 @@ Failure modes
 All raised errors derive from :class:`GrepifyError` so callers can catch the
 whole family at pipeline boundaries. Subclasses are intentionally coarse:
 
-- :class:`ConfigError` — config could not be loaded/parsed (missing dir, bad
+- :class:`ConfigError` - config could not be loaded/parsed (missing dir, bad
   YAML, schema violation). Raised by the config layer; surfaced by ``validate``.
-- :class:`RepositoryError` — storage could not satisfy a request (unreadable
+- :class:`RepositoryError` - storage could not satisfy a request (unreadable
   JSONL truth, cache rebuild failure). Raised by the repository layer.
-- :class:`FetchError` — a *single* source failed to fetch (timeout, HTTP error,
+- :class:`FetchError` - a *single* source failed to fetch (timeout, HTTP error,
   malformed feed, auth challenge, rate limit). Unlike the two above it is **not**
   a systemic fault: the ingest orchestrator catches it, records an ``error``
-  ``fetch_log`` row, and continues the run — one dead feed never fails the run
+  ``fetch_log`` row, and continues the run - one dead feed never fails the run
   (PRD §9). Raised by :class:`~grepify.ingest.base.Fetcher` implementations.
-- :class:`LlmError` — an LLM call could not be completed (transport failure,
+- :class:`LlmError` - an LLM call could not be completed (transport failure,
   non-retryable HTTP error, retries exhausted, unsupported endpoint). Like
   :class:`FetchError` it is **not** systemic: the extract batcher (GRP-21)
-  catches it and degrades that batch to the deterministic fallback extractor —
+  catches it and degrades that batch to the deterministic fallback extractor -
   the LLM failing never blocks the run or the site build (PRD §9).
-- :class:`BudgetExceededError` — the per-run LLM budget circuit breaker
+- :class:`BudgetExceededError` - the per-run LLM budget circuit breaker
   (``max_calls_per_run``) refused a call *before* any network I/O (PRD §5, the
   CSR retry-loop lesson: bounded, no unbounded loops, ever). A subclass of
   :class:`LlmError`, so the batcher's fallback path catches it too; it is caught
@@ -64,7 +64,7 @@ class BudgetExceededError(LlmError):
 
 
 class DataQualityError(GrepifyError):
-    """A post-extract data-quality assertion (PRD §10.7) was violated —
+    """A post-extract data-quality assertion (PRD §10.7) was violated -
     systemic, not isolated: unlike :class:`LlmError`, this stops the run
     rather than degrading, because it signals a bug in extraction/normalization
     itself rather than an unreachable LLM (PRD §10.7: "Violations fail the run

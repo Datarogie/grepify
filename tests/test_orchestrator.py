@@ -1,4 +1,4 @@
-"""GRP-15: ingest orchestrator — per-source isolation, caps, fetch_log, idempotency."""
+"""GRP-15: ingest orchestrator - per-source isolation, caps, fetch_log, idempotency."""
 
 from __future__ import annotations
 

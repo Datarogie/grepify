@@ -1,7 +1,7 @@
 """GRP-25: untagged-item selection + pipeline orchestration.
 
 Drives :func:`grepify.extract.pipeline.run_extract_pipeline` end to end
-against a scripted LLM client (no network) — mirrors ``test_backfill.py``'s
+against a scripted LLM client (no network) - mirrors ``test_backfill.py``'s
 shape for the sibling ``run_fallback_backfill`` orchestrator.
 """
 
@@ -166,7 +166,7 @@ def test_llm_empty_result_is_flagged_no_keywords_not_raised() -> None:
 
 def test_alias_mapping_to_an_over_length_keyword_raises_data_quality_error() -> None:
     # Alias substitution can lengthen a keyword (unlike normalize_keyword,
-    # which only ever shrinks it) — a misconfigured alias mapping to a
+    # which only ever shrinks it) - a misconfigured alias mapping to a
     # >60-char canonical string must still fail the run loudly (PRD §10.7),
     # not slip through as if the length gate only guarded a regression.
     items = [make_item("a")]

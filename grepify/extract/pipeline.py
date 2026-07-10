@@ -1,6 +1,6 @@
 """Ordinary extraction, wired into the pipeline (GRP-25).
 
-Selects items with no keyword rows at all (never extracted —
+Selects items with no keyword rows at all (never extracted -
 :func:`select_untagged_items`), runs them through
 :func:`~grepify.extract.batcher.run_extract` against a real LLM client
 (budget-gated, GRP-20), applies :mod:`grepify.keywords`'s normalization +
@@ -13,7 +13,7 @@ manifest (mirrors :mod:`grepify.ingest.orchestrator`'s split with ``ingest``).
 Untagged-item selection (F-EXT-04)
 -----------------------------------
 :func:`select_untagged_items` excludes any item with *any* keyword row,
-regardless of ``method`` — ``run_extract`` itself has no cache-awareness (it
+regardless of ``method`` - ``run_extract`` itself has no cache-awareness (it
 extracts unconditionally on whatever it is handed, same as the backfill
 orchestrator reuses it on its own candidate set), so the caller's selection
 *is* the "never re-extract unless ``--force``" rule (F-EXT-04). This is
@@ -21,17 +21,17 @@ deliberately a different predicate from
 :func:`~grepify.extract.backfill.select_fallback_items` ("already extracted,
 entirely fallback"): this module's job is items that have *never* been
 extracted at all. ``run_extract_pipeline(..., force=True)`` bypasses the
-filter entirely and extracts every item handed to it, tagged or not — the
+filter entirely and extracts every item handed to it, tagged or not - the
 ``extract --force`` CLI escape hatch F-EXT-04 reserves for deliberate
 re-extraction (e.g. after a prompt/model change, ahead of GRP-24's eval
 harness).
 
 Known limitation (documented, not fixed here): an item whose extraction
-legitimately yields zero keyword rows (F-EXT-02 — nothing salient, or every
+legitimately yields zero keyword rows (F-EXT-02 - nothing salient, or every
 candidate got muted below) still has zero keyword rows afterwards, so it is
 indistinguishable from "never extracted" and will be re-selected on every
 future ``extract`` run. There is no persisted "no_keywords" marker in the §6
-schema for this (only the one PK revision — adding ``method`` — was
+schema for this (only the one PK revision - adding ``method`` - was
 Kyle-approved this session); adding one is a further schema decision, flagged
 here as a PRD-diff candidate rather than guessed at. In practice this is
 bounded by the same LLM budget gate as every other batch, so it is a repeated
@@ -42,12 +42,12 @@ Normalization boundary (F-EXT-03 / F-EXT-05)
 Every produced :class:`~grepify.models.ItemKeyword` row is passed through
 :func:`grepify.keywords.apply_to_keyword` before it is considered for
 writing: lowercase/trim/collapse/strip-trailing-punctuation (F-EXT-03),
-then alias substitution, then mute — a muted keyword's row is dropped
+then alias substitution, then mute - a muted keyword's row is dropped
 entirely rather than written (F-EXT-05: "a mute list drops keyword rows").
 Applying the alias map here is an eager convenience, not a substitute for
 downstream retroactivity: PRD §6 still requires trend queries (E3/E4) to
 re-apply :class:`~grepify.keywords.KeywordRules` at read time so that rows
-written *before* an alias/mute existed are still covered — re-applying
+written *before* an alias/mute existed are still covered - re-applying
 already-canonical text is idempotent, so doing it once more at write time
 changes nothing for those older rows.
 
@@ -55,7 +55,7 @@ Failure modes
 -------------
 Inherits :func:`run_extract`'s contract (LLM/budget failures degrade to the
 fallback extractor, PRD §9) plus :func:`~grepify.extract.quality.assert_data_quality`'s
-:class:`~grepify.errors.DataQualityError` for an over-length keyword — both
+:class:`~grepify.errors.DataQualityError` for an over-length keyword - both
 propagate to the caller unchanged; this module raises nothing of its own.
 """
 
@@ -96,7 +96,7 @@ class ExtractPipelineResult:
     no_keywords_item_ids: list[str]
 
 
-def run_extract_pipeline(  # noqa: PLR0913 — items+keywords+client+run context+rules are distinct inputs
+def run_extract_pipeline(  # noqa: PLR0913 - items+keywords+client+run context+rules are distinct inputs
     items: Sequence[Item],
     existing_keywords: Sequence[ItemKeyword],
     client: LlmClient,
@@ -118,7 +118,7 @@ def run_extract_pipeline(  # noqa: PLR0913 — items+keywords+client+run context
     reporting ``summary`` on the run manifest. Raises
     :class:`~grepify.errors.DataQualityError` (propagated from
     :func:`~grepify.extract.quality.assert_data_quality`) before anything is
-    returned — the caller never has to write and then discover a violation.
+    returned - the caller never has to write and then discover a violation.
     """
     candidates = list(items) if force else select_untagged_items(items, existing_keywords)
     result = run_extract(

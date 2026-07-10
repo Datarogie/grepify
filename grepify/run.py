@@ -1,7 +1,7 @@
 """Run identity + run-manifest I/O (PRD §8 F-OPS-04).
 
 Every pipeline run gets a ``run_id`` and writes ``data/runs/<run_id>.json`` with
-counts, durations, and (later) budget usage — the data behind the health page
+counts, durations, and (later) budget usage - the data behind the health page
 and phone debugging. ``run_id`` is a sortable UTC timestamp plus a short entropy
 suffix, so the lexically-largest manifest filename is the latest run.
 

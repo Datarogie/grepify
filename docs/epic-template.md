@@ -1,7 +1,7 @@
-# Epic brief template — E<n>: <epic name> (M<milestone>)
+# Epic brief template - E<n>: <epic name> (M<milestone>)
 
 ~1 page, written once per epic. Its job: let an agent implement any issue in the
-epic without reading other epics' code — **restate the interfaces this epic
+epic without reading other epics' code - **restate the interfaces this epic
 consumes** (PRD §12). See `docs/epics/E0.md` for a worked example.
 
 ## Goal

@@ -1,7 +1,7 @@
-# settings.example.yml — copy to sources/settings.yml and adjust.
+# settings.example.yml - copy to sources/settings.yml and adjust.
 #
 # This is the cloneability template (PRD §5). No secrets ever live here or in
-# sources/settings.yml — the LLM key, X session cookies, and Slack tokens are
+# sources/settings.yml - the LLM key, X session cookies, and Slack tokens are
 # CI masked variables only. See docs/setup.md.
 
 llm:

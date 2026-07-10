@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}grepify — health{% endblock %}
+{% block title %}grepify - health{% endblock %}
 {% block content %}
 <h1>Health</h1>
 {% if health %}
@@ -23,6 +23,6 @@
 <p class="muted">No source attempts recorded yet.</p>
 {% endif %}
 {% else %}
-<p class="muted">No health snapshot available — run the pipeline to generate <code>data/health.json</code>.</p>
+<p class="muted">No health snapshot available - run the pipeline to generate <code>data/health.json</code>.</p>
 {% endif %}
 {% endblock %}
