@@ -77,3 +77,25 @@ Per-session variants: swap the session line ("This session: read docs/epics/E1.m
 - Two sideways attempts on a Sonnet session → rerun on Opus.
 - Merge conflicts between [P] sessions: the later MR rebases; never merge-commit data files by hand.
 - Anything discovered mid-session that changes the PRD: agent proposes a PRD diff in the MR, never edits silently.
+
+## Standing ops tasks
+
+- **Source-liveness recheck (periodic).** The Health page flags a source after
+  5 consecutive fetch errors (F-ING-08); flagged is not the same as dead. Triage
+  splits two ways, and only one ends in removal:
+  - **Blocked-but-alive** (e.g. reddit `new.json` returning 403/429 to CI egress
+    IPs): the feed is fine, CI just can't reach it. Do NOT prune. Robustness
+    options, in order of effort: (1) confirm the F-ING-04 `.rss` fallback fires
+    (reddit's `/r/<sub>/.rss` is blocked far less often than the JSON endpoint)
+    and lower its cadence; (2) an authenticated reddit API app (OAuth token as a
+    CI secret) for a stable quota; (3) a non-CI fetch path (self-hosted / Termux)
+    for sources CI IPs can't reach, mirroring the YouTube-transcript fallback
+    idea (PRD §13). YouTube channel RSS (`feeds/videos.xml`) is usually NOT
+    blocked - verify before grouping it with reddit.
+  - **Genuinely dead** (feed 404s or moved; the GRP-07 seed had ~10% expected
+    dead): first look for the moved feed URL; only if it is truly gone, disable
+    it. v1 never auto-disables (PRD §2 Non-Goals) - pruning is always a reviewed
+    MR.
+  Action (fits GRP-60): a maintenance command that re-pings flagged feeds and
+  emits a triaged report (blocked / dead / recovered) for a human to act on -
+  it never deletes sources on its own.
