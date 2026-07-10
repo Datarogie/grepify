@@ -276,7 +276,10 @@ KindOpt = Annotated[
 def digest(ctx: typer.Context, kind: KindOpt = DigestKind.DAILY) -> None:
     """Generate per-category digests for the just-completed period (GRP-41/42).
 
-    Rebuilds the cache from truth, then for every enabled category assembles its
+    When ``settings.digest.enabled`` is false this no-ops: it records a manifest
+    note and exits 0 without any LLM call or file write (the pause switch used
+    while data remediation is in flight). Otherwise it
+    rebuilds the cache from truth, then for every enabled category assembles its
     top/rising keywords (GRP-40) and generates one digest via the active LLM
     profile (``purpose='digest'``), degrading to a deterministic template digest
     when the LLM is down or over budget (PRD §9/§13). A category below
