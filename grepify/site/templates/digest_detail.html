@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}grepify - {{ digest.title }}{% endblock %}
+{% block content %}
+<article class="digest-detail">
+<p class="muted"><a href="{{ meta.base_path }}digest/">← All digests</a></p>
+<h1>{{ digest.title }}</h1>
+<p class="meta">{{ digest.kind }} · {{ digest.category }} · {% if digest.kind == "weekly" %}week of {{ digest.period_start[:10] }}{% else %}{{ digest.period_start[:10] }}{% endif %}</p>
+{% if digest.top_keywords %}
+<div class="cloud">
+{% for chip in digest.top_keywords %}
+<a class="tag" href="{{ meta.base_path }}keyword/{{ keyword_slug(chip.keyword) }}/" title="{{ chip.count }} mentions">#{{ chip.keyword }} <span class="count">{{ chip.count }}</span></a>
+{% endfor %}
+</div>
+{% endif %}
+<div class="prose">
+{{ render_markdown(digest.body_md) | safe }}
+</div>
+</article>
+{% endblock %}

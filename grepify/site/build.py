@@ -69,12 +69,15 @@ from grepify.site.render import (
     render_stylesheet,
 )
 from grepify.site.trends import (
+    DigestDetail,
     ItemSummary,
+    KeywordDetail,
     TrendQueries,
     Window,
     open_cache,
     window_ending_at,
 )
+from grepify.site.urls import digest_slug, keyword_slug
 
 EMISSION_DAYS = 90  # trailing-window paginated into public/ (F-SIT-03/04, §9)
 SITE_TITLE = "grepify"
@@ -126,6 +129,7 @@ def build_site(  # noqa: PLR0913 - distinct collaborators, all required
 
         cloud_window = window_ending_at(now, days=settings.windows.cloud_days)
         emission_since = to_iso(now - timedelta(days=EMISSION_DAYS))
+        keyword_window = window_ending_at(now, days=settings.windows.keyword_days)
 
         _reset_output(output_dir)
         (output_dir / "static").mkdir(parents=True, exist_ok=True)
@@ -134,12 +138,19 @@ def build_site(  # noqa: PLR0913 - distinct collaborators, all required
 
         emitted_items = queries.latest_items(limit=_ALL, since=emission_since)
         items_total = _count_items(conn)
+        keyword_details = queries.keyword_details(
+            keyword_window, min_mentions=settings.windows.keyword_min_mentions
+        )
+        keyword_pages = set(keyword_details)  # keywords that have a detail page
+        digests = queries.all_digests()
 
         pages_written = (
-            _write_home(env, meta, output_dir, queries, cloud_window)
+            _write_home(env, meta, output_dir, queries, cloud_window, keyword_pages)
             + _write_items(env, meta, output_dir, queries, emitted_items)
             + _write_sources(env, meta, output_dir, config)
             + _write_health(env, meta, output_dir, layout)
+            + _write_digests(env, meta, output_dir, digests)
+            + _write_keyword_pages(env, meta, output_dir, keyword_details)
         )
     finally:
         conn.close()
@@ -155,12 +166,13 @@ def build_site(  # noqa: PLR0913 - distinct collaborators, all required
 # --- page writers ------------------------------------------------------------
 
 
-def _write_home(
+def _write_home(  # noqa: PLR0913 - collaborators of one page render, all required
     env: jinja2.Environment,
     meta: SiteMeta,
     output_dir: Path,
     queries: TrendQueries,
     cloud_window: Window,
+    keyword_pages: set[str],
 ) -> int:
     latest_items = queries.latest_items()
     html = render_page(
@@ -173,6 +185,7 @@ def _write_home(
         latest_items=latest_items,
         latest_digests=queries.latest_digests(),
         item_tags=queries.distinct_keywords_for_items(i.item_id for i in latest_items),
+        keyword_pages=keyword_pages,
     )
     _write(output_dir / "index.html", html)
     return 1
@@ -241,6 +254,49 @@ def _write_health(
     )
     _write(output_dir / "health" / "index.html", html)
     return 1
+
+
+def _write_digests(
+    env: jinja2.Environment, meta: SiteMeta, output_dir: Path, digests: list[DigestDetail]
+) -> int:
+    """Digest index (always, a nav destination) + one detail page per digest."""
+    index_html = render_page(
+        env,
+        "digest_index.html",
+        PageContext(meta=meta, active="digests"),
+        digests=digests,
+    )
+    _write(output_dir / "digest" / "index.html", index_html)
+
+    for digest in digests:
+        detail_html = render_page(
+            env,
+            "digest_detail.html",
+            PageContext(meta=meta, active="digests"),
+            digest=digest,
+        )
+        slug = digest_slug(digest.digest_id, digest.kind)
+        _write(output_dir / "digest" / digest.kind / slug / "index.html", detail_html)
+    return 1 + len(digests)
+
+
+def _write_keyword_pages(
+    env: jinja2.Environment,
+    meta: SiteMeta,
+    output_dir: Path,
+    keyword_details: dict[str, KeywordDetail],
+) -> int:
+    """One detail page per keyword above threshold (F-SIT-04), sorted for stable order."""
+    for keyword in sorted(keyword_details):
+        detail = keyword_details[keyword]
+        html = render_page(
+            env,
+            "keyword.html",
+            PageContext(meta=meta, active=""),
+            detail=detail,
+        )
+        _write(output_dir / "keyword" / keyword_slug(keyword) / "index.html", html)
+    return len(keyword_details)
 
 
 # --- helpers -----------------------------------------------------------------

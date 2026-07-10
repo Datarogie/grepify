@@ -16,6 +16,16 @@ windows:
   cloud_days: 7
   digest_daily_hours: 24
   digest_weekly: iso_week
+  keyword_days: 30
+  keyword_min_mentions: 3
+
+digest:
+  rising_min_count: 3
+  rising_ratio: 3.0
+  min_items: 10
+  daily_top_keywords: 12
+  weekly_top_keywords: 20
+  items_per_keyword: 3
 
 limits:
   transcript_max_chars: 60000

@@ -141,6 +141,19 @@ class Windows(_ConfigModel):
     cloud_days: int = 7
     digest_daily_hours: int = 24
     digest_weekly: str = "iso_week"
+    keyword_days: int = 30  # trailing window for keyword detail pages (F-SIT-04)
+    keyword_min_mentions: int = 3  # a keyword gets a page at >= this many mentions in the window
+
+
+class DigestSettings(_ConfigModel):
+    """Rising-detection + digest-shaping knobs (PRD §8 F-TRD-03 / F-DIG-01/03)."""
+
+    rising_min_count: int = 3  # F-TRD-03: a keyword needs >= this count to be "rising"
+    rising_ratio: float = 3.0  # F-TRD-03: and count/previous-count >= this ratio
+    min_items: int = 10  # F-DIG-03: skip (not fail) a category digest below this
+    daily_top_keywords: int = 12  # top-N keywords fed to the daily digest prompt
+    weekly_top_keywords: int = 20  # weekly is slightly longer (PRD §8 F-DIG-02)
+    items_per_keyword: int = 3  # top item titles/summaries per keyword in the prompt
 
 
 class Limits(_ConfigModel):
@@ -154,4 +167,5 @@ class SettingsConfig(_ConfigModel):
     llm: LlmSettings
     windows: Windows = Windows()
     limits: Limits = Limits()
+    digest: DigestSettings = DigestSettings()
     timezone: str = "America/Edmonton"

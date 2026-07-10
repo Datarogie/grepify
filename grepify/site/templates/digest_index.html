@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}grepify - digests{% endblock %}
+{% block content %}
+<h1>Digests</h1>
+{% if digests %}
+<form class="filters" aria-label="Filter digests">
+<label>Show
+<select id="filter-digest-kind">
+<option value="">all</option>
+<option value="daily">daily</option>
+<option value="weekly">weekly</option>
+</select>
+</label>
+</form>
+<ul class="feed" id="digest-list">
+{% for d in digests %}
+<li class="digest" data-kind="{{ d.kind }}">
+<a href="{{ meta.base_path }}digest/{{ d.kind }}/{{ digest_slug(d.digest_id, d.kind) }}/">{{ d.title }}</a>
+<div class="meta">{{ d.kind }} · {{ d.category }} · {% if d.kind == "weekly" %}week of {{ d.period_start[:10] }}{% else %}{{ d.period_start[:10] }}{% endif %}</div>
+{% if d.top_keywords %}
+<div class="meta">{% for chip in d.top_keywords %}<span class="tag">#{{ chip.keyword }} {{ chip.count }}</span> {% endfor %}</div>
+{% endif %}
+</li>
+{% endfor %}
+</ul>
+<p class="muted" id="digest-empty" hidden>No digests match this filter.</p>
+<script src="{{ meta.base_path }}static/digests.js" defer></script>
+{% else %}
+<p class="muted">No digests generated yet.</p>
+{% endif %}
+{% endblock %}

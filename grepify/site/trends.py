@@ -42,14 +42,16 @@ Failure modes
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 from grepify.clock import to_iso
 from grepify.keywords import KeywordRules
 from grepify.paths import DataLayout
+from grepify.site.urls import keyword_slug
 
 DEFAULT_CLOUD_LIMIT = 60
 DEFAULT_TOP_SOURCES_LIMIT = 10
@@ -163,7 +165,78 @@ class DigestSummary:
     created_at: str
 
 
+@dataclass(frozen=True)
+class KeywordChip:
+    """One ``top_keywords`` chip on a digest (keyword + its in-digest count)."""
+
+    keyword: str
+    count: int
+
+
+@dataclass(frozen=True)
+class DigestDetail:
+    """A full digest for the index/detail pages (GRP-43), body included."""
+
+    digest_id: str
+    kind: str
+    category: str
+    title: str
+    body_md: str
+    top_keywords: list[KeywordChip]
+    period_start: str
+    period_end: str
+    created_at: str
+
+
+@dataclass(frozen=True)
+class CoKeyword:
+    """A co-occurring keyword on a keyword detail page (F-TRD-02)."""
+
+    keyword: str
+    count: int
+
+
+@dataclass(frozen=True)
+class KeywordDetail:
+    """The keyword detail dataset (F-TRD-02 / F-SIT-04, GRP-44).
+
+    ``timeline`` is one distinct-item count per day across the window (oldest
+    first), sized for the sparkline. ``items_by_kind`` maps each ``kind`` to its
+    most-recent items mentioning the keyword (capped), ``kinds`` is the sorted
+    tab order. All lists are pre-sorted for byte-stable rendering.
+    """
+
+    keyword: str
+    slug: str
+    count: int
+    source_count: int
+    window_days: int
+    timeline: list[int]
+    co_occurring: list[CoKeyword]
+    kinds: list[str]
+    items_by_kind: dict[str, list[ItemSummary]]
+
+
 # --- cache access ------------------------------------------------------------
+
+
+def _parse_chips(top_keywords_json: str) -> list[KeywordChip]:
+    """Parse the stored ``top_keywords`` json (``[{keyword, count}]``) into chips.
+
+    Tolerant of a malformed/empty value (renders no chips rather than failing a
+    build): a digest's chips are informational, so a bad blob yields ``[]``.
+    """
+    try:
+        raw = json.loads(top_keywords_json)
+    except (json.JSONDecodeError, TypeError):
+        return []
+    if not isinstance(raw, list):
+        return []
+    chips: list[KeywordChip] = []
+    for entry in raw:
+        if isinstance(entry, dict) and "keyword" in entry and "count" in entry:
+            chips.append(KeywordChip(keyword=str(entry["keyword"]), count=int(entry["count"])))
+    return chips
 
 
 def open_cache(layout: DataLayout) -> sqlite3.Connection:
@@ -180,18 +253,33 @@ class TrendQueries:
 
     # --- keyword cloud + deltas ---------------------------------------------
 
-    def _merged_counts(self, window: Window) -> dict[str, set[str]]:
+    def _merged_counts(self, window: Window, *, category: str | None = None) -> dict[str, set[str]]:
         """``canonical keyword -> set(item_id)`` in the window, after merge+mute.
 
-        Distinct item ids per merged keyword - the count is ``len(set)``.
+        Distinct item ids per merged keyword - the count is ``len(set)``. When
+        ``category`` is given, only items whose source's group is in that
+        category are counted (``items -> sources -> source_groups`` join); the
+        digest assembler (GRP-40) uses this to key counts on category, never on
+        user (PRD §7).
         """
-        rows = self._conn.execute(
-            "select ik.keyword, ik.item_id "
-            "from item_keywords ik "
-            "join items i on i.item_id = ik.item_id "
-            "where i.published_at >= ? and i.published_at < ?",
-            (window.start, window.end),
-        )
+        if category is None:
+            rows = self._conn.execute(
+                "select ik.keyword, ik.item_id "
+                "from item_keywords ik "
+                "join items i on i.item_id = ik.item_id "
+                "where i.published_at >= ? and i.published_at < ?",
+                (window.start, window.end),
+            )
+        else:
+            rows = self._conn.execute(
+                "select ik.keyword, ik.item_id "
+                "from item_keywords ik "
+                "join items i on i.item_id = ik.item_id "
+                "join sources s on s.source_id = i.source_id "
+                "join source_groups g on g.group_id = s.group_id "
+                "where i.published_at >= ? and i.published_at < ? and g.category = ?",
+                (window.start, window.end, category),
+            )
         merged: dict[str, set[str]] = {}
         for keyword, item_id in rows:
             canonical = self._rules.apply(keyword)
@@ -352,3 +440,208 @@ class TrendQueries:
             if canonical is not None:
                 result[item_id].add(canonical)
         return {iid: sorted(kws) for iid, kws in result.items()}
+
+    # --- category-scoped digest queries (GRP-40) -----------------------------
+
+    def keyword_counts(self, window: Window, *, category: str | None = None) -> dict[str, int]:
+        """``canonical keyword -> distinct-item count`` in the window (merge+mute)."""
+        merged = self._merged_counts(window, category=category)
+        return {kw: len(items) for kw, items in merged.items()}
+
+    def category_item_count(self, window: Window, category: str) -> int:
+        """Distinct items published in the window whose source is in ``category``."""
+        (count,) = self._conn.execute(
+            "select count(distinct i.item_id) "
+            "from items i "
+            "join sources s on s.source_id = i.source_id "
+            "join source_groups g on g.group_id = s.group_id "
+            "where i.published_at >= ? and i.published_at < ? and g.category = ?",
+            (window.start, window.end, category),
+        ).fetchone()
+        return int(count)
+
+    def top_items_for_keyword(
+        self, window: Window, keyword: str, *, category: str | None = None, limit: int = 3
+    ) -> list[ItemSummary]:
+        """Most-recent items mentioning ``keyword`` (canonical) in the window.
+
+        ``keyword`` is matched against the canonical form (alias/mute applied),
+        so the caller passes an already-canonical term; ties break by item id.
+        """
+        item_ids = self._merged_counts(window, category=category).get(keyword, set())
+        return self._item_summaries(sorted(item_ids))[:limit]
+
+    def _item_summaries(self, item_ids: list[str]) -> list[ItemSummary]:
+        """``ItemSummary`` rows for ``item_ids``, newest first (``published_at`` desc)."""
+        if not item_ids:
+            return []
+        placeholders = ",".join("?" for _ in item_ids)
+        rows = self._conn.execute(
+            "select i.item_id, i.source_id, coalesce(s.name, i.source_id) as name, "
+            "i.kind, i.title, i.canonical_url, i.published_at, i.summary, i.content_hash "
+            "from items i "
+            "left join sources s on s.source_id = i.source_id "
+            f"where i.item_id in ({placeholders}) "
+            "order by i.published_at desc, i.item_id desc",
+            tuple(item_ids),
+        )
+        return [
+            ItemSummary(
+                item_id=iid,
+                source_id=sid,
+                source_name=name,
+                kind=kind,
+                title=title,
+                canonical_url=url,
+                published_at=pub,
+                summary=summary,
+                content_hash=chash,
+            )
+            for iid, sid, name, kind, title, url, pub, summary, chash in rows
+        ]
+
+    # --- digest detail (GRP-43) ----------------------------------------------
+
+    def all_digests(self) -> list[DigestDetail]:
+        """Every digest, body included, newest first (``created_at`` desc, id)."""
+        rows = self._conn.execute(
+            "select digest_id, kind, category, title, body_md, top_keywords, "
+            "period_start, period_end, created_at "
+            "from digests "
+            "order by created_at desc, digest_id desc"
+        )
+        details: list[DigestDetail] = []
+        for did, kind, cat, title, body_md, top_kw_json, ps, pe, created in rows:
+            details.append(
+                DigestDetail(
+                    digest_id=did,
+                    kind=kind,
+                    category=cat,
+                    title=title,
+                    body_md=body_md,
+                    top_keywords=_parse_chips(top_kw_json),
+                    period_start=ps,
+                    period_end=pe,
+                    created_at=created,
+                )
+            )
+        return details
+
+    # --- keyword detail pages (GRP-44) ---------------------------------------
+
+    def keyword_details(
+        self,
+        window: Window,
+        *,
+        min_mentions: int,
+        items_per_kind: int = 5,
+        co_limit: int = 10,
+    ) -> dict[str, KeywordDetail]:
+        """Build the F-TRD-02 detail dataset for every keyword above threshold.
+
+        One pass over the window's keyword rows (folded through the alias/mute
+        rules), then per keyword with ``>= min_mentions`` distinct items: a daily
+        timeline, distinct-source count, count-ranked co-occurring keywords, and
+        latest items grouped by kind. Deterministic - every list is sorted.
+        """
+        rows = self._conn.execute(
+            "select ik.keyword, i.item_id, i.source_id, coalesce(s.name, i.source_id) as name, "
+            "i.kind, i.title, i.canonical_url, i.published_at, i.summary, i.content_hash "
+            "from item_keywords ik "
+            "join items i on i.item_id = ik.item_id "
+            "left join sources s on s.source_id = i.source_id "
+            "where i.published_at >= ? and i.published_at < ?",
+            (window.start, window.end),
+        )
+        items: dict[str, ItemSummary] = {}
+        item_keywords: dict[str, set[str]] = {}
+        kw_items: dict[str, set[str]] = {}
+        for kw, iid, sid, name, kind, title, url, pub, summary, chash in rows:
+            canonical = self._rules.apply(kw)
+            if canonical is None:  # muted
+                continue
+            if iid not in items:
+                items[iid] = ItemSummary(
+                    item_id=iid,
+                    source_id=sid,
+                    source_name=name,
+                    kind=kind,
+                    title=title,
+                    canonical_url=url,
+                    published_at=pub,
+                    summary=summary,
+                    content_hash=chash,
+                )
+            item_keywords.setdefault(iid, set()).add(canonical)
+            kw_items.setdefault(canonical, set()).add(iid)
+
+        start_date = date.fromisoformat(window.start[:10])
+        details: dict[str, KeywordDetail] = {}
+        for keyword, iid_set in kw_items.items():
+            if len(iid_set) < min_mentions:
+                continue
+            details[keyword] = self._keyword_detail(
+                keyword,
+                iid_set,
+                items=items,
+                item_keywords=item_keywords,
+                window=window,
+                start_date=start_date,
+                items_per_kind=items_per_kind,
+                co_limit=co_limit,
+            )
+        return details
+
+    def _keyword_detail(  # noqa: PLR0913 - collaborators of one precomputed pass, all required
+        self,
+        keyword: str,
+        iid_set: set[str],
+        *,
+        items: dict[str, ItemSummary],
+        item_keywords: dict[str, set[str]],
+        window: Window,
+        start_date: date,
+        items_per_kind: int,
+        co_limit: int,
+    ) -> KeywordDetail:
+        member_items = [items[iid] for iid in iid_set]
+
+        # daily timeline: one distinct-item count per day across the window
+        timeline = [0] * window.days
+        for item in member_items:
+            index = (date.fromisoformat(item.published_at[:10]) - start_date).days
+            timeline[min(max(index, 0), window.days - 1)] += 1
+
+        # co-occurring keywords: distinct items sharing each other keyword
+        co_counts: dict[str, int] = {}
+        for iid in iid_set:
+            for other in item_keywords[iid]:
+                if other != keyword:
+                    co_counts[other] = co_counts.get(other, 0) + 1
+        co_occurring = [
+            CoKeyword(keyword=kw, count=count)
+            for kw, count in sorted(co_counts.items(), key=lambda kv: (-kv[1], kv[0]))[:co_limit]
+        ]
+
+        # latest items grouped by kind (each newest first, capped)
+        by_kind: dict[str, list[ItemSummary]] = {}
+        for item in member_items:
+            by_kind.setdefault(item.kind, []).append(item)
+        items_by_kind = {
+            kind: sorted(group, key=lambda i: (i.published_at, i.item_id), reverse=True)[
+                :items_per_kind
+            ]
+            for kind, group in by_kind.items()
+        }
+
+        return KeywordDetail(
+            keyword=keyword,
+            slug=keyword_slug(keyword),
+            count=len(iid_set),
+            source_count=len({items[iid].source_id for iid in iid_set}),
+            window_days=window.days,
+            timeline=timeline,
+            co_occurring=co_occurring,
+            kinds=sorted(items_by_kind),
+            items_by_kind=items_by_kind,
+        )
