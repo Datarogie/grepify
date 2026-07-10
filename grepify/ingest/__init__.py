@@ -11,7 +11,8 @@ Public surface every E1/E2/E5 issue builds on:
   network required. Registering them into a :class:`FetcherRegistry` for a
   live run is the ingest orchestrator's job (GRP-15, not yet built).
 - Normalize + identity: :func:`normalize`, :func:`normalize_batch`,
-  :func:`compute_item_id`, :func:`canonicalize_url`, :func:`dedup_within_batch`.
+  :func:`compute_item_id`, :func:`canonicalize_url`, :func:`dedup_within_batch`,
+  :func:`clean_summary` (the shared summary cleaner, re-used by GRP-60 remediation).
 - Near-dup layer: :func:`compute_content_hash`, :func:`hamming_distance`,
   :func:`group_near_duplicates`.
 - Orchestration (GRP-15): :func:`run_ingest`, :class:`IngestServices`,
@@ -38,6 +39,7 @@ from grepify.ingest.dedup import compute_content_hash, group_near_duplicates, ha
 from grepify.ingest.fake import FakeFetcher
 from grepify.ingest.normalize import (
     canonicalize_url,
+    clean_summary,
     compute_item_id,
     dedup_within_batch,
     normalize,
@@ -77,6 +79,7 @@ __all__ = [
     "YouTubeTranscriptApiClient",
     "build_registry",
     "canonicalize_url",
+    "clean_summary",
     "compute_content_hash",
     "compute_item_id",
     "dedup_within_batch",

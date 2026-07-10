@@ -160,6 +160,19 @@ def _strip_html(text: str) -> str:
     return " ".join(html.unescape(without_tags).split())
 
 
+def clean_summary(text: str) -> str:
+    """Strip markup + entities and truncate to the stored-excerpt limit.
+
+    The one place summary cleaning is defined. :func:`normalize` applies it to a
+    fresh :class:`RawItem` summary at ingest; the ``renormalize`` maintenance
+    command (GRP-60) re-applies the *same* function to already-stored summaries,
+    so a re-extract can never diverge from what a fresh ingest would produce.
+    Idempotent: cleaning an already-clean summary returns it unchanged (up to the
+    documented regex-vs-parser fixed point).
+    """
+    return _strip_html(text)[:_SUMMARY_MAX_CHARS]
+
+
 def _clean_external_id(external_id: str | None) -> str | None:
     """Coerce an empty / whitespace-only external id to ``None`` (see module
     docstring - protects the ``(kind, external_id)`` unique index)."""
@@ -178,7 +191,7 @@ def normalize(raw: RawItem, source: Source, *, fetched_at: str) -> Item:
     """
     canonical = canonicalize_url(raw.url)
     external_id = _clean_external_id(raw.external_id)
-    summary = _strip_html(raw.summary)[:_SUMMARY_MAX_CHARS] if raw.summary is not None else None
+    summary = clean_summary(raw.summary) if raw.summary is not None else None
     return Item(
         item_id=compute_item_id(source.kind, canonical, external_id),
         source_id=source.source_id,

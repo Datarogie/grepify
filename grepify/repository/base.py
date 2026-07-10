@@ -14,6 +14,11 @@ Design rules
   cache, which :meth:`rebuild_cache` regenerates deterministically from truth.
 - Sources and source groups are not truth - they are loaded from the
   ``ConfigProvider`` into the cache via :meth:`load_config` (PRD §7).
+- Truth is append-only in normal operation. The only exceptions are the
+  explicit maintenance rewrites (:meth:`rewrite_items`,
+  :meth:`delete_item_keywords`) used by one-time data remediation (GRP-60);
+  they mutate existing truth in place and are deliberately outside the
+  append-only/idempotent-add contract above.
 
 Failure modes
 -------------
@@ -66,6 +71,25 @@ class Repository(ABC):
     @abstractmethod
     def log_llm(self, entry: LlmLogEntry) -> None:
         """Append an LLM-call log entry."""
+
+    # --- truth maintenance (rare, deliberate rewrites) -----------------------
+
+    @abstractmethod
+    def rewrite_items(self, items: Sequence[Item]) -> int:
+        """Overwrite existing item records in truth in place, matched by
+        ``item_id``. Returns the count actually rewritten (an ``item_id`` not
+        already in truth is skipped, never appended). Unlike :meth:`add_items`
+        this is *not* append-only - it is the deliberate escape hatch for a
+        one-time data remediation (GRP-60 ``renormalize``), keeping each item in
+        its existing date partition (``item_id`` and ``published_at`` are
+        unchanged by such a rewrite)."""
+
+    @abstractmethod
+    def delete_item_keywords(self, item_ids: Iterable[str]) -> int:
+        """Delete every keyword row whose ``item_id`` is in ``item_ids`` from
+        truth. Returns the count deleted. The companion to :meth:`rewrite_items`
+        for ``renormalize``: after a summary is corrected its stale keyword rows
+        are dropped so a forced re-extract regenerates them from the clean text."""
 
     # --- truth reads ----------------------------------------------------------
 
