@@ -15,7 +15,7 @@ Personal, configurable news/video/social aggregator inspired by trendcloud.io. I
 Differences vs TrendCloud:
 
 - **User-owned source registry**: source *groups* (bundles) that can be enabled/disabled, overridden, extended with own sources. TrendCloud's public source list is the seed default set (AI category only - crypto excluded by requirement).
-- **X account watching** (specific people, not firehose) via twscrape - reuse xfilter patterns.
+- **Following specific AI voices** - originally X account watching via twscrape (E5 revision, Kyle-approved: retired in favour of the same people's long-form RSS/Atom feeds - the `ai-voices` group, GRP-51 replacement - which are richer for keyword extraction than tweets and need no auth/accounts/session cookies; see §12 E5).
 - **YouTube transcripts**, not just video titles, feed keyword extraction and digests.
 - **Deterministic-first**: LLM only where it earns its keep (keyword extraction, digest prose). Everything else is plain code over local storage. No LLM in the serving path.
 - **Zero-server v1**: scheduled CI (GH Actions → GitLab CI) + static site. No always-on infra, no metered serving cost. v1 is a **cloneable template repo** anyone can self-host; v2 is the multi-user remote-labs deployment on real infra (see §15).
@@ -71,7 +71,7 @@ Single user (Kyle). Flows:
                     ┌────────────── CI cron (2-4x/day) ───────────────┐
  sources/*.yml ──▶  ingest ──▶ normalize+dedup ──▶ SQLite (data/grepify.db)
                       │                                   │
-                      │ (yt transcripts, x via twscrape)  ├──▶ extract (LLM keywords, batched, cached)
+                      │ (yt transcripts; ai-voices rss)   ├──▶ extract (LLM keywords, batched, cached)
                       │                                   ├──▶ trends (pure SQL/python, deterministic)
                       │                                   ├──▶ digest (daily 1x, weekly 1x, LLM)
                       │                                   └──▶ build (SSG → public/) ──▶ Pages deploy
@@ -242,18 +242,20 @@ sources/
 Group semantics: each group carries a `category`; **digests are generated per category** (trendcloud does the same - digests per AI/crypto/cyber, never per user). Users (v1: Kyle via yaml; v2: checkboxes) compose their view from curated groups + personal groups. Custom sources join a category, so they flow into that category's digest automatically - customization changes *what feeds a category*, not the digest unit.
 
 ```yaml
-# groups/x-watchlist.yml
-group: x-watchlist
-name: X accounts
+# groups/ai-voices.yml  (E5 revision: replaced the originally-planned
+# x-watchlist; follow practitioners via their long-form feeds, not X. The
+# `x`/`handle` locator remains in the schema/§6 but no shipped group uses it.)
+group: ai-voices
+name: AI voices (long-form)
 category: ai
 enabled: true
 sources:
-  - id: x-karpathy
-    kind: x
-    handle: karpathy
-  - id: x-simonw
-    kind: x
-    handle: simonw
+  - id: simon-willison
+    kind: rss
+    url: https://simonwillison.net/atom/everything/
+  - id: latent-space
+    kind: rss
+    url: https://www.latent.space/feed
 
 # keywords.yml
 aliases:
@@ -291,7 +293,7 @@ Validation: `grepify validate` (also a CI check on every MR) - schema-validates 
 - **F-ING-02** YouTube: channel RSS (`feeds/videos.xml?channel_id=`) for video metadata - no API key.
 - **F-ING-03** YouTube transcripts: for new videos, attempt transcript via `youtube-transcript-api`; store compressed under `data/transcripts/`; absence is not an error (flag `transcript_ref=null`).
 - **F-ING-04** Reddit: subreddit JSON endpoints (`/r/<sub>/new.json`) with UA header + backoff; store post title, selftext excerpt (2k cap), score, permalink. **Fallback**: if JSON blocked from CI IPs, drop to subreddit `.rss` endpoint at reduced cadence (explicit fallback path in fetcher).
-- **F-ING-05** X: twscrape against configured handles; new tweets since last seen id per handle; store text, url, metrics. Session/account management identical to xfilter (documented failure modes: login challenge, rate limit → mark source `error`, continue run).
+- **F-ING-05** ~~X: twscrape against configured handles~~ **(retired, E5 revision - Kyle-approved)**: the twscrape X fetcher was dropped before shipping in favour of following the same practitioners through their long-form RSS/Atom feeds (the `ai-voices` group). Reason: their blogs/Substacks carry richer, keyword-worthy content than tweets and read over the existing RSS fetcher with no login challenges (the §13 twscrape risk removed rather than mitigated). No new ingestion capability is required - `ai-voices` is plain config over F-ING-01.
 - **F-ING-06** Caps: per-run per-source new-item cap (default 50) to bound first-run backfills and pathological feeds.
 - **F-ING-07** Idempotency: re-running ingest never duplicates rows or re-fetches transcripts already stored.
 - **F-ING-08** Health: every source attempt logged to `fetch_log`; 5 consecutive errors → source flagged on health page (still retried; auto-disable is out of scope v1).
@@ -368,7 +370,7 @@ Definition of done per issue: code + tests + fixtures + docstring failure modes 
 - **M2 - Extraction** (LLM batch extract + fallback + budget gate + cache + eval harness).
 - **M3 - Site v1** (home cloud, items browser, sources, health; snapshot tests; GitLab CI file green).
 - **M4 - Digests + keyword pages** (per-category daily/weekly digests, keyword detail pages, rising detection). **Tag v1.0.0 here** - daily-usable.
-- **M5 - X + transcripts** (twscrape ingestion; YT transcripts feeding extraction).
+- **M5 - Transcripts + long-form AI voices** (YT transcripts feeding extraction; `ai-voices` RSS group). *(E5 revision: originally "X + transcripts"; the twscrape X ingestion was retired for the `ai-voices` feeds - see §12 E5.)*
 - **M6 - Hardening + migration** (backfill tooling, near-dup grouping, GitLab cutover, docs, runbook).
 - **v1.5 - Slack push** (E7): digest to Slack DM/channel post-generation.
 - **v2 - remote-labs** (§15): Postgres Repository impl, serving layer, Okta, subscription model, Slack app fan-out.
@@ -443,12 +445,20 @@ Conventions:
 | GRP-44 | Keyword detail pages: timeline sparkline, related keywords, tabbed content | Sonnet | co-occurrence query unit-tested |
 | GRP-45 | Cron gating: digest steps run in correct time-of-day windows, America/Edmonton-pinned | Sonnet | pure-function time-gate tests incl. DST edges |
 
-### E5 - X + transcripts (M5) - brief: twscrape ops runbook (from xfilter), transcript caps
+### E5 - Transcripts + long-form AI voices (M5) - brief: transcript caps, feed-over-X
+
+E5 revision (Kyle-approved, shipped): **GRP-50 and GRP-51 are retired.** The
+twscrape X fetcher was dropped before shipping in favour of the `ai-voices` RSS
+group (GRP-51 replacement) - the watchlist people (Willison, Mollick, Lambert,
+swyx) publish long-form on their own feeds, which is richer for extraction than
+tweets and reads over the existing RSS fetcher with no accounts, cookies, or
+CI-IP login challenges (removes the §13 twscrape risk rather than mitigating it).
+GRP-52/53 shipped unchanged. See `docs/epics/E5.md`.
 
 | ID | Title | Model | Notes / AC |
 |---|---|---|---|
-| GRP-50 | twscrape integration: account/session management in CI, X fetcher behind GRP-10 interface, since_id tracking | Opus | failure modes documented: challenge, ratelimit, suspended |
-| GRP-51 | X items in site (kind tab, keyword extraction on tweet text) | Sonnet | fixtures from xfilter |
+| ~~GRP-50~~ | ~~twscrape integration: account/session, X fetcher, since_id~~ **retired** | - | superseded by the `ai-voices` RSS group |
+| ~~GRP-51~~ | ~~X items in site~~ → **`ai-voices` RSS group** (`sources/groups/ai-voices.yml`, category ai) | Sonnet | feeds validated by `grepify validate` on the MR |
 | GRP-52 | Transcript fetcher: youtube-transcript-api, compression, caps, absence-is-ok | Sonnet | idempotent, size-cap test |
 | GRP-53 | Transcript excerpting into extraction batches (first 1500 chars + smart cut) | Sonnet | eval delta reported |
 
@@ -475,7 +485,7 @@ Estimated total: ~37 issues, 8 epics, each epic sized for 1-3 agent sessions.
 
 | Risk | Likelihood | Mitigation |
 |---|---|---|
-| twscrape breakage / X countermeasures (recurring) | High | Isolated behind fetcher interface; site fully functional without X; runbook; treat as best-effort source class |
+| ~~twscrape breakage / X countermeasures (recurring)~~ | ~~High~~ | **Removed (E5 revision): X ingestion retired for the `ai-voices` RSS group, so this risk no longer applies - long-form feeds need no auth/scraping.** |
 | Gemini free-tier limits/model availability change | Med | Named-profile abstraction + budget gate + local fallback extractor; digest degrades to template ("top keywords: ...") |
 | YouTube transcript API blocked from CI IPs | Med | Absence-tolerant by design; optional local fetch path from phone/Termux later |
 | Reddit JSON blocked from CI IPs | Med | `.rss` endpoint fallback at reduced cadence (F-ING-04) |
@@ -490,7 +500,7 @@ Estimated total: ~37 issues, 8 epics, each epic sized for 1-3 agent sessions.
 1. ~~Name~~: **grepify** (working; final call at GRP-64, runners-up newsgrep/rollup).
 2. ~~Categories at launch~~: **ai + data-eng**. data-engineering.yml seeds: benn.substack.com/feed, roundup.getdbt.com/feed (Analytics Eng Roundup), Locally Optimistic, dbt + Snowflake engineering blogs (verify feeds at GRP-07).
 3. Reddit seeds (proposed, confirm at GRP-07): r/LocalLLaMA, r/MachineLearning, r/dataengineering.
-4. X watchlist seed (confirmed + candidates): karpathy; candidates simonw, emollick, natolambert, swyx, fchollet; data-eng lane bennstancil, jthandy. Pick 4-6 at GRP-50.
+4. ~~X watchlist seed~~ → **AI-voices RSS seed (E5 revision, done)**: instead of watching them on X, follow their long-form feeds. Shipped in `ai-voices`: simonw (simonwillison.net), emollick (One Useful Thing), natolambert (Interconnects), swyx (Latent Space). karpathy blogs too rarely to include; data-eng voices (bennstancil, jthandy) are a future data-eng-lane group, not this ai group.
 5. Digest tone: prompt v1 = narrative + TL;DR bullets (bullets double as Slack payload); adjust after week 1.
 6. **OPEN** - Slack v1.5 mechanism default: webhook-to-private-channel (one secret, no app approval, ships today - recommended) vs bot-token DM (v2-correct shape). Both built behind one interface (GRP-70) regardless.
 
