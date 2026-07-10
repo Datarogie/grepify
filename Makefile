@@ -7,7 +7,7 @@
 UV ?= uv
 
 .PHONY: help install fmt lint typecheck test check \
-        ingest extract trends digest build validate health backfill \
+        ingest extract trends digest digest-daily digest-weekly build validate health backfill \
         digest-gate data-branch commit-data site eval
 
 help: ## List available targets
@@ -44,8 +44,13 @@ extract: ## LLM keyword extraction (E2)
 trends: ## Compute trend datasets (E3/E4)
 	$(UV) run grepify trends
 
-digest: ## Generate category digests (E4)
-	$(UV) run grepify digest
+digest: digest-daily ## Generate the daily category digests (alias of digest-daily)
+
+digest-daily: ## Generate daily per-category digests for yesterday (E4, GRP-41)
+	$(UV) run grepify digest --kind daily
+
+digest-weekly: ## Generate weekly per-category digests for last ISO week (E4, GRP-42)
+	$(UV) run grepify digest --kind weekly
 
 build: ## Render the real static site into public/ (E3, GRP-35). GREPIFY_BASE_PATH sets the deploy sub-path.
 	$(UV) run grepify build
@@ -65,8 +70,8 @@ eval: ## Score the extract prompt/model against the GRP-24 labeled set (PRD §10
 # --- CI-only helpers (GRP-06). Kept as make targets, not inline workflow ---
 # --- shell, per F-OPS-03 (GitLab portability). ---------------------------
 
-digest-gate: ## Print daily=/weekly= flags: are digest steps due now? (coarse pre-GRP-45 placeholder)
-	@bash scripts/digest-gate.sh
+digest-gate: ## Print daily=/weekly= flags: are digest steps due now? (GRP-45, America/Edmonton, DST-aware)
+	@$(UV) run grepify digest-gate
 
 data-branch: ## Check out the dedicated `data` branch as a worktree at ./data (bootstraps it on first run)
 	bash scripts/ensure-data-branch.sh

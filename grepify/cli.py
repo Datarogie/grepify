@@ -6,10 +6,11 @@ the E2 pipeline (GRP-25: untagged-item selection, real LLM client, keyword
 normalization, PRD §10.7 data-quality gate); ``validate`` is fully wired to
 the config layer; ``backfill`` re-extracts ``method='fallback'`` rows through
 a real LLM client (GRP-22). ``build`` is wired to the E3 site renderer
-(GRP-35: cache rebuild → Jinja SSG → ``public/``). ``trends``/``digest``
-remain stubs that record a run manifest so the operator tooling (``health``)
-works end to end - later epics replace each stub body without changing the
-CLI surface.
+(GRP-35: cache rebuild → Jinja SSG → ``public/``). ``digest`` is wired to the
+E4 digest pipeline (GRP-41/42: rebuild cache → assemble per category → one LLM
+call each → store), with ``digest-gate`` printing the America/Edmonton
+time-of-day gate (GRP-45). ``trends`` remains a stub that records a run
+manifest so the operator tooling (``health``) works end to end.
 (``backfill``'s scope here is GRP-22's fallback-only re-extraction; broader
 E6/GRP-60 maintenance modes - reindex, vacuum, prune - are later work behind
 the same subcommand.)
@@ -32,8 +33,13 @@ Failure modes
   propagates :class:`~grepify.errors.ConfigError` for bad config. Once running,
   per-batch LLM failures degrade to the fallback extractor (PRD §9) rather
   than failing the command.
-- Pipeline stubs never fail the process; they write a manifest noting the
-  not-yet-implemented epic and return 0.
+- ``digest`` exits non-zero if ``LLM_BASE_URL`` is unset (same convention as
+  ``extract``); once running, an LLM that is down or over budget degrades each
+  affected category to a deterministic template digest (PRD §9/§13) rather than
+  failing the run, and a category below the item threshold is skipped (F-DIG-03).
+- ``digest-gate`` is a pure clock read; it never fails.
+- The ``trends`` stub never fails the process; it writes a manifest noting the
+  not-yet-implemented epic and returns 0.
 - ``health`` with no recorded runs prints a friendly notice, exit 0.
 """
 
@@ -48,16 +54,18 @@ import typer
 
 from grepify.clock import Clock, SystemClock, to_iso
 from grepify.config.filesystem import FilesystemConfigProvider
+from grepify.digest import digest_gate, format_gate, run_digest_pipeline
 from grepify.extract import YakeFallbackExtractor, run_extract_pipeline, run_fallback_backfill
 from grepify.health import write_health_snapshot
 from grepify.ingest.orchestrator import IngestServices, build_registry, run_ingest
 from grepify.keywords import KeywordRules
 from grepify.llm import build_client
-from grepify.models import RunManifest
+from grepify.models import DigestKind, RunManifest
 from grepify.paths import DataLayout
 from grepify.repository.jsonl_sqlite import JsonlSqliteRepository
 from grepify.run import latest_manifest, new_run_id, write_manifest
 from grepify.site.build import build_site
+from grepify.site.trends import TrendQueries, open_cache
 
 app = typer.Typer(add_completion=False, help="grep the firehose - grepify CLI.")
 
@@ -234,7 +242,7 @@ def extract(ctx: typer.Context, force: ForceOpt = False) -> None:
     )
 
 
-# --- pipeline stubs (E3/E4) ----------------------------------------------------
+# --- pipeline stubs -----------------------------------------------------------
 
 
 @app.command()
@@ -243,10 +251,117 @@ def trends(ctx: typer.Context) -> None:
     _record_stub(ctx, "trends", "E3")
 
 
+KindOpt = Annotated[
+    DigestKind,
+    typer.Option(help="Which digest to generate (daily=yesterday, weekly=last ISO week)."),
+]
+
+
 @app.command()
-def digest(ctx: typer.Context) -> None:
-    """Generate per-category digests (E4)."""
-    _record_stub(ctx, "digest", "E4")
+def digest(ctx: typer.Context, kind: KindOpt = DigestKind.DAILY) -> None:
+    """Generate per-category digests for the just-completed period (GRP-41/42).
+
+    Rebuilds the cache from truth, then for every enabled category assembles its
+    top/rising keywords (GRP-40) and generates one digest via the active LLM
+    profile (``purpose='digest'``), degrading to a deterministic template digest
+    when the LLM is down or over budget (PRD §9/§13). A category below
+    ``settings.digest.min_items`` is skipped (F-DIG-03). Digests key on
+    **category**, never user (PRD §7). Reads the LLM endpoint from the active
+    profile but resolves the deployment secrets from the environment
+    (``LLM_BASE_URL`` required, ``LLM_API_KEY`` optional), never from committed
+    config (PRD §5) - same convention as ``extract``. The period boundary is
+    America/Edmonton (PRD §5); the injected clock decides which period.
+    """
+    state: AppState = ctx.obj
+    layout = DataLayout(state.data_root)
+    run_id = new_run_id(state.clock)
+    started_at = to_iso(state.clock.now())
+
+    base_url = os.environ.get("LLM_BASE_URL")
+    if not base_url:
+        typer.echo("digest: LLM_BASE_URL is not set; nothing to do", err=True)
+        raise typer.Exit(code=1)
+
+    config = FilesystemConfigProvider(state.config_root)
+    repository = JsonlSqliteRepository(state.data_root)
+    try:
+        settings = config.settings()
+        profile = settings.llm.profiles[settings.llm.active_profile]
+        client = build_client(
+            profile,
+            api_key=os.environ.get("LLM_API_KEY") or None,
+            base_url=base_url,
+            log_sink=repository.log_llm,
+            clock=state.clock,
+        )
+        rules = KeywordRules.from_config(config.keywords())
+        groups = config.groups()
+        categories = [g.category for g in groups if g.enabled]
+
+        repository.load_config(groups, config.sources())
+        repository.rebuild_cache()
+        conn = open_cache(layout)
+        try:
+            queries = TrendQueries(conn, rules)
+            summary, digests = run_digest_pipeline(
+                queries,
+                client,
+                categories=categories,
+                kind=kind,
+                clock=state.clock,
+                run_id=run_id,
+                settings=settings,
+            )
+        finally:
+            conn.close()
+        for generated in digests:
+            repository.add_digest(generated)
+    finally:
+        repository.close()
+
+    notes = []
+    if summary.skipped_categories:
+        notes.append(
+            f"skipped (< {settings.digest.min_items} items): "
+            + ", ".join(summary.skipped_categories)
+        )
+    if summary.template_categories:
+        notes.append(
+            "template fallback (llm down/over budget): " + ", ".join(summary.template_categories)
+        )
+
+    manifest = RunManifest(
+        run_id=run_id,
+        command="digest",
+        started_at=started_at,
+        finished_at=to_iso(state.clock.now()),
+        ok=True,
+        counts={
+            "categories": summary.categories_total,
+            "digests_generated": summary.digests_generated,
+            "categories_skipped": len(summary.skipped_categories),
+            "categories_template": len(summary.template_categories),
+        },
+        notes=notes,
+    )
+    write_manifest(layout, manifest)
+    typer.echo(
+        f"digest ({kind.value}, {summary.period_key}): {summary.digests_generated} generated, "
+        f"{len(summary.skipped_categories)} skipped; run {run_id}"
+    )
+
+
+@app.command(name="digest-gate")
+def digest_gate_command(ctx: typer.Context) -> None:
+    """Print ``daily=/weekly=`` flags: are digest steps due now? (GRP-45).
+
+    America/Edmonton-pinned, DST-aware pure gate (:func:`grepify.digest.digest_gate`)
+    over the injected clock. Output is valid to append to ``$GITHUB_OUTPUT`` or to
+    ``eval`` into shell vars - it replaces the coarse ``scripts/digest-gate.sh``
+    placeholder the GRP-06 workflows shipped.
+    """
+    state: AppState = ctx.obj
+    typer.echo(format_gate(digest_gate(state.clock.now())))
 
 
 OutputDirOpt = Annotated[Path, typer.Option(help="Output directory for the rendered site.")]

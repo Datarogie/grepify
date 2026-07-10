@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}grepify - {{ detail.keyword }}{% endblock %}
+{% block content %}
+<article class="keyword-detail">
+<p class="muted"><a href="{{ meta.base_path }}">← Home</a></p>
+<h1>#{{ detail.keyword }}</h1>
+
+<section aria-label="Statistics">
+<ul class="stats">
+<li><span class="stat-value">{{ detail.count }}</span><span class="stat-label">mentions ({{ detail.window_days }}d)</span></li>
+<li><span class="stat-value">{{ detail.source_count }}</span><span class="stat-label">sources</span></li>
+</ul>
+</section>
+
+<h2>Mention timeline</h2>
+<div class="timeline">{{ sparkline_svg(detail.timeline, width=320, height=48) | safe }}</div>
+
+<h2>Related keywords</h2>
+{% if detail.co_occurring %}
+<div class="cloud">
+{% for co in detail.co_occurring %}
+<a class="tag" href="{{ meta.base_path }}keyword/{{ keyword_slug(co.keyword) }}/" title="co-occurs on {{ co.count }} items">#{{ co.keyword }} <span class="count">{{ co.count }}</span></a>
+{% endfor %}
+</div>
+{% else %}
+<p class="muted">No co-occurring keywords in this window.</p>
+{% endif %}
+
+<h2>Latest content</h2>
+{% if detail.kinds %}
+<div class="tabs" role="tablist">
+{% for kind in detail.kinds %}
+<button type="button" class="tab" role="tab" data-kind-tab="{{ kind }}"{% if loop.first %} aria-selected="true"{% endif %}>{{ kind }}</button>
+{% endfor %}
+</div>
+{% for kind in detail.kinds %}
+<div class="tab-panel" role="tabpanel" data-kind-panel="{{ kind }}"{% if not loop.first %} hidden{% endif %}>
+<ul class="feed">
+{% for item in detail.items_by_kind[kind] %}
+<li>
+<a href="{{ item.canonical_url }}" rel="noopener noreferrer">{{ item.title }}</a>
+<div class="meta">{{ item.source_name }} · {{ item.published_at[:10] }}</div>
+</li>
+{% endfor %}
+</ul>
+</div>
+{% endfor %}
+<script src="{{ meta.base_path }}static/keyword.js" defer></script>
+{% else %}
+<p class="muted">No items mentioning this keyword in the window.</p>
+{% endif %}
+</article>
+{% endblock %}

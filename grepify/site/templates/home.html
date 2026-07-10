@@ -18,7 +18,8 @@
 {% if cloud.keywords %}
 <div class="cloud">
 {% for kw in cloud.keywords %}
-<a href="{{ meta.base_path }}items/#keyword={{ kw.keyword | urlencode }}" style="font-size: {{ cloud_font_rem(kw.count, min_count=cloud.min_count, max_count=cloud.max_count) }}rem" title="{{ kw.count }} mentions">{{ kw.keyword }}{% if kw.delta > 0 %} <span class="delta-up">+{{ kw.delta }}</span>{% elif kw.delta < 0 %} <span class="delta-down">{{ kw.delta }}</span>{% endif %}</a>
+{% if kw.keyword in keyword_pages %}{% set href = meta.base_path ~ "keyword/" ~ keyword_slug(kw.keyword) ~ "/" %}{% else %}{% set href = meta.base_path ~ "items/#keyword=" ~ (kw.keyword | urlencode) %}{% endif %}
+<a href="{{ href }}" style="font-size: {{ cloud_font_rem(kw.count, min_count=cloud.min_count, max_count=cloud.max_count) }}rem" title="{{ kw.count }} mentions">{{ kw.keyword }}{% if kw.delta > 0 %} <span class="delta-up">+{{ kw.delta }}</span>{% elif kw.delta < 0 %} <span class="delta-down">{{ kw.delta }}</span>{% endif %}</a>
 {% endfor %}
 </div>
 {% else %}
@@ -29,11 +30,11 @@
 {% if latest_digests %}
 <ul class="feed">
 {% for d in latest_digests %}
-<li><a href="{{ meta.base_path }}digest/{{ d.kind }}/{{ d.digest_id }}/">{{ d.title }}</a><div class="meta">{{ d.kind }} · {{ d.period_start[:10] }} → {{ d.period_end[:10] }}</div></li>
+<li><a href="{{ meta.base_path }}digest/{{ d.kind }}/{{ digest_slug(d.digest_id, d.kind) }}/">{{ d.title }}</a><div class="meta">{{ d.kind }} · {% if d.kind == "weekly" %}week of {{ d.period_start[:10] }}{% else %}{{ d.period_start[:10] }}{% endif %}</div></li>
 {% endfor %}
 </ul>
 {% else %}
-<p class="muted">No digests yet - they arrive in M4.</p>
+<p class="muted">No digests generated yet.</p>
 {% endif %}
 
 <h2>Latest items</h2>

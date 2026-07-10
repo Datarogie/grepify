@@ -83,6 +83,7 @@ create table digests (
   body_md        text not null,
   top_keywords   text not null,
   model          text not null,
+  prompt_version text not null,
   created_at     text not null
 );
 

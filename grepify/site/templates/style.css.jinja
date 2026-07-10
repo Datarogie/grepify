@@ -111,3 +111,41 @@ th { color: var(--text-muted); font-weight: 600; }
 
 .pager { display: flex; gap: var(--space-4); margin-top: var(--space-6); }
 .muted { color: var(--text-muted); }
+
+/* filter controls (items + digests) */
+.filters { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: end; margin: var(--space-4) 0; }
+.filters label { display: flex; flex-direction: column; gap: var(--space-1); font-size: var(--text-sm); color: var(--text-muted); }
+.filters select, .filters input, .filters button {
+  background: var(--bg-elevated);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font: inherit;
+}
+
+/* keyword chips carrying a count (digest chips, related keywords) */
+.tag .count { color: var(--text-faint); font-size: var(--text-sm); }
+
+/* digest narrative */
+.prose { max-width: var(--measure); }
+.prose p { margin: 0 0 var(--space-4); }
+.prose ul { margin: 0 0 var(--space-4); padding-left: var(--space-6); }
+.prose li { margin-bottom: var(--space-2); }
+
+/* keyword timeline sparkline (larger than inline sparklines) */
+.timeline { color: var(--accent); margin: var(--space-3) 0; }
+.timeline .sparkline { width: 100%; max-width: 20rem; height: auto; }
+
+/* keyword "latest content" tabs */
+.tabs { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: var(--space-4) 0 var(--space-3); }
+.tab {
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font: inherit;
+  cursor: pointer;
+}
+.tab[aria-selected="true"] { color: var(--text); border-color: var(--accent); }

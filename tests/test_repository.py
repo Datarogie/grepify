@@ -127,6 +127,7 @@ def test_digest_and_fetch_log_round_trip(tmp_path: Path) -> None:
             body_md="body",
             top_keywords="[]",
             model="test-model",
+            prompt_version="digest-v1",
             created_at="2026-07-07T13:00:00+00:00",
         )
     )

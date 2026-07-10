@@ -291,7 +291,8 @@ def test_pagination_emits_multiple_pages(tmp_path: Path) -> None:
     assert (out / "items" / "index.html").exists()
     assert (out / "items" / "page-2" / "index.html").exists()
     assert (out / "items" / "page-2.json").exists()
-    assert result.pages_written == 5  # home + 2 item pages + sources + health
+    # home + digest index + 2 item pages + sources + health (no digests/keyword pages here)
+    assert result.pages_written == 6
 
 
 # --- static assets + resilience ----------------------------------------------

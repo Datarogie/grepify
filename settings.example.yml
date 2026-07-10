@@ -23,6 +23,18 @@ windows:
   cloud_days: 7 # trailing window for the keyword cloud
   digest_daily_hours: 24
   digest_weekly: iso_week
+  keyword_days: 30 # trailing window for keyword detail pages (F-SIT-04)
+  keyword_min_mentions: 3 # a keyword gets a page at >= this many mentions in that window
+
+# Rising-detection + digest shaping (PRD §8 F-TRD-03 / F-DIG-01/03). All optional
+# (these are the defaults); tune without a code change.
+digest:
+  rising_min_count: 3 # a keyword is "rising" only at >= this count ...
+  rising_ratio: 3.0 # ... and count / previous-window count >= this ratio
+  min_items: 10 # skip (do not fail) a category digest below this many items
+  daily_top_keywords: 12 # top-N keywords fed to the daily digest prompt
+  weekly_top_keywords: 20 # weekly is slightly longer
+  items_per_keyword: 3 # example item titles/summaries per keyword in the prompt
 
 limits:
   transcript_max_chars: 60000

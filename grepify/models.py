@@ -121,6 +121,7 @@ class Digest(_Record):
     body_md: str
     top_keywords: str  # json [{keyword, count}]
     model: str
+    prompt_version: str  # prompt contract id, e.g. 'digest-v1'; 'none' when templated (F-DIG-04)
     created_at: str
 
 

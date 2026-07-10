@@ -143,6 +143,7 @@ def test_build_writes_site_and_manifest(tmp_path: Path) -> None:
     assert (out / "items" / "index.html").is_file()
     assert (out / "sources" / "index.html").is_file()
     assert (out / "health" / "index.html").is_file()
+    assert (out / "digest" / "index.html").is_file()
     assert (out / "static" / "style.css").is_file()
     # links carry the base path; sources page lists the configured source
     assert "/grepify/static/style.css" in (out / "index.html").read_text(encoding="utf-8")
@@ -151,7 +152,8 @@ def test_build_writes_site_and_manifest(tmp_path: Path) -> None:
     manifest = latest_manifest(DataLayout(data))
     assert manifest is not None
     assert manifest.command == "build"
-    assert manifest.counts["pages_written"] == 4
+    # home + digest index + items + sources + health
+    assert manifest.counts["pages_written"] == 5
 
 
 def _fake_registry() -> FetcherRegistry:

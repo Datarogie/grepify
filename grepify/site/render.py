@@ -37,8 +37,10 @@ from typing import Any
 
 import jinja2
 
+from grepify.site.markdown import render_markdown
 from grepify.site.sparkline import sparkline_svg
 from grepify.site.tokens import CLOUD_MAX_REM, CLOUD_MIN_REM, STYLE_TOKENS
+from grepify.site.urls import digest_slug, keyword_slug
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 
@@ -56,6 +58,7 @@ class NavLink:
 # and are prefixed with the deploy base path at render time (see SiteMeta).
 NAV: tuple[NavLink, ...] = (
     NavLink(key="home", label="Home", href=""),
+    NavLink(key="digests", label="Digests", href="digest/"),
     NavLink(key="items", label="Items", href="items/"),
     NavLink(key="sources", label="Sources", href="sources/"),
     NavLink(key="health", label="Health", href="health/"),
@@ -118,6 +121,9 @@ def create_environment() -> jinja2.Environment:
     )
     env.globals["sparkline_svg"] = sparkline_svg
     env.globals["cloud_font_rem"] = cloud_font_rem
+    env.globals["digest_slug"] = digest_slug
+    env.globals["keyword_slug"] = keyword_slug
+    env.globals["render_markdown"] = render_markdown
     return env
 
 
