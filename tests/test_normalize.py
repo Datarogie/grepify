@@ -113,6 +113,56 @@ def test_summary_truncated_to_2000_chars() -> None:
     assert len(item.summary) == 2000
 
 
+def test_summary_html_markup_is_stripped() -> None:
+    # Regression: unstripped HTML in feed <description>/selftext was leaking
+    # tag/attribute fragments (div, class, span, href, ...) into item.summary
+    # and from there into the YAKE fallback's top keywords.
+    source = make_source("s1")
+    raw_summary = (
+        '<div class="grid grid-cols-2"><section class="body">'
+        '<span>Model release notes</span> and <a href="https://example.com">a link</a>'
+        "</section></div>"
+    )
+    item = normalize(_raw(summary=raw_summary), source, fetched_at=_FETCHED)
+    assert item.summary is not None
+    for fragment in ("<div", "<span", "<a ", "</div>", "class=", "href="):
+        assert fragment not in item.summary
+    assert "Model release notes" in item.summary
+    assert "a link" in item.summary
+
+
+def test_summary_html_entities_are_unescaped() -> None:
+    source = make_source("s1")
+    raw_summary = "Q&amp;A: fetchers &lt;vs&gt; normalizers"
+    item = normalize(_raw(summary=raw_summary), source, fetched_at=_FETCHED)
+    assert item.summary == "Q&A: fetchers <vs> normalizers"
+
+
+def test_summary_script_and_style_bodies_are_dropped() -> None:
+    # A generic tag-strip removes the <script>/<style> tags but leaves their
+    # body text behind; that body (code/CSS) must not leak into the summary
+    # either - same symptom as the reported bug if left unhandled.
+    source = make_source("s1")
+    raw_summary = (
+        '<script>var gridClass = "div class span href";</script>'
+        "<style>.grid-class { display: grid; }</style>"
+        "Real article body about agentic coding."
+    )
+    item = normalize(_raw(summary=raw_summary), source, fetched_at=_FETCHED)
+    assert item.summary == "Real article body about agentic coding."
+
+
+def test_summary_preserves_literal_escaped_angle_brackets_as_text() -> None:
+    # Known, accepted tradeoff (see normalize.py module docstring): a single
+    # unescape pass only unwinds one level of entity-encoding, so genuinely
+    # plain-text "&lt;x&gt;"-shaped content (comparison operators, code
+    # snippets - common in this aggregator's dev/AI feeds) survives as text
+    # rather than being mistaken for a tag and stripped.
+    source = make_source("s1")
+    item = normalize(_raw(summary="a &lt;b&gt; c and c &gt; a"), source, fetched_at=_FETCHED)
+    assert item.summary == "a <b> c and c > a"
+
+
 def test_missing_published_at_falls_back_to_fetched_at() -> None:
     source = make_source("s1")
     item = normalize(_raw(published_at=None), source, fetched_at=_FETCHED)
