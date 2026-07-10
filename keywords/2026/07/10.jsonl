@@ -253,3 +253,82 @@
 {"item_id":"7159564b3f45197934ec03ae2d7723d7cb93ffcf33ac836f01c52f4125d399f7","keyword":"singapore","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
 {"item_id":"7159564b3f45197934ec03ae2d7723d7cb93ffcf33ac836f01c52f4125d399f7","keyword":"construction industry","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
 {"item_id":"7159564b3f45197934ec03ae2d7723d7cb93ffcf33ac836f01c52f4125d399f7","keyword":"workplace safety","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T06:45:11+00:00"}
+{"item_id":"93114fe97f104dbeab70e5fc51ce94363a4f210b6961670c0c20b24ce3d9a3e8","keyword":"deepseek","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"93114fe97f104dbeab70e5fc51ce94363a4f210b6961670c0c20b24ce3d9a3e8","keyword":"web search","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"93114fe97f104dbeab70e5fc51ce94363a4f210b6961670c0c20b24ce3d9a3e8","keyword":"expert mode","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"93114fe97f104dbeab70e5fc51ce94363a4f210b6961670c0c20b24ce3d9a3e8","keyword":"ai chat","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"63ae1f6155605f94849910e041791334d3ad9a717b0e352b7d3e916ad6877d16","keyword":"deepseek","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"63ae1f6155605f94849910e041791334d3ad9a717b0e352b7d3e916ad6877d16","keyword":"termux","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"63ae1f6155605f94849910e041791334d3ad9a717b0e352b7d3e916ad6877d16","keyword":"vpn","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"63ae1f6155605f94849910e041791334d3ad9a717b0e352b7d3e916ad6877d16","keyword":"ai performance","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"63ae1f6155605f94849910e041791334d3ad9a717b0e352b7d3e916ad6877d16","keyword":"p2p","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"7d6da554366eadf16a903fecef7edfb88d3d4d8829abc336a3e0703dca6db302","keyword":"deepseek","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"7d6da554366eadf16a903fecef7edfb88d3d4d8829abc336a3e0703dca6db302","keyword":"research","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"7d6da554366eadf16a903fecef7edfb88d3d4d8829abc336a3e0703dca6db302","keyword":"ai capabilities","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"cace0c040129f9e32a0c9698cd1b389171f512485b8ab8e0ff56dc538c68027a","keyword":"deepseek v4 pro","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"cace0c040129f9e32a0c9698cd1b389171f512485b8ab8e0ff56dc538c68027a","keyword":"coding agent","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"cace0c040129f9e32a0c9698cd1b389171f512485b8ab8e0ff56dc538c68027a","keyword":"claude code","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"cace0c040129f9e32a0c9698cd1b389171f512485b8ab8e0ff56dc538c68027a","keyword":"opencode","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"cace0c040129f9e32a0c9698cd1b389171f512485b8ab8e0ff56dc538c68027a","keyword":"reasonix","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"5001dcda7dce98f9f8ad7699ead051ba992de572fc740f24ca5516fc6114260a","keyword":"deepseek","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"5001dcda7dce98f9f8ad7699ead051ba992de572fc740f24ca5516fc6114260a","keyword":"ai updates","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"aa4fa35493c20d97ccbe0dd0800174e578b74a5bf9040e13d010aa053941247a","keyword":"deepseek v4","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"aa4fa35493c20d97ccbe0dd0800174e578b74a5bf9040e13d010aa053941247a","keyword":"agentic tokens","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"f75164f8046f0adb2f402e3b365e8594508a8bfa6d5bfcbebfa2109308ccf9f9","keyword":"deepseek","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"f75164f8046f0adb2f402e3b365e8594508a8bfa6d5bfcbebfa2109308ccf9f9","keyword":"billing","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"f75164f8046f0adb2f402e3b365e8594508a8bfa6d5bfcbebfa2109308ccf9f9","keyword":"top up","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"d2a850ef3c853c28b0e1e14ca18291774d9b10acc914ff9331d6f1f64f51b4bb","keyword":"deepseek","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"d2a850ef3c853c28b0e1e14ca18291774d9b10acc914ff9331d6f1f64f51b4bb","keyword":"custom agent","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"d2a850ef3c853c28b0e1e14ca18291774d9b10acc914ff9331d6f1f64f51b4bb","keyword":"error","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"045d185a45cd62c595694c6c4b486d3aa46a43b04eb13ab57b6cbda1bc47f6aa","keyword":"deepseek v4 flash","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"045d185a45cd62c595694c6c4b486d3aa46a43b04eb13ab57b6cbda1bc47f6aa","keyword":"cost efficiency","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"045d185a45cd62c595694c6c4b486d3aa46a43b04eb13ab57b6cbda1bc47f6aa","keyword":"document generation","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"93144c46cff92f5fd5f0c7f9d0998a0a8c3d628c1785c0031d62559274acc87a","keyword":"deepseek","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"93144c46cff92f5fd5f0c7f9d0998a0a8c3d628c1785c0031d62559274acc87a","keyword":"hiring","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"bf564eec43ad6f7c8296ce1d417ab597e8e132025964aae03d47ef890a84b5d1","keyword":"deepseek","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"bf564eec43ad6f7c8296ce1d417ab597e8e132025964aae03d47ef890a84b5d1","keyword":"open weights","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"bf564eec43ad6f7c8296ce1d417ab597e8e132025964aae03d47ef890a84b5d1","keyword":"ai models","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"bf564eec43ad6f7c8296ce1d417ab597e8e132025964aae03d47ef890a84b5d1","keyword":"gpt-5","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"97105e777df87cb7d21d13c2a55f73b83b3288036df821b6bdb02f07fbfe41e4","keyword":"deepseek v4 flash","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"97105e777df87cb7d21d13c2a55f73b83b3288036df821b6bdb02f07fbfe41e4","keyword":"deepseek v4 pro","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"97105e777df87cb7d21d13c2a55f73b83b3288036df821b6bdb02f07fbfe41e4","keyword":"claude code","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"97105e777df87cb7d21d13c2a55f73b83b3288036df821b6bdb02f07fbfe41e4","keyword":"agentic tasks","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"97105e777df87cb7d21d13c2a55f73b83b3288036df821b6bdb02f07fbfe41e4","keyword":"api","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"c08d886ddaf34ff381515ebb4b4f6df16fcedb704d66170125384d20ba38a6e3","keyword":"deepseek","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"c08d886ddaf34ff381515ebb4b4f6df16fcedb704d66170125384d20ba38a6e3","keyword":"general knowledge","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"c08d886ddaf34ff381515ebb4b4f6df16fcedb704d66170125384d20ba38a6e3","keyword":"ai model selection","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"b44a62f5b573f33b9dba2625ac07abf39b3c447d3437c27d1f169f5f2d55c420","keyword":"deepseek api","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"b44a62f5b573f33b9dba2625ac07abf39b3c447d3437c27d1f169f5f2d55c420","keyword":"cli","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"b44a62f5b573f33b9dba2625ac07abf39b3c447d3437c27d1f169f5f2d55c420","keyword":"harness","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"b44a62f5b573f33b9dba2625ac07abf39b3c447d3437c27d1f169f5f2d55c420","keyword":"claude","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"15f9ad0cab624e0da620766e6857d2992c6575cc876dceb788e2a6f5907244ff","keyword":"deepseek","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"15f9ad0cab624e0da620766e6857d2992c6575cc876dceb788e2a6f5907244ff","keyword":"claude app","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"15f9ad0cab624e0da620766e6857d2992c6575cc876dceb788e2a6f5907244ff","keyword":"context window","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"68d73ee749c01165ecd81d4e9452019684b8a64c997df4f2fdc9bdf2b2e76f29","keyword":"deepseek","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"68d73ee749c01165ecd81d4e9452019684b8a64c997df4f2fdc9bdf2b2e76f29","keyword":"ai roleplay","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"6e8c3eb97dc5a8723848a4543f654bab4dd43e2064b3c708572b01aa6671b2d5","keyword":"deepseek v4 flash","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"6e8c3eb97dc5a8723848a4543f654bab4dd43e2064b3c708572b01aa6671b2d5","keyword":"local ai","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"6e8c3eb97dc5a8723848a4543f654bab4dd43e2064b3c708572b01aa6671b2d5","keyword":"coding","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"6e8c3eb97dc5a8723848a4543f654bab4dd43e2064b3c708572b01aa6671b2d5","keyword":"mac","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"16ce1cc0c2eb1f6e2745db0d58f9d127bb223d522a9299a51b4c276886303a5c","keyword":"agi","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"16ce1cc0c2eb1f6e2745db0d58f9d127bb223d522a9299a51b4c276886303a5c","keyword":"ai future","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"5aa84403e44bcbeba70676543ebea8af6264b9bb95000f18db160719c69c6662","keyword":"deepseek v4 flash","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"5aa84403e44bcbeba70676543ebea8af6264b9bb95000f18db160719c69c6662","keyword":"model performance","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"5aa84403e44bcbeba70676543ebea8af6264b9bb95000f18db160719c69c6662","keyword":"ai degradation","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"176c482e247a90d6f29c72487b6646a0fc7761ed73cd819d5bc78fcfdc884423","keyword":"claude code","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"176c482e247a90d6f29c72487b6646a0fc7761ed73cd819d5bc78fcfdc884423","keyword":"web search","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"176c482e247a90d6f29c72487b6646a0fc7761ed73cd819d5bc78fcfdc884423","keyword":"api","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"7a01a1dee56efe4d142b300e760c300afb03d80eae1070aefa8c73c74f23ae27","keyword":"deepseek v4","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"7a01a1dee56efe4d142b300e760c300afb03d80eae1070aefa8c73c74f23ae27","keyword":"api","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"7a01a1dee56efe4d142b300e760c300afb03d80eae1070aefa8c73c74f23ae27","keyword":"web search","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"7a01a1dee56efe4d142b300e760c300afb03d80eae1070aefa8c73c74f23ae27","keyword":"obsidian","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"e90d8d989dcbb49dea4acc0b3a03ac20fb4f9eb59e975df7c1a5745682803e88","keyword":"deepseek v4 pro","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"e90d8d989dcbb49dea4acc0b3a03ac20fb4f9eb59e975df7c1a5745682803e88","keyword":"troubleshooting","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"e90d8d989dcbb49dea4acc0b3a03ac20fb4f9eb59e975df7c1a5745682803e88","keyword":"driver crash","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"6ec552518a851e9c83c80b4d7fc627258238a0c68d836570819cd42865c642fc","keyword":"reasonix","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"6ec552518a851e9c83c80b4d7fc627258238a0c68d836570819cd42865c642fc","keyword":"configuration","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"5890d8641ada7f0a5bc9a35548c32ae0f382f079903d54b4ea22eb0797eee839","keyword":"openclaw","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"5890d8641ada7f0a5bc9a35548c32ae0f382f079903d54b4ea22eb0797eee839","keyword":"ai foundation","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"1aa2e7c8aa2fb334771b952af8f2fecd391b14b37e0494440665fa8f22a6180b","keyword":"codex","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"1aa2e7c8aa2fb334771b952af8f2fecd391b14b37e0494440665fa8f22a6180b","keyword":"ai task","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
+{"item_id":"1aa2e7c8aa2fb334771b952af8f2fecd391b14b37e0494440665fa8f22a6180b","keyword":"gpt-5.6","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T07:12:04+00:00"}
