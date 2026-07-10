@@ -61,6 +61,14 @@ Operational steps run: O1 not yet (do after T1+T2 merge to main; see plan §O1:
   on the data branch, grep keywords JSONL for zero HTML keywords, regenerate the
   affected digests, set digest.enabled true; record the run id here).
 
+Documented follow-ups (post-v1, NOT in T1-T8 - see plan section 5):
+  - F1 digest keyword drill-down should be digest-scoped: clicking a keyword on a
+    digest should show the articles used in THAT digest (period + category, daily or
+    weekly), with a quick link to the all-time/30-day keyword page. Fold in the
+    trivial fix that the digest chip tooltip says "mentions" but the count is
+    distinct articles (relabel). PRD-diff candidate; Kyle greenlit documenting it,
+    build later. Do NOT slip into the current stack.
+
 Open decisions:
   - Reddit = option ii (best-effort: reduce cadence, stop flagging so /health is not
     26 red rows; NOT the OAuth API, NOT dropped). T6 unblocked.
