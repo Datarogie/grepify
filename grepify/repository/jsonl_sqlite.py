@@ -442,4 +442,13 @@ class JsonlSqliteRepository(Repository):
 
     @staticmethod
     def _write_lines(path: Path, lines: Sequence[str]) -> None:
-        path.write_text("".join(f"{line}\n" for line in lines), encoding="utf-8")
+        # Crash-safe: write a sibling temp file then atomically replace, so a
+        # truth partition is never left half-written by an interrupted rewrite.
+        # An emptied partition (all rows deleted) is removed rather than left as
+        # a 0-byte file, keeping truth tidy.
+        if not lines:
+            path.unlink(missing_ok=True)
+            return
+        tmp = path.parent / f"{path.name}.tmp"
+        tmp.write_text("".join(f"{line}\n" for line in lines), encoding="utf-8")
+        tmp.replace(path)

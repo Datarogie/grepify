@@ -579,7 +579,11 @@ def maintain_renormalize(ctx: typer.Context) -> None:
     ``settings.yml``'s active profile but resolves deployment secrets from the
     environment (``LLM_BASE_URL`` required, ``LLM_API_KEY`` optional), never from
     committed config (PRD §5) - same convention as ``extract``. Idempotent: on an
-    already-clean corpus it rewrites nothing and re-extracts nothing.
+    already-clean corpus it rewrites nothing and re-extracts nothing. The summary
+    rewrite + keyword-row drop happen before the re-extract; if the re-extract is
+    interrupted, the changed items are left cleaned but untagged and a plain
+    ``grepify extract`` (untagged selection) finishes the job - exactly what the
+    O1 remediation procedure runs next.
     """
     state: AppState = ctx.obj
     layout = DataLayout(state.data_root)

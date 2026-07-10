@@ -168,9 +168,12 @@ def clean_summary(text: str) -> str:
     command (GRP-60) re-applies the *same* function to already-stored summaries,
     so a re-extract can never diverge from what a fresh ingest would produce.
     Idempotent: cleaning an already-clean summary returns it unchanged (up to the
-    documented regex-vs-parser fixed point).
+    documented regex-vs-parser fixed point). The trailing ``rstrip`` after the
+    truncation is load-bearing for that: without it, truncating exactly on a
+    whitespace boundary would leave a trailing space that a second pass strips,
+    so ``renormalize`` would rewrite (and re-extract) the same long item forever.
     """
-    return _strip_html(text)[:_SUMMARY_MAX_CHARS]
+    return _strip_html(text)[:_SUMMARY_MAX_CHARS].rstrip()
 
 
 def _clean_external_id(external_id: str | None) -> str | None:

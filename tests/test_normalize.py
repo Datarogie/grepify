@@ -180,6 +180,15 @@ def test_clean_summary_truncates_to_2000_chars() -> None:
     assert len(clean_summary("y" * 5000)) == 2000
 
 
+def test_clean_summary_idempotent_when_truncating_on_whitespace_boundary() -> None:
+    # Regression: collapse-then-truncate can leave a trailing space when the cut
+    # lands on a word boundary; a second pass would strip it and thus rewrite the
+    # item forever. clean_summary must be a fixed point even for that input.
+    once = clean_summary("word " * 500)  # collapses to 2499 chars, cut lands on a space
+    assert not once.endswith(" ")
+    assert clean_summary(once) == once
+
+
 def test_missing_published_at_falls_back_to_fetched_at() -> None:
     source = make_source("s1")
     item = normalize(_raw(published_at=None), source, fetched_at=_FETCHED)

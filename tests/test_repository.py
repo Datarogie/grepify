@@ -138,6 +138,20 @@ def test_delete_item_keywords_removes_only_targeted(tmp_path: Path) -> None:
     repo.close()
 
 
+def test_delete_item_keywords_emptying_a_partition_removes_the_file(tmp_path: Path) -> None:
+    # Deleting every row in a partition should remove the file, not leave a
+    # 0-byte one; the rewrite is atomic (temp file + replace).
+    repo = JsonlSqliteRepository(tmp_path)
+    repo.add_item_keywords([make_keyword("a", "genai")])
+    day_file = tmp_path / "keywords" / "2026" / "07" / "07.jsonl"
+    assert day_file.exists()
+
+    assert repo.delete_item_keywords(["a"]) == 1
+    assert not day_file.exists()
+    assert list(repo.iter_item_keywords()) == []
+    repo.close()
+
+
 def test_delete_item_keywords_noops_on_empty_or_missing(tmp_path: Path) -> None:
     repo = JsonlSqliteRepository(tmp_path)
     repo.add_item_keywords([make_keyword("a", "genai")])
