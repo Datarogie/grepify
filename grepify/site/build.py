@@ -49,6 +49,7 @@ import jinja2
 
 from grepify.clock import Clock, to_iso
 from grepify.config.provider import ConfigProvider
+from grepify.config.schemas import SettingsConfig
 from grepify.health import HealthSnapshot
 from grepify.keywords import KeywordRules
 from grepify.models import Source
@@ -145,7 +146,7 @@ def build_site(  # noqa: PLR0913 - distinct collaborators, all required
         digests = queries.all_digests()
 
         pages_written = (
-            _write_home(env, meta, output_dir, queries, cloud_window, keyword_pages)
+            _write_home(env, meta, output_dir, queries, cloud_window, keyword_pages, settings)
             + _write_items(env, meta, output_dir, queries, emitted_items)
             + _write_sources(env, meta, output_dir, config)
             + _write_health(env, meta, output_dir, layout)
@@ -173,13 +174,18 @@ def _write_home(  # noqa: PLR0913 - collaborators of one page render, all requir
     queries: TrendQueries,
     cloud_window: Window,
     keyword_pages: set[str],
+    settings: SettingsConfig,
 ) -> int:
     latest_items = queries.latest_items()
     html = render_page(
         env,
         "home.html",
         PageContext(meta=meta, active="home"),
-        cloud=queries.cloud(cloud_window),
+        cloud=queries.cloud(
+            cloud_window,
+            rising_min_count=settings.digest.rising_min_count,
+            rising_ratio=settings.digest.rising_ratio,
+        ),
         stats=queries.stats(cloud_window),
         top_sources=queries.top_sources(cloud_window),
         latest_items=latest_items,

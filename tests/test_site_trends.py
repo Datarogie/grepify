@@ -133,7 +133,7 @@ def test_window_ending_at_and_previous() -> None:
 
 def test_cloud_counts_deltas_and_mute(tmp_path: Path) -> None:
     q = _queries(tmp_path)
-    cloud = q.cloud(window_ending_at(_NOW, days=7))
+    cloud = q.cloud(window_ending_at(_NOW, days=7), rising_min_count=3, rising_ratio=3.0)
     assert [(k.keyword, k.count, k.delta) for k in cloud.keywords] == [
         ("genai", 3, 2),  # i1,i2,i3 now; i4 prev → delta +2
         ("agents", 1, 1),  # i3 now; 0 prev
@@ -147,15 +147,50 @@ def test_cloud_counts_deltas_and_mute(tmp_path: Path) -> None:
 
 def test_cloud_llm_and_fallback_rows_count_item_once(tmp_path: Path) -> None:
     q = _queries(tmp_path)
-    cloud = q.cloud(window_ending_at(_NOW, days=7))
+    cloud = q.cloud(window_ending_at(_NOW, days=7), rising_min_count=3, rising_ratio=3.0)
     genai = next(k for k in cloud.keywords if k.keyword == "genai")
     assert genai.count == 3  # i1 has both an llm and a fallback genai row → still one
 
 
 def test_cloud_limit(tmp_path: Path) -> None:
     q = _queries(tmp_path)
-    cloud = q.cloud(window_ending_at(_NOW, days=7), limit=1)
+    cloud = q.cloud(window_ending_at(_NOW, days=7), limit=1, rising_min_count=3, rising_ratio=3.0)
     assert [k.keyword for k in cloud.keywords] == ["genai"]
+
+
+# --- rising flag (GRP-40, F-TRD-03) -------------------------------------------
+
+
+def test_cloud_rising_flag_uses_settings_thresholds(tmp_path: Path) -> None:
+    q = _queries(tmp_path)
+    window = window_ending_at(_NOW, days=7)
+    cloud = q.cloud(window, rising_min_count=3, rising_ratio=3.0)
+    rising = {k.keyword: k.rising for k in cloud.keywords}
+    # genai: count=3, prev=1 (i4) → ratio exactly 3.0, clears min_count → rising
+    # agents: count=1, prev=0 → surged from nothing but below min_count → not rising
+    # llm: count=1, prev=1 → flat → not rising
+    assert rising == {"genai": True, "agents": False, "llm": False}
+
+
+def test_cloud_rising_flag_surge_from_zero(tmp_path: Path) -> None:
+    q = _queries(tmp_path)
+    window = window_ending_at(_NOW, days=7)
+    # loosen min_count so a from-nothing surge (agents: count=1, prev=0) qualifies
+    cloud = q.cloud(window, rising_min_count=1, rising_ratio=3.0)
+    agents = next(k for k in cloud.keywords if k.keyword == "agents")
+    assert agents.rising is True
+
+
+def test_cloud_rising_flag_threshold_edge(tmp_path: Path) -> None:
+    q = _queries(tmp_path)
+    window = window_ending_at(_NOW, days=7)
+    # genai: count=3, prev=1 → ratio exactly 3.0; a stricter ratio flips it off
+    at_threshold = q.cloud(window, rising_min_count=3, rising_ratio=3.0)
+    past_threshold = q.cloud(window, rising_min_count=3, rising_ratio=3.01)
+    genai_at = next(k for k in at_threshold.keywords if k.keyword == "genai")
+    genai_past = next(k for k in past_threshold.keywords if k.keyword == "genai")
+    assert genai_at.rising is True
+    assert genai_past.rising is False
 
 
 # --- stats -------------------------------------------------------------------
@@ -214,7 +249,9 @@ def test_distinct_keywords_for_items(tmp_path: Path) -> None:
 def test_queries_are_deterministic(tmp_path: Path) -> None:
     q = _queries(tmp_path)
     window = window_ending_at(_NOW, days=7)
-    assert q.cloud(window) == q.cloud(window)
+    assert q.cloud(window, rising_min_count=3, rising_ratio=3.0) == q.cloud(
+        window, rising_min_count=3, rising_ratio=3.0
+    )
     assert q.stats(window) == q.stats(window)
     assert q.top_sources(window) == q.top_sources(window)
     assert q.latest_items() == q.latest_items()
