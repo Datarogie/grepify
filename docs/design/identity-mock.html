@@ -1,0 +1,737 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="dark light">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>grepify · identity mock</title>
+<style>
+/* ============================================================
+   grepify identity mock - "the morning wire"
+   Terminal-leaning-editorial: a wire-service masthead over a
+   terminal's ruled output. The identity device is grep's match
+   highlight - an amber wash marking what's rising.
+   All color / space / type flows from :root tokens (PRD S5:
+   these map 1:1 onto grepify/site/tokens.py).
+   ============================================================ */
+
+/* League Gothic (OFL), subset to Latin basic, 5.5 KB woff2 */
+@font-face {
+  font-family: "League Gothic";
+  src: url("data:font/woff2;base64,d09GMgABAAAAABW8ABAAAAAAKgQAABVeAAIAQgAAAAAAAAAAAAAAAAAAAAAAAAAAGjQbiEwcKgZgP1NUQVRAAIFGEQgKuxSuGAE2AiQDgxgLgU4ABCAFhDwHIAwHG6Qho6Kk0qIhipI1mYz+KsGcojWO8idZNSuaTTaSZFgIPzsWDMb8OXUAF8pRX4GTLiMkmW3tv/1eZ3bvPvobAEJNNjoqitrqHk8oVFmRj6yrzhA/p39A0IakhscE0QhpiQkRIy9xNIYUGkqDBQKpKVQU6YSuqSosYxT6WSbGZ8yYqPn1btIuRPfBqVglhsY4EYH8JmmhPVGpxCrzyBzR90O39/5PaJbxmRhD0UyMpVUNEtWEQkiEweKxjnexTTLXCTVQorg0nbxMSgDwr7U+bfcRz4XdIQodGRXhEuPevO6/06/f7HJtzUIIZkN9xztRC0eoTgbZhWeDRJY0KxchdITJY2hZQOHGpokLHO+2VA+nJl0bk0VkrLLEznjm3dVBgHX/1VAcZFG4CBQlA2XJQXlq0apqMQgI5KqmTjZqI0A8nfs3AgQB4GwSPV53eM0k2DqEUNOVIC94EJqS4dKw45mAjzZi1msBXNKyN+nEUZuJlCtpmSRwb8a0xJ9AQjmYkxnf4hj30GnpD4oQKVaKVGkiM71sOa92vgKFihQrVa5Coyat2oxyiBHboyBGUn8tUUrPQqvEENahPJYFssTGQv01uyT8URwnDZbk56C0Ailyl0adFedR+wW5JPNl4fTS/lUZ0baJnuIYmcCynJWs+R2k9N9w/bN42PJX0Osr6t8JraX3op5/cDEal+vAdvZ7gPwdkItAqGJGTjX0/lr7b3EaBdpEas/L/PUCTf05NewhhJfgvyO/i80mGPAzC+DCvR/p4e/+1WGIzRNZ9kextT9xtu+aAf5ZCSS/3ikvaXWCtjkq4Vc/cHoJ8pcMBIFm1vpHSdv83dm9AKDunH+PNUVz1lRwMla8BEkyKtfn26tQqUqNFbEZfD4kDIMcDsOyHLFiuZqkBYQ8ASFfQLxABYfWpAREquEJaBKkpsV82UcZHgx3ayEpsLwnTTrK8KwcT8tn3VMkAuhRsSdKPCr1RBmHmR7O4abdmGUWaxG8WCvZuHPJ4fMVjs7ME3tgqScZFg9mX64BuBbXrH7RatjjES8ADf8r9n2BabgVJXHovwS8A+ZHcjpks4hwpiPMM1QDiP0RuffzcuVvigHA+W2TPyYh/hypN13FYNdyq8nQvFRCj0UsU3jiGSVuPR/NU6FJJ7t6AQPurrJwaBzlv/+G26vUrItDgz7FSFRs4GFa5YPk8Pvc99e9jwHspbGoFe37oN/rv2OHPhYK1VzsrLR05GoIqQkoiYjVq1VHxsZABeKk4aHnUKVBDHaDjgDaBwB8BnAFeH+A/Qbg9DKrQElpDz5S9dof/OS01KlzaAyE1vMxDx7ql/4dUS/a3W4uWxPwK5KUiXIT88KSbVBoYZGRCWvDV4fD/ZRwhFfjrQ3So+EpBYFncNd7yvYz6lIRcQKLllVCipuAG4TjVpZmpU3dY3bK6vDkrPoVCYUFiMTMxMyjBnPlorhJhXJEqrRyUjKRmJTkDkLi8iDXwhOVXsAw6ULhn8cvdIAyIymIF6DgiAWFBJtUA+vnDhriJMx1Eh6Tm2JqcbbObRDEx0DC9UXiiTK1GcnKDB2NYf7H8KOPI0RwU0wyNJBoJpUjOm4rdcGCIpEgUPDKwmZKnIcP66WQRiRpSUJF3fnUuPXmPHJWFmMZXI3QtwjvWq+INdqcGdcs23AD01w/K4NCqQ6RTJAoZrFmnKbTfIsyNWh4TNmorQjiAbGayvpyXffFNOHkZ5l7OaPOvRy++cEPZ64sS0UeFIkQjdsf03yLe+wSXq0zCcbC0vMIgxDappMN5IU7kuTmKq9VdHTwLqqIbLhXCoszyv0xMPixYYAJqwRVgd87NqK0XqGP9PKQrjpTBmPofYQpsDK4I4Um2bEVJ7iv9545sFEyMsGZ1PPg/nJaSTwEN7lZb1jnbIppAQlVtfdHYfSmhZyuB9TV1C/AKtWHQWYpsk0MYVoq1vYnTP/JoPk6IuE34CajZYZZ6VkfYXgaYl0zKOyhMmtWwHFeCVlhMOSB8u50W4wfRCDJbItJLY38+Fud+9ORJzr+RRsUb8NOXSI1kFg6eZbicqJVtd9+s8K529EzSELWrS4QwgoLHzzWM5L18ZEclEEeuSqD/LjowadybGSygnuxaAcTBhbhlaXQQyzNoOgvJfqFs1v/92jC2a3rNUFIF6WwAipUpCGINIjoOX0FygK410gLtCBxU3GpbfobELoFb7Gb6nlt5EFX3nU6bdAapspUQHNecKe5EGAZjVzHm5CBGtDR1ng6OM3sSTezDJ+aRaZmx+lu3yxyWLGyLIJAUj/BIAPbnzhZehoDpJ/nx8UIPqUj4aFnrvB87IybivcIm7TTpFYeuWAPQfc4FxFOEF09usj1qH0JLSTtO5YbvjRbDs+h51E0Olk46/fBTd1ghQxItO3QWfoRaGmspO1Scqd+ku1IRhh+5zXyNssuWSYxI7wmXdg5a8FkMIqkgW5bpSv0wpqfZ9CteMbJ/ZhVb/tesDzqc/6V1KteZxt3rd7nXgaJux+rK8Oq91TsVLFARBLEMxGW+ewZTxmL2naModbIUJcIHVAsylH0VNgsXMmq7EidGEGtYhWhJxTplmuvCZOcwDX9JSI1pTVSjsvz2g4s17YgxUVx4eJ+RXieJdYUT4oUdB6TrRDuqyIqskk+d6VtrZ9Tso/k77Z5qd0AqyHUvvYzXOw7hn+FAaqjJW7TxL82H6zAITL11c7qT5ayndWesBzI74VtwtWxODKqkOFq2YavTJIIlIASNiPFzlbI+A0VMaHBRqrjKigZiqJbGZ8sUxpyFi2fvYs2c3VcYaz9AYKkB1ZNUCMkNbe0TdU1HM92tq/3p947h1PcM2M2Ek5yT2y1nIcJ56C49aWm3VeIFDTJ6M4qtn5ih26wqUO7useKO1OID+bykcMckaqyooOHVIJLq17iNdtT7eoqrX5leP2G2oNdsnsnpBpWPEVC1aVkmG690+/2Rqp2JQ6GmgbGJ5EkPfY1asErYRkp8ij3m3gN/NMK9CA+8k77E1rruR0t5WPaMl2BNBLs006ebGqn/t/J9bf5uB3ORw6Jy+mS1dqAB1kdMoiGHE67ZGgLZBM3lynN1A5RNBotrinM5Rc6C33kIk1xe7pdOhSCln+eTUNiy5MU9FtvU1CWJ4ZETXFv6IXB1C8efzL1U1FAB7mdb5fT988vzY+nL2++z7HL+Vvnl+dDQIy0+SDGkN1pkw5tMVrFLaVKC6VD9OHSh4X/5VJxojx/AV5AycUKCn41R4vfCWXppsy0JVpL9eH6JdEMhUM7fH0i4OmFVxOLMpn7l67USQa38WuTV6ueyJeZSSfOfbE89xEi7q3lobEE7rGk+8avmPmJs7rzj2QN7AcPWt20zb8FDybFjbZrIwh/64i26P/+WSWGix5dynfenqYDD9IegiRDdqdDcpBD+wtGToTu8NVcrCjPmYcXUciEQZt7hH0TG6rmdu40PTvR2gVT564XFqIaNFp9YFHROnDV59ikefHLx3DVfRAXSWwZWjbJxjhZs7/9qOglA55lrIge6dTspz5zd/HVfvOtNw8/WOrdQGllcKQMdIO4WdLuABDS1lkh9qHGXK+vKU2wrpYp0KVUK58v3PWOptF/XXCxVknul1c30sVQB0vWiDtoeX0NOUGJTsvJx8qERtuIqtEe6HgxqMPvlLvaWeD9919Ybl9+4X3gQzpCkHjIPrw0nCY/VwSkgn8R8ZHXEh66Ew/Af36i19p7AB/DPZF501/8lXWOv0YxqlvJf9G854Rdd1eYkhDOdIBBfAT74v5C52ZHkoPNQu63zkLfbXYSG1PBnx2pD9ULzf/3Jfj+0UL52e0AmM/TSICwCF9M277augheQso8Bw4f6LnYw4P4NT15+WTCQAkjWmyXbQ3ItKo2CadHu1+RqIcevaxJQRxQr8fOEZEomBwj6tcSssRgBJmvYXTIoxl/hachiE5hSHiEBuYDJtEp5R56OuMsyoueyEg/lelFHQN5iB39Z4/+cKx/YseOgSzVHG0vDhIItUXkolp2gsXtUfNR2wEPkTQp9++3z3zAJDRIeXQKRIem8f8DyDs0DObTGTtQ3sw9Gem30F7UbVCA7N37VC8ltOdMf5VfwR2o4mm/zSNJyFRkcc/UwODu07MXD58uwojyKERJAWgf9t7xckaGw53Z99+4xstFb2CbA3cCw8Cwy3SEbDdKmRUaVaknVS4W8HSaN1wcvym/b/fpbk19xb3pBhr1Vu5UNmXDqnL/gVNdqEPPf4bAybPnQ6sf8/XV1/edYuvP0xRECiWqhtZ8cBmHfadoF26yUJB7iEA4QhEUTgJaEO/hw9MefjFNvB5fzw5FzZiJ1WnjaA3gyKIy+MTP0WgUFHSjFhcfQGkrsWMwRW591NlIGnVZYOmtB9USj+Q4KeVmA3p6xHX3gxdc97GxWF2A8YBPLx/QZNFquJ5HKRcq/nNLmlKamI9vYIQiVtwXGRmHH6udKOBJNJucAhDRe7Jlp387WwvyU3v3PBEkBf/Xe3v2rgAGdl+lLpeRaO9Sqe/SpAHKujPSNePPgJavYximpeQMFcpLkWak/4z2Zv4BXN3TBn/r+WkdJjfI6WlfZHrRH7dMFC/K4dR3LmB510osen92BiHSVfJ+ByxkZXOJ1EroVU2J8530wixF6Tqz/xu9rmWkuX/LiR65k8xWZbfJpxhpqkLSOyUshvEdjSp00SMitIl0tQXAgqxzQaSRVon3jhcRRey7s69BUF2wZm7bfdaX4DkkAWOd9KnYlqxHEJVFq8tsCvDsCpJsVtwb37byByfNNhG4nvJIm2GyE33wZB/E7iEgA6/AoBnfCWuSkz1JPzhTAXKSfnFVpDLZArOwieRQ12ar0Az0DIB1V2pZ7E3cYdg6CftVbSJyxYT3ke58nCqJ4fkoHsFJJ1Ms6v2DekCbSPviy3vT4e7S74EGZHUIEg3bznHCCFW7TTocgqyvUvCPqBBLSUOP/4vdCw3vVSG6HXj5VhAfAbJFSfOWL5q+5r5bI8raVFyc1S72LnmtmP1iZxtdp2uji+swOyFXxcf133d/zm00L4IGpMSZL9CSW5E7VAuCxA6sjEBISDEW9+AGDHQV7JYqTlGSsdFVlmC+jcdiZSmbhAv1WY/xOzcKTJImmsxG7BS7cx4r33hRxpQ/F/IIbgz6wCaB9sIa4sKH0+6IW+D45/gLhfBJYEKaN3I5/ownPUsVhjWbizH3Em1l8pJWImFQNZeQsqjnUGaZKq+csatOrs3cy21u4wATsiZYxRuqrtBjtopqN9DVmpZSkQMzqJMvVSY23sNgnknUFH742ksFTCOZLcduqGyq4R8MVjkmiRgJ+SDpXSIBTt1PRknAvtTZzyWLuKXU7Z8CCFk7qBbuq0mA1rncsTSr+ks7PxDg2ap7edyA/Ut1mXW1n+WCEmqF+wZVNXPoIrYa5qKXwBq0dUg0CqlTxbtLy2BuDnss7XraBbsCBlXQYSq57Vzaar+5MdHJLIrXVypPgzTPS7X9VbyDNc5PUm84SJbYNCFSOLZVNmUoqD+YgBVTDv6GQPz7Xig5YsBYfm0ZFMRJ42TZfG1xALatqZ5KbNo/urKeIGndQeEHMqVcYdO+ODftSy2d2/f8ev6w708Ha1y5jxUoxxbhyrhQ8uWqNRKHLyASmTsrOUGDnD2oGWDvN/45B7eB72hl3Ctmmm/HOXze0BnxqovHH3BCDjVYYKerjoDZ9Rdnsp6eIf41fdSmWacu/C8zU7WZMsUD82DCTF/Nv9cIav43fOL+BYlDeIp2HPdIC2xXyVTSOHkXCVRORggRUMkNI8KgBq/t71pZcC7NkHatdsqiYQaxisrdA2NVlV73D5ST1NH7k5qykvarPD8NzOHtFJnH/SP15Br1mjB42dGWFftyBANDhHdSE+xaWfhUOrT2Wt2kTcsMYuSVu0Hj/ZHJcuPIse3SStG6xyqkEGP7SejUFHMkbGzMKTFUbdcJ3E9O6Kna7YbSKseBAPt+GCIoXcN2rdB99AhFuu1Va643xxQenWRuvgkntzOkUMVjLLlIuv2YcWSyHOi6QWL5zulHIP7Oo2nA6pZop5sAaQ/fWW6Lcycs9+cEd2YymNs/7AZiBxekEyfQWa/9+OBDE8S7Nj8t4DzSfVbn2u9w1zuHz+o9jWer6ofrEh5jEoQqHa9B9paE16ArsM4XylohjbrNInKLfQalUIkNHoE6D5lWrChlTDFKi2/fFmBDbnnqqTEn47S6r5S+gf7K5j077mwd3HJzW9vmRUNrSat44D4rvT/3IjbByHqGJGeetn6KqipR8qnvtCl1k3mD26gCw55iozGnq0RQ0lTyA4u7rYKNNRQW4E1sHqYX6H4CSU1T4ecTIDt/6aH3nO851CPDnunPdp1qaAm3GMIvAwBsmzocCLMeDxwOqDw/c97xNTP1Sq+MAg7ugvBV7XwmAA77fhsrR1+ze7BKa+/lHN9nyCsuFBcx9CJ5JiidY08PpDb2r981aswvKVaXsnQgTpy++dzHv2iGuCo8WvAkfi4SwnsimodKo1NzXmN0KRUmV3YPJqe8JSMdcx6blpFJwvGFIpOe5B/zGwPqxPzo5NY3XwOwJXbdvrodrmW+Aov+1//e7b+r9/N3MQCle/np3o5TJOd/brjfAeDvz89IAO6f8ep/4V9j+X6bBcChAADh1kMEd2845m/Bl873R7NfX5GNFOTUEn29QFafJzqo0k6Lrfi9mB6Iw+D1zzNaGDvms+nw7LSQ0fYJpDppbb1Ppy7ATEBj62v5guwZPIhY9WhlllshFfYnmAUp9QyyTtAiwom+oerk4riyGrbAlR7VA72VYitMXkZUnaqEHMc6sZZp0otnifL+Di+653IqgliXkvoibzk1jDFPGACPEylGaZzkrDiutORcgzSI4yegvsjnC7j8tKThwMszM47HFQmdOrOwHsPxEJic3lhODIV5XCVhNA1qHEacoUVL9UrsRppw3Dzla/07OJOB2vE5HQxcA/xGIGCfXrx1sLyx3q6HXErF6csBn4DZlOzTbCXcr9lau/vZojik2UZytLMchWlajECQq5A4is02sHkkncf/lJhPu14dmjVq4odTrfILHjTrSA+NHtQw5s4tGtip+TUxuXDZSR18WniUNnUtoZJ8Pm1+ciEqCLU3XHF7r3GgGQBrsVOxHaE2l09Mbd7KwRfezj37Fjkwvb15bpEBcf8/0apBB5pylSpVaTFOR0uKrd3Jt1LE+g6+G1CYVdDUjLSRA7MbxxRZXHYrWRtBakPZmvfkJx93G3qbNL7ym/z3dg12AAA=") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* ground (dark = default) */
+  --bg: #131519;
+  --bg-elevated: #1b1e23;
+  --bg-sunken: #0d0f12;
+  --border: #2a2e35;
+  --border-strong: #3a3f47;
+  /* text */
+  --text: #e7e6e2;
+  --text-muted: #a9aca6;
+  --text-faint: #7c8078;
+  /* identity */
+  --match: #f5a83c;          /* text-grade amber: links, rising, active */
+  --match-ink: #131519;      /* text on a match block */
+  --match-wash: rgba(245, 168, 60, 0.13);
+  --mark: #cf7f14;           /* mark-grade amber: sparkline stroke/fill */
+  --mark-fill: rgba(207, 127, 20, 0.16);
+  --rise: #4cc38a;           /* up-deltas */
+  --link: var(--match);
+  /* type */
+  --font-display: "League Gothic", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --font-body: "Charter", "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --fs-xs: 0.75rem;
+  --fs-s: 0.875rem;
+  --fs-m: 1rem;
+  --fs-body: 1.0625rem;
+  --fs-l: 1.375rem;
+  --fs-xl: 1.875rem;
+  --fs-2xl: 2.75rem;
+  --fs-masthead: clamp(2.75rem, 10vw, 4rem);
+  --lh-body: 1.65;
+  --lh-tight: 1.1;
+  --measure: 65ch;
+  /* cloud size steps (log buckets w1..w5) */
+  --cloud-1: 1.0625rem;
+  --cloud-2: 1.375rem;
+  --cloud-3: 1.8125rem;
+  --cloud-4: 2.375rem;
+  --cloud-5: 3.125rem;
+  /* space */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2.25rem;
+  --sp-7: 3.5rem;
+  /* shape + focus */
+  --r-s: 2px;
+  --r-m: 4px;
+  --focus: 2px solid var(--match);
+}
+
+/* light theme: same token names, re-grounded values. Dark is the
+   default on first load (per the brief); light is an explicit,
+   viewer-toggled state. To follow the OS instead, wrap this block
+   in a prefers-color-scheme media query as well. */
+:root[data-theme="light"] {
+  --bg: #f4f4f1;
+  --bg-elevated: #ecece7;
+  --bg-sunken: #eaeae4;
+  --border: #d4d4cc;
+  --border-strong: #b8b8ae;
+  --text: #22241f;
+  --text-muted: #5a5e56;
+  --text-faint: #6b6f65;
+  --match: #9a5a08;
+  --match-ink: #f4f4f1;
+  --match-wash: rgba(179, 105, 10, 0.14);
+  --mark: #b3690a;
+  --mark-fill: rgba(179, 105, 10, 0.14);
+  --rise: #116b46;
+}
+
+/* ---- base ------------------------------------------------- */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  padding: 0 var(--sp-4) var(--sp-7);
+  max-width: 44rem;
+  margin: 0 auto;
+}
+a { color: inherit; }
+:focus-visible { outline: var(--focus); outline-offset: 2px; border-radius: var(--r-s); }
+[hidden] { display: none !important; }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+.skip-link {
+  position: absolute; left: -9999px;
+  background: var(--match); color: var(--match-ink);
+  font-family: var(--font-mono); font-size: var(--fs-s);
+  padding: var(--sp-2) var(--sp-3);
+}
+.skip-link:focus-visible { left: var(--sp-4); top: var(--sp-2); z-index: 10; }
+.muted { color: var(--text-muted); }
+
+/* ---- chrome ------------------------------------------------ */
+.site-header {
+  border-bottom: 2px solid var(--text);
+  padding: var(--sp-5) 0 0;
+  margin-bottom: var(--sp-5);
+}
+.masthead-row {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--sp-3);
+}
+.brand {
+  font-family: var(--font-display);
+  font-size: var(--fs-masthead);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  color: var(--text);
+}
+.brand .caret {
+  display: inline-block;
+  width: 0.45em; height: 0.78em;
+  margin-left: 0.08em;
+  background: var(--match);
+  animation: blink 1.2s steps(1) infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .brand .caret { animation: none; }
+  * { transition: none !important; }
+}
+.theme-toggle {
+  font-family: var(--font-mono); font-size: var(--fs-xs);
+  color: var(--text-muted);
+  background: none; border: 1px solid var(--border);
+  border-radius: var(--r-s);
+  padding: var(--sp-1) var(--sp-2);
+  cursor: pointer;
+}
+.theme-toggle:hover { color: var(--match); border-color: var(--match); }
+.site-nav {
+  display: flex; gap: var(--sp-4);
+  overflow-x: auto;
+  font-family: var(--font-mono); font-size: var(--fs-s);
+  padding: var(--sp-3) 0 var(--sp-2);
+  border-top: 1px solid var(--border);
+  margin-top: var(--sp-3);
+}
+.site-nav a {
+  color: var(--text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  padding-bottom: 2px;
+}
+.site-nav a:hover { color: var(--text); }
+.site-nav a[aria-current="page"] {
+  color: var(--match);
+  border-bottom: 2px solid var(--match);
+}
+.site-nav a[aria-disabled="true"] { color: var(--text-faint); cursor: default; }
+.dateline {
+  font-family: var(--font-mono); font-size: var(--fs-xs);
+  color: var(--text-faint);
+  margin-bottom: var(--sp-5);
+}
+.dateline strong { color: var(--text-muted); font-weight: 400; }
+
+/* mono "path" section titles: digests/  items/  keywords/ */
+h2.section-title {
+  font-family: var(--font-mono);
+  font-size: var(--fs-s);
+  font-weight: 400;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--sp-2);
+  margin: var(--sp-6) 0 var(--sp-4);
+}
+h2.section-title .win { color: var(--text-faint); }
+
+/* ---- stats row --------------------------------------------- */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: var(--sp-5);
+}
+.stat { background: var(--bg); padding: var(--sp-3) var(--sp-3) var(--sp-2); }
+.stat-value {
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  line-height: var(--lh-tight);
+  display: block;
+}
+.stat-value.small { font-size: var(--fs-l); padding-top: 0.3em; }
+.stat-label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-faint);
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+}
+@media (min-width: 40rem) {
+  .stats { grid-template-columns: repeat(6, 1fr); }
+}
+
+/* ---- the keyword cloud (hero) ------------------------------- */
+.cloud {
+  display: flex; flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-2) var(--sp-4);
+  padding: var(--sp-4) 0 var(--sp-3);
+}
+.cloud a {
+  font-family: var(--font-display);
+  line-height: 1;
+  text-decoration: none;
+  color: var(--text-muted);
+  border-radius: var(--r-s);
+  transition: color 120ms, background-color 120ms;
+}
+.cloud a:hover { color: var(--text); }
+.cloud .w1 { font-size: var(--cloud-1); color: var(--text-faint); }
+.cloud .w2 { font-size: var(--cloud-2); }
+.cloud .w3 { font-size: var(--cloud-3); color: var(--text); }
+.cloud .w4 { font-size: var(--cloud-4); color: var(--text); }
+.cloud .w5 { font-size: var(--cloud-5); color: var(--text); }
+/* rising = a grep match: amber wash, amber text */
+.cloud a.rising {
+  color: var(--match);
+  background: var(--match-wash);
+  box-shadow: 0 0 0 3px var(--match-wash);
+}
+.cloud a.rising:hover,
+.cloud a:hover { color: var(--match); }
+.delta {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  vertical-align: super;
+  margin-left: 0.15em;
+  letter-spacing: 0;
+}
+.delta-up { color: var(--rise); }
+.delta-down { color: var(--text-faint); }
+.cloud-legend {
+  font-family: var(--font-mono); font-size: var(--fs-xs);
+  color: var(--text-faint);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--sp-4);
+  margin-bottom: var(--sp-2);
+}
+.cloud-legend .swatch {
+  display: inline-block; width: 0.7em; height: 0.7em;
+  background: var(--match-wash);
+  box-shadow: inset 0 0 0 1px var(--match);
+  vertical-align: baseline;
+}
+
+/* ---- feeds (digest list, item list) -------------------------- */
+.feed { list-style: none; }
+.feed li { border-bottom: 1px solid var(--border); padding: var(--sp-3) 0; }
+.feed li:last-child { border-bottom: 0; }
+.feed .title {
+  font-family: var(--font-body);
+  font-size: var(--fs-m);
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--text);
+}
+.feed .title:hover { color: var(--match); }
+.feed .meta {
+  display: block;
+  font-family: var(--font-mono); font-size: var(--fs-xs);
+  color: var(--text-faint);
+  margin-top: var(--sp-1);
+}
+.feed .meta .kind { color: var(--text-muted); }
+.more-link {
+  font-family: var(--font-mono); font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+.more-link:hover { color: var(--match); }
+
+/* ---- chips / tags -------------------------------------------- */
+.tag {
+  display: inline-block;
+  font-family: var(--font-mono); font-size: var(--fs-xs);
+  color: var(--text-muted);
+  text-decoration: none;
+  border: 1px solid var(--border);
+  border-radius: var(--r-s);
+  padding: 1px var(--sp-2);
+  margin: var(--sp-1) var(--sp-1) 0 0;
+  transition: color 120ms, border-color 120ms;
+}
+.tag:hover { color: var(--match); border-color: var(--match); }
+.tag .count { color: var(--text-faint); }
+
+/* ---- digest detail (the marquee reading surface) -------------- */
+.digest-detail h1,
+.keyword-detail h1 {
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  line-height: var(--lh-tight);
+  margin-bottom: var(--sp-2);
+  max-width: var(--measure);
+}
+.page-meta {
+  font-family: var(--font-mono); font-size: var(--fs-xs);
+  color: var(--text-faint);
+  margin-bottom: var(--sp-4);
+}
+.page-meta .kind { color: var(--text-muted); }
+.chips-row { margin-bottom: var(--sp-5); }
+.tldr {
+  border-top: 2px solid var(--text);
+  border-bottom: 1px solid var(--border);
+  padding: var(--sp-4) 0;
+  margin-bottom: var(--sp-5);
+  max-width: var(--measure);
+}
+.tldr h2 {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 400;
+  color: var(--match);
+  letter-spacing: 0.12em;
+  margin-bottom: var(--sp-3);
+}
+.tldr ul { list-style: none; }
+.tldr li {
+  padding-left: var(--sp-4);
+  position: relative;
+  margin-bottom: var(--sp-2);
+  font-size: var(--fs-m);
+}
+.tldr li::before {
+  content: "";
+  position: absolute; left: 0; top: 0.55em;
+  width: 6px; height: 6px;
+  background: var(--match);
+}
+.prose { max-width: var(--measure); }
+.prose p { margin-bottom: var(--sp-4); }
+.prose p:first-of-type::first-letter {
+  font-family: var(--font-display);
+  font-size: 3.2em;
+  line-height: 0.8;
+  float: left;
+  padding: 0.08em 0.12em 0 0;
+}
+.prose a { color: var(--text); text-decoration-color: var(--match); text-decoration-thickness: 2px; }
+.prose a:hover { color: var(--match); }
+
+/* ---- keyword page --------------------------------------------- */
+.kw-stats {
+  display: flex; gap: var(--sp-6);
+  font-family: var(--font-mono);
+  margin-bottom: var(--sp-5);
+}
+.kw-stats .stat-value { font-size: var(--fs-2xl); }
+.timeline { margin-bottom: var(--sp-5); }
+.timeline h2 { margin-top: 0; }
+.sparkline { display: block; width: 100%; max-width: 30rem; height: auto; }
+.spark-axis {
+  display: flex; justify-content: space-between;
+  max-width: 30rem;
+  font-family: var(--font-mono); font-size: var(--fs-xs);
+  color: var(--text-faint);
+}
+
+/* ---- tabs ------------------------------------------------------ */
+.tabs {
+  display: flex; gap: var(--sp-4);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  margin-bottom: var(--sp-2);
+}
+.tab {
+  font-family: var(--font-mono); font-size: var(--fs-s);
+  color: var(--text-muted);
+  background: none; border: none;
+  border-bottom: 2px solid transparent;
+  padding: var(--sp-2) 0 var(--sp-2);
+  margin-bottom: -1px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tab:hover { color: var(--text); }
+.tab[aria-selected="true"] {
+  color: var(--match);
+  border-bottom-color: var(--match);
+}
+.tab .count { color: var(--text-faint); }
+
+/* ---- footer ----------------------------------------------------- */
+.site-footer {
+  border-top: 2px solid var(--text);
+  margin-top: var(--sp-7);
+  padding-top: var(--sp-3);
+  font-family: var(--font-mono); font-size: var(--fs-xs);
+  color: var(--text-faint);
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">skip to content</a>
+
+<header class="site-header">
+  <div class="masthead-row">
+    <a class="brand" href="#" data-screen="home">grepify<span class="caret" aria-hidden="true"></span></a>
+    <button class="theme-toggle" id="theme-toggle" aria-pressed="false">theme: dark</button>
+  </div>
+  <nav class="site-nav" aria-label="site">
+    <a href="#" data-screen="home" aria-current="page">home</a>
+    <a href="#" data-screen="digest">digests</a>
+    <a href="#" data-screen="keyword">keywords</a>
+    <a href="#" aria-disabled="true" title="not in this mock" tabindex="-1">items</a>
+    <a href="#" aria-disabled="true" title="not in this mock" tabindex="-1">sources</a>
+    <a href="#" aria-disabled="true" title="not in this mock" tabindex="-1">health</a>
+  </nav>
+</header>
+
+<main class="site-main" id="main">
+
+<!-- ================= SCREEN 1: HOME ================= -->
+<section id="screen-home" aria-label="home">
+  <p class="dateline">thu · <strong>2026-07-10</strong> · last run 06:12 · llm spend today <strong>$0.14</strong> of $0.50</p>
+
+  <div class="stats" role="list" aria-label="7 day stats">
+    <div class="stat" role="listitem"><span class="stat-value">1,482</span><span class="stat-label">items · 7d</span></div>
+    <div class="stat" role="listitem"><span class="stat-value">47</span><span class="stat-label">sources</span></div>
+    <div class="stat" role="listitem"><span class="stat-value">312</span><span class="stat-label">keywords</span></div>
+    <div class="stat" role="listitem"><span class="stat-value">5,918</span><span class="stat-label">mentions</span></div>
+    <div class="stat" role="listitem"><span class="stat-value small">agentic coding</span><span class="stat-label">top keyword</span></div>
+    <div class="stat" role="listitem"><span class="stat-value small">hacker news</span><span class="stat-label">top source</span></div>
+  </div>
+
+  <h2 class="section-title">keywords/ <span class="win">· 7d window</span></h2>
+  <p class="cloud">
+    <a href="#" class="w5 rising" data-goto="keyword">agentic coding<span class="delta delta-up">+31</span></a>
+    <a href="#" class="w4 rising" data-goto="keyword">prompt injection<span class="delta delta-up">+24</span></a>
+    <a href="#" class="w4" data-goto="keyword">open weights<span class="delta delta-up">+9</span></a>
+    <a href="#" class="w2" data-goto="keyword">world models<span class="delta delta-down">-3</span></a>
+    <a href="#" class="w3" data-goto="keyword">test-time compute<span class="delta delta-up">+12</span></a>
+    <a href="#" class="w1" data-goto="keyword">kv cache</a>
+    <a href="#" class="w3" data-goto="keyword">export controls<span class="delta delta-up">+8</span></a>
+    <a href="#" class="w2" data-goto="keyword">synthetic data<span class="delta delta-down">-5</span></a>
+    <a href="#" class="w3 rising" data-goto="keyword">eval saturation<span class="delta delta-up">+15</span></a>
+    <a href="#" class="w1" data-goto="keyword">sparse attention<span class="delta delta-up">+2</span></a>
+    <a href="#" class="w2" data-goto="keyword">mcp<span class="delta delta-up">+6</span></a>
+    <a href="#" class="w2" data-goto="keyword">on-device llms</a>
+    <a href="#" class="w3" data-goto="keyword">inference costs<span class="delta delta-up">+7</span></a>
+    <a href="#" class="w1" data-goto="keyword">robot foundation models<span class="delta delta-down">-2</span></a>
+    <a href="#" class="w2" data-goto="keyword">eu ai act<span class="delta delta-up">+4</span></a>
+    <a href="#" class="w1" data-goto="keyword">voice agents</a>
+    <a href="#" class="w2" data-goto="keyword">model distillation<span class="delta delta-down">-1</span></a>
+    <a href="#" class="w1" data-goto="keyword">datacenter buildout<span class="delta delta-up">+3</span></a>
+    <a href="#" class="w2" data-goto="keyword">agent security<span class="delta delta-up">+11</span></a>
+    <a href="#" class="w1" data-goto="keyword">context windows</a>
+  </p>
+  <p class="cloud-legend"><span class="swatch" aria-hidden="true"></span> highlight = rising · <span class="delta-up">+n</span> / <span class="delta-down">-n</span> = 7d change in mentions</p>
+
+  <h2 class="section-title">digests/ <span class="win">· latest 5</span></h2>
+  <ul class="feed">
+    <li>
+      <a class="title" href="#" data-goto="digest">The week agents got audited: injection disclosures, patched platforms, calmer nerves</a>
+      <span class="meta"><span class="kind">daily</span> · ai · 2026-07-10</span>
+      <span class="chips-row"><a class="tag" href="#" data-goto="keyword">prompt injection <span class="count">18</span></a><a class="tag" href="#" data-goto="keyword">agent security <span class="count">14</span></a><a class="tag" href="#" data-goto="keyword">open weights <span class="count">12</span></a></span>
+    </li>
+    <li>
+      <a class="title" href="#" data-goto="digest">Iceberg everywhere: catalog wars cool down as the table format wins by default</a>
+      <span class="meta"><span class="kind">daily</span> · data-eng · 2026-07-10</span>
+      <span class="chips-row"><a class="tag" href="#" data-goto="keyword">iceberg <span class="count">11</span></a><a class="tag" href="#" data-goto="keyword">catalogs <span class="count">7</span></a></span>
+    </li>
+    <li>
+      <a class="title" href="#" data-goto="digest">Qwen4 lands, budgets tilt toward inference, and the eval treadmill speeds up</a>
+      <span class="meta"><span class="kind">daily</span> · ai · 2026-07-09</span>
+      <span class="chips-row"><a class="tag" href="#" data-goto="keyword">open weights <span class="count">16</span></a><a class="tag" href="#" data-goto="keyword">test-time compute <span class="count">9</span></a></span>
+    </li>
+    <li>
+      <a class="title" href="#" data-goto="digest">Week 27: export rules bite, agents consolidate, and small models keep getting weirdly good</a>
+      <span class="meta"><span class="kind">weekly</span> · ai · 2026-07-06</span>
+      <span class="chips-row"><a class="tag" href="#" data-goto="keyword">export controls <span class="count">22</span></a><a class="tag" href="#" data-goto="keyword">agentic coding <span class="count">19</span></a></span>
+    </li>
+    <li>
+      <a class="title" href="#" data-goto="digest">DuckDB grows a lakehouse, dbt tightens contracts, and everyone ships a semantic layer</a>
+      <span class="meta"><span class="kind">daily</span> · data-eng · 2026-07-09</span>
+      <span class="chips-row"><a class="tag" href="#" data-goto="keyword">duckdb <span class="count">8</span></a><a class="tag" href="#" data-goto="keyword">semantic layer <span class="count">6</span></a></span>
+    </li>
+  </ul>
+
+  <h2 class="section-title">items/ <span class="win">· latest 10</span></h2>
+  <ul class="feed">
+    <li><a class="title" href="#">Anthropic ships sandboxed tool-use profiles for enterprise agents</a>
+      <span class="meta">import ai · <span class="kind">rss</span> · 2026-07-10 06:02</span>
+      <span class="chips-row"><a class="tag" href="#" data-goto="keyword">agent security</a><a class="tag" href="#" data-goto="keyword">sandboxing</a></span></li>
+    <li><a class="title" href="#">The prompt injection disclosure wave, explained</a>
+      <span class="meta">simon willison · <span class="kind">rss</span> · 2026-07-10 05:41</span>
+      <span class="chips-row"><a class="tag" href="#" data-goto="keyword">prompt injection</a><a class="tag" href="#" data-goto="keyword">mcp</a></span></li>
+    <li><a class="title" href="#">Show HN: A self-hosted answer engine on 8B open models</a>
+      <span class="meta">hacker news · <span class="kind">rss</span> · 2026-07-10 05:12</span>
+      <span class="chips-row"><a class="tag" href="#" data-goto="keyword">on-device llms</a></span></li>
+    <li><a class="title" href="#">US tightens H200 export licensing again; secondary markets react</a>
+      <span class="meta">ars technica · <span class="kind">rss</span> · 2026-07-10 04:55</span>
+      <span class="chips-row"><a class="tag" href="#" data-goto="keyword">export controls</a></span></li>
+    <li><a class="title" href="#">Why test-time compute is eating the training budget</a>
+      <span class="meta">latent space · <span class="kind">rss</span> · 2026-07-10 04:30</span>
+      <span class="chips-row"><a class="tag" href="#" data-goto="keyword">test-time compute</a><a class="tag" href="#" data-goto="keyword">inference costs</a></span></li>
+    <li><a class="title" href="#">[R] Sparse attention at 1M context: reproduction results</a>
+      <span class="meta">r/machinelearning · <span class="kind">reddit</span> · 2026-07-10 03:58</span>
+      <span class="chips-row"><a class="tag" href="#" data-goto="keyword">sparse attention</a><a class="tag" href="#" data-goto="keyword">context windows</a></span></li>
+    <li><a class="title" href="#">Qwen4-72B open weights: first impressions megathread</a>
+      <span class="meta">r/locallama · <span class="kind">reddit</span> · 2026-07-10 03:21</span>
+      <span class="chips-row"><a class="tag" href="#" data-goto="keyword">open weights</a></span></li>
+    <li><a class="title" href="#">The agentic coding shakeout: who survives consolidation?</a>
+      <span class="meta">ai explained · <span class="kind">youtube</span> · 2026-07-09 22:14</span>
+      <span class="chips-row"><a class="tag" href="#" data-goto="keyword">agentic coding</a></span></li>
+    <li><a class="title" href="#">"evals are saturating faster than we can write them"</a>
+      <span class="meta">@karpathy · <span class="kind">x</span> · 2026-07-09 21:40</span>
+      <span class="chips-row"><a class="tag" href="#" data-goto="keyword">eval saturation</a></span></li>
+    <li><a class="title" href="#">EU AI Act GPAI codes of practice: what changed in July</a>
+      <span class="meta">the verge ai · <span class="kind">rss</span> · 2026-07-09 20:05</span>
+      <span class="chips-row"><a class="tag" href="#" data-goto="keyword">eu ai act</a></span></li>
+  </ul>
+</section>
+
+<!-- ================= SCREEN 2: DIGEST DETAIL ================= -->
+<section id="screen-digest" class="digest-detail" aria-label="digest detail" hidden>
+  <h1>The week agents got audited: injection disclosures, patched platforms, calmer nerves</h1>
+  <p class="page-meta"><span class="kind">daily</span> · ai · 2026-07-10 · 214 items · profile digest-writer · 12.4k tok · $0.011</p>
+
+  <p class="chips-row">
+    <a class="tag" href="#" data-goto="keyword">prompt injection <span class="count">18</span></a>
+    <a class="tag" href="#" data-goto="keyword">agent security <span class="count">14</span></a>
+    <a class="tag" href="#" data-goto="keyword">open weights <span class="count">12</span></a>
+    <a class="tag" href="#" data-goto="keyword">export controls <span class="count">9</span></a>
+    <a class="tag" href="#" data-goto="keyword">test-time compute <span class="count">8</span></a>
+    <a class="tag" href="#" data-goto="keyword">eval saturation <span class="count">7</span></a>
+  </p>
+
+  <div class="tldr">
+    <h2>tl;dr</h2>
+    <ul>
+      <li>Coordinated prompt-injection disclosures hit three major agent platforms; all three shipped patches before publication and none saw in-the-wild exploitation.</li>
+      <li>US export licensing tightened again on H200-class parts; secondary-market prices moved within hours.</li>
+      <li>Qwen4-72B weights landed under a permissive license, with early community evals putting it near the frontier on code tasks.</li>
+      <li>Two labs now report inference spend exceeding training spend; test-time compute is the new budget line to watch.</li>
+      <li>The eval-saturation debate produced a concrete proposal: rolling test sets refreshed monthly, with public rot metrics.</li>
+    </ul>
+  </div>
+
+  <div class="prose">
+    <p>Security set the tone today. A coordinated disclosure covering three agent platforms showed the same shape of bug in each: instructions smuggled through content the agent was asked to read, from calendar invites to code comments. The encouraging part is the timeline. Every vendor patched before publication, and the write-ups read less like alarms and more like a field maturing - sandboxed tool profiles, capability prompts, and provenance tags are becoming table stakes rather than research ideas.</p>
+    <p>The open-weights story keeps compounding. Qwen4-72B arrived with a permissive license and immediately strong community numbers on code and agentic benchmarks, which sharpens the contrast with the hardware side of the ledger: H200-class export licensing tightened again, and the secondary market repriced within hours. Weights travel freely; the silicon to run them increasingly does not.</p>
+    <p>Meanwhile the economics quietly inverted. Two labs now say they spend more on inference than on training, driven by test-time compute and long-horizon agent runs. That pressure is showing up downstream as aggressive distillation, KV-cache tricks, and renewed interest in small on-device models. Expect the eval treadmill to speed up too - the rolling-test-set proposal that circulated today is the first saturation fix with an actual maintenance plan attached.</p>
+  </div>
+</section>
+
+<!-- ================= SCREEN 3: KEYWORD PAGE ================= -->
+<section id="screen-keyword" class="keyword-detail" aria-label="keyword detail" hidden>
+  <h1>#prompt-injection</h1>
+  <p class="page-meta"><span class="kind">keyword</span> · tracked since 2026-03-02 · 30d window</p>
+
+  <div class="kw-stats">
+    <div><span class="stat-value">128</span><span class="stat-label">mentions · 30d</span></div>
+    <div><span class="stat-value">23</span><span class="stat-label">sources</span></div>
+  </div>
+
+  <div class="timeline">
+    <h2 class="section-title">mentions/ <span class="win">· last 14 days</span></h2>
+    <svg class="sparkline" viewBox="0 0 280 64" role="img"
+         aria-label="Mentions per day, June 27 to July 10: rising from 4 to 26, peak on the final day.">
+      <line x1="10" y1="58" x2="270" y2="58" stroke="var(--border-strong)" stroke-width="1"/>
+      <path d="M10,50 L30,46 L50,48 L70,40 L90,44 L110,36 L130,42 L150,30 L170,34 L190,24 L210,28 L230,14 L250,20 L270,6 L270,58 L10,58 Z"
+            fill="var(--mark-fill)" stroke="none"/>
+      <polyline points="10,50 30,46 50,48 70,40 90,44 110,36 130,42 150,30 170,34 190,24 210,28 230,14 250,20 270,6"
+                fill="none" stroke="var(--mark)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="270" cy="6" r="5" fill="var(--bg)"/>
+      <circle cx="270" cy="6" r="4" fill="var(--mark)"/>
+      <text x="262" y="22" text-anchor="end" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="var(--text-muted)">26</text>
+    </svg>
+    <div class="spark-axis" aria-hidden="true"><span>jun 27</span><span>jul 10</span></div>
+    <table class="visually-hidden">
+      <caption>Mentions per day, last 14 days</caption>
+      <tr><th scope="col">jun 27</th><th scope="col">jun 28</th><th scope="col">jun 29</th><th scope="col">jun 30</th><th scope="col">jul 1</th><th scope="col">jul 2</th><th scope="col">jul 3</th><th scope="col">jul 4</th><th scope="col">jul 5</th><th scope="col">jul 6</th><th scope="col">jul 7</th><th scope="col">jul 8</th><th scope="col">jul 9</th><th scope="col">jul 10</th></tr>
+      <tr><td>4</td><td>6</td><td>5</td><td>9</td><td>7</td><td>11</td><td>8</td><td>14</td><td>12</td><td>17</td><td>15</td><td>22</td><td>19</td><td>26</td></tr>
+    </table>
+  </div>
+
+  <h2 class="section-title">related/</h2>
+  <p class="chips-row">
+    <a class="tag" href="#">agent security <span class="count">41</span></a>
+    <a class="tag" href="#">mcp <span class="count">33</span></a>
+    <a class="tag" href="#">tool use <span class="count">28</span></a>
+    <a class="tag" href="#">jailbreak <span class="count">19</span></a>
+    <a class="tag" href="#">sandboxing <span class="count">17</span></a>
+    <a class="tag" href="#">zero-click <span class="count">9</span></a>
+    <a class="tag" href="#">disclosure <span class="count">8</span></a>
+  </p>
+
+  <h2 class="section-title">latest/</h2>
+  <div class="tabs" role="tablist" aria-label="latest content by kind">
+    <button class="tab" role="tab" id="tab-articles" aria-selected="true" aria-controls="panel-articles">articles <span class="count">12</span></button>
+    <button class="tab" role="tab" id="tab-youtube" aria-selected="false" aria-controls="panel-youtube" tabindex="-1">youtube <span class="count">4</span></button>
+    <button class="tab" role="tab" id="tab-reddit" aria-selected="false" aria-controls="panel-reddit" tabindex="-1">reddit <span class="count">9</span></button>
+    <button class="tab" role="tab" id="tab-x" aria-selected="false" aria-controls="panel-x" tabindex="-1">x <span class="count">6</span></button>
+  </div>
+
+  <ul class="feed tab-panel" id="panel-articles" role="tabpanel" aria-labelledby="tab-articles">
+    <li><a class="title" href="#">The prompt injection disclosure wave, explained</a>
+      <span class="meta">simon willison · <span class="kind">rss</span> · 2026-07-10</span></li>
+    <li><a class="title" href="#">Indirect injection via calendar invites: a case study</a>
+      <span class="meta">invariant labs · <span class="kind">rss</span> · 2026-07-09</span></li>
+    <li><a class="title" href="#">OWASP refreshes the LLM Top 10 for the agentic era</a>
+      <span class="meta">owasp blog · <span class="kind">rss</span> · 2026-07-08</span></li>
+    <li><a class="title" href="#">Import AI 428: injection season, and what vendors actually fixed</a>
+      <span class="meta">import ai · <span class="kind">rss</span> · 2026-07-07</span></li>
+  </ul>
+  <ul class="feed tab-panel" id="panel-youtube" role="tabpanel" aria-labelledby="tab-youtube" hidden>
+    <li><a class="title" href="#">The week agents got hacked (and patched)</a>
+      <span class="meta">ai explained · <span class="kind">youtube</span> · 2026-07-09</span></li>
+    <li><a class="title" href="#">Breaking an MCP server in 20 minutes</a>
+      <span class="meta">liveoverflow · <span class="kind">youtube</span> · 2026-07-06</span></li>
+  </ul>
+  <ul class="feed tab-panel" id="panel-reddit" role="tabpanel" aria-labelledby="tab-reddit" hidden>
+    <li><a class="title" href="#">Coordinated agent-platform disclosure megathread</a>
+      <span class="meta">r/netsec · <span class="kind">reddit</span> · 2026-07-10</span></li>
+    <li><a class="title" href="#">[D] Is provenance tagging enough against indirect injection?</a>
+      <span class="meta">r/machinelearning · <span class="kind">reddit</span> · 2026-07-09</span></li>
+    <li><a class="title" href="#">How I sandbox my local agents (writeup + configs)</a>
+      <span class="meta">r/locallama · <span class="kind">reddit</span> · 2026-07-08</span></li>
+  </ul>
+  <ul class="feed tab-panel" id="panel-x" role="tabpanel" aria-labelledby="tab-x" hidden>
+    <li><a class="title" href="#">Thread: what the three disclosures have in common</a>
+      <span class="meta">@simonw · <span class="kind">x</span> · 2026-07-10</span></li>
+    <li><a class="title" href="#">"capability prompts are the new CSP" - notes from the disclosure wave</a>
+      <span class="meta">@swyx · <span class="kind">x</span> · 2026-07-09</span></li>
+  </ul>
+</section>
+
+</main>
+
+<footer class="site-footer">
+  <p>grepify · identity mock · 3 screens · all values are :root tokens · built for the jinja ssg</p>
+</footer>
+
+<script>
+/* Tiny vanilla only: screen switcher (mock nav), tabs, theme toggle. */
+(function () {
+  "use strict";
+
+  /* screens */
+  var screens = { home: "screen-home", digest: "screen-digest", keyword: "screen-keyword" };
+  function show(name) {
+    Object.keys(screens).forEach(function (k) {
+      document.getElementById(screens[k]).hidden = (k !== name);
+    });
+    document.querySelectorAll(".site-nav a[data-screen]").forEach(function (a) {
+      if (a.dataset.screen === name) { a.setAttribute("aria-current", "page"); }
+      else { a.removeAttribute("aria-current"); }
+    });
+    window.scrollTo(0, 0);
+  }
+  document.addEventListener("click", function (e) {
+    var el = e.target.closest("[data-screen], [data-goto]");
+    if (!el) { return; }
+    e.preventDefault();
+    show(el.dataset.screen || el.dataset.goto);
+  });
+
+  /* tabs */
+  var tablist = document.querySelector(".tabs");
+  var tabs = Array.prototype.slice.call(tablist.querySelectorAll(".tab"));
+  function selectTab(tab) {
+    tabs.forEach(function (t) {
+      var on = (t === tab);
+      t.setAttribute("aria-selected", on ? "true" : "false");
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+    });
+    tab.focus();
+  }
+  tablist.addEventListener("click", function (e) {
+    var tab = e.target.closest(".tab");
+    if (tab) { selectTab(tab); }
+  });
+  tablist.addEventListener("keydown", function (e) {
+    var i = tabs.indexOf(document.activeElement);
+    if (i < 0) { return; }
+    if (e.key === "ArrowRight") { selectTab(tabs[(i + 1) % tabs.length]); }
+    if (e.key === "ArrowLeft") { selectTab(tabs[(i - 1 + tabs.length) % tabs.length]); }
+  });
+
+  /* theme */
+  var root = document.documentElement;
+  var btn = document.getElementById("theme-toggle");
+  btn.addEventListener("click", function () {
+    var light = root.getAttribute("data-theme") !== "light";
+    root.setAttribute("data-theme", light ? "light" : "dark");
+    btn.textContent = "theme: " + (light ? "light" : "dark");
+    btn.setAttribute("aria-pressed", light ? "true" : "false");
+  });
+})();
+</script>
+</body>
+</html>
