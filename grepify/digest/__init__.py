@@ -8,10 +8,10 @@ site build (E4 pages) consume:
   :class:`DigestInput` / :class:`KeywordBrief`: deterministic, category-keyed.
 - Digest generation (GRP-41/42) - :func:`generate_digest` (skip-threshold,
   provenance, template fallback), :func:`digest_id_for`, :data:`PROMPT_VERSION`.
-- Pipeline (GRP-41/42) - :func:`run_digest_pipeline` + :class:`DigestRunResult`,
-  :func:`period_for`.
+- Pipeline (GRP-41/42) - :func:`run_digest_pipeline` (catch-up + idempotent) +
+  :class:`DigestRunResult`, :func:`period_for`, :func:`periods_for`.
 - Period math (GRP-41/42) - :func:`previous_day`, :func:`previous_iso_week`,
-  :class:`Period`, :data:`EDMONTON`.
+  :func:`recent_days`, :class:`Period`, :data:`EDMONTON`.
 - Cron gating (GRP-45) - :func:`digest_gate` + :class:`DigestGate`,
   :func:`format_gate`.
 
@@ -37,8 +37,19 @@ from grepify.digest.generate import (
     digest_id_for,
     generate_digest,
 )
-from grepify.digest.periods import EDMONTON, Period, previous_day, previous_iso_week
-from grepify.digest.pipeline import DigestRunResult, period_for, run_digest_pipeline
+from grepify.digest.periods import (
+    EDMONTON,
+    Period,
+    previous_day,
+    previous_iso_week,
+    recent_days,
+)
+from grepify.digest.pipeline import (
+    DigestRunResult,
+    period_for,
+    periods_for,
+    run_digest_pipeline,
+)
 from grepify.digest.prompt import PROMPT_VERSION, build_messages
 from grepify.digest.rising import is_rising
 
@@ -59,7 +70,9 @@ __all__ = [
     "generate_digest",
     "is_rising",
     "period_for",
+    "periods_for",
     "previous_day",
     "previous_iso_week",
+    "recent_days",
     "run_digest_pipeline",
 ]

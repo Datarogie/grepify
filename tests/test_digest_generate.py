@@ -189,7 +189,7 @@ def _settings() -> SettingsConfig:
                 "active_profile": "p",
                 "profiles": {"p": {"endpoint": "openai-compat", "model": "m"}},
             },
-            "digest": {"min_items": 3},
+            "digest": {"min_items": 3, "daily_lookback_days": 1},
         }
     )
 
@@ -224,3 +224,80 @@ def test_pipeline_is_deterministic(tmp_path: Path) -> None:
     first, _ = run_digest_pipeline(queries, _client([_reply()]), **args)  # type: ignore[arg-type]
     second, _ = run_digest_pipeline(queries, _client([_reply()]), **args)  # type: ignore[arg-type]
     assert first == second
+
+
+def _catchup_settings(lookback: int) -> SettingsConfig:
+    return SettingsConfig.model_validate(
+        {
+            "llm": {
+                "active_profile": "p",
+                "profiles": {"p": {"endpoint": "openai-compat", "model": "m"}},
+            },
+            "digest": {"min_items": 3, "daily_lookback_days": lookback},
+        }
+    )
+
+
+def test_pipeline_skips_periods_whose_digest_already_exists(tmp_path: Path) -> None:
+    # Idempotency (T3): a (category, period) already in truth is skipped with no
+    # LLM call, so a re-run generates nothing. The client script is empty, so any
+    # attempted LLM call would IndexError.
+    queries = _pipeline_queries(tmp_path)
+    existing = {digest_id_for(DigestKind.DAILY, "ai", _PERIOD.key)}
+    summary, digests = run_digest_pipeline(
+        queries,
+        _client([]),
+        categories=["ai"],
+        kind=DigestKind.DAILY,
+        clock=_CLOCK,
+        run_id="r1",
+        settings=_catchup_settings(1),
+        existing_digest_ids=existing,
+    )
+    assert digests == []
+    assert summary.digests_generated == 0
+    assert summary.already_present == 1
+
+
+def test_pipeline_catches_up_missing_day_and_skips_present_one(tmp_path: Path) -> None:
+    # Catch-up (T3): with a 2-day window, yesterday's digest already exists but
+    # the day before is missing and has data (seed a second day), so exactly the
+    # missing day is generated.
+    repo = JsonlSqliteRepository(tmp_path)
+    # yesterday (07-07) already has data via _pipeline_queries-style seeding, plus
+    # the day before (07-06) gets its own 3 ai items so it clears min_items.
+    repo.add_items(
+        [
+            _item("i1", source_id="s1", published_at="2026-07-07T18:00:00+00:00"),
+            _item("i2", source_id="s1", published_at="2026-07-07T18:00:00+00:00"),
+            _item("i3", source_id="s2", published_at="2026-07-07T18:00:00+00:00"),
+            _item("j1", source_id="s1", published_at="2026-07-06T18:00:00+00:00"),
+            _item("j2", source_id="s1", published_at="2026-07-06T18:00:00+00:00"),
+            _item("j3", source_id="s2", published_at="2026-07-06T18:00:00+00:00"),
+        ]
+    )
+    repo.add_item_keywords([_kw(i, "genai") for i in ("i1", "i2", "i3", "j1", "j2", "j3")])
+    repo.load_config(
+        [SourceGroup(group_id="g-ai", name="AI", category="ai")],
+        [_source("s1", "g-ai"), _source("s2", "g-ai")],
+    )
+    repo.rebuild_cache()
+    repo.close()
+    queries = TrendQueries(
+        open_cache(DataLayout(tmp_path)), KeywordRules.from_config(KeywordsConfig())
+    )
+
+    existing = {digest_id_for(DigestKind.DAILY, "ai", "2026-07-07")}  # yesterday present
+    summary, digests = run_digest_pipeline(
+        queries,
+        _client([_reply()]),  # exactly one reply: only the missing 07-06 day calls the LLM
+        categories=["ai"],
+        kind=DigestKind.DAILY,
+        clock=_CLOCK,
+        run_id="r1",
+        settings=_catchup_settings(2),
+        existing_digest_ids=existing,
+    )
+    assert [d.digest_id for d in digests] == ["daily-ai-2026-07-06"]
+    assert summary.already_present == 1
+    assert summary.categories_total == 2  # 1 category x 2 days considered

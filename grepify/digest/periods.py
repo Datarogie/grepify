@@ -68,6 +68,31 @@ def previous_day(instant: datetime) -> Period:
     )
 
 
+def recent_days(instant: datetime, count: int) -> list[Period]:
+    """The ``count`` most-recently-completed Edmonton days, newest first.
+
+    ``recent_days(instant, 1) == [previous_day(instant)]``; larger counts are the
+    catch-up window the daily digest walks so a run backfills any recent day that
+    has no digest yet (reliability: a missed morning gate window no longer means
+    a permanently missing digest, GRP-45/T3). ``count <= 0`` yields ``[]``.
+    """
+    local = _local_date(instant)
+    today_start = _midnight(local)
+    periods: list[Period] = []
+    for back in range(1, count + 1):
+        day_start = today_start - timedelta(days=back)
+        day_end = today_start - timedelta(days=back - 1)
+        periods.append(
+            Period(
+                start=to_iso(day_start),
+                end=to_iso(day_end),
+                key=day_start.strftime("%Y-%m-%d"),
+                days=1,
+            )
+        )
+    return periods
+
+
 def previous_iso_week(instant: datetime) -> Period:
     """The most-recently-completed ISO week (Mon-Sun) in Edmonton (F-DIG-02)."""
     local = _local_date(instant)

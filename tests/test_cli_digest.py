@@ -185,6 +185,44 @@ def test_digest_daily_generates_and_stores(tmp_path: Path, monkeypatch: pytest.M
     assert digests[0].model == "digest-model"
 
 
+def test_digest_daily_is_idempotent_across_runs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # T3 regression: the first run generates + persists yesterday's digest; a
+    # second run with the same clock makes no LLM call (empty script would
+    # IndexError) and generates nothing - the digest is already in truth.
+    monkeypatch.setenv("LLM_BASE_URL", "https://x/v1")
+    monkeypatch.setenv("LLM_API_KEY", "test-key")
+    reply = json.dumps({"title": "AI today", "tldr": ["genai up"], "body_md": "A narrative."})
+
+    cfg = write_config(tmp_path / "sources", groups={"g1.yml": _GROUP}, settings=_SETTINGS)
+    data = tmp_path / "data"
+    _seed(data)
+
+    monkeypatch.setattr("grepify.cli.build_client", _scripted_build_client([reply]))
+    first = _invoke(cfg, data, "digest", "--kind", "daily")
+    assert first.exit_code == 0, first.stdout
+    assert "1 generated" in first.stdout
+
+    monkeypatch.setattr("grepify.cli.build_client", _scripted_build_client([]))
+    second = _invoke(cfg, data, "digest", "--kind", "daily")
+    assert second.exit_code == 0, second.stdout
+    assert "0 generated" in second.stdout
+    assert "1 already present" in second.stdout
+
+    manifest = latest_manifest(DataLayout(data))
+    assert manifest is not None
+    assert manifest.counts["digests_generated"] == 0
+    assert manifest.counts["digests_already_present"] == 1
+
+    repo = JsonlSqliteRepository(data)
+    try:
+        digests = list(repo.iter_digests())
+    finally:
+        repo.close()
+    assert [d.digest_id for d in digests] == ["daily-ai-2026-07-07"]  # exactly one, not duplicated
+
+
 def test_digest_skips_category_below_threshold(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

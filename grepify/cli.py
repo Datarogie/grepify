@@ -306,6 +306,12 @@ def digest(ctx: typer.Context, kind: KindOpt = DigestKind.DAILY) -> None:
     (``LLM_BASE_URL`` required, ``LLM_API_KEY`` optional), never from committed
     config (PRD §5) - same convention as ``extract``. The period boundary is
     America/Edmonton (PRD §5); the injected clock decides which period.
+
+    Daily runs are self-healing: they walk a catch-up window of the last
+    ``settings.digest.daily_lookback_days`` completed days and generate any that
+    have no digest yet, so a morning run that lands outside the GRP-45 gate window
+    (cron jitter) does not permanently drop a day. A period whose digest already
+    exists is skipped with no LLM call, so the command is idempotent.
     """
     state: AppState = ctx.obj
     layout = DataLayout(state.data_root)
@@ -360,6 +366,9 @@ def digest(ctx: typer.Context, kind: KindOpt = DigestKind.DAILY) -> None:
         categories = [g.category for g in groups if g.enabled]
 
         repository.load_config(groups, config.sources())
+        # Digests already in truth are skipped (no LLM call) so the catch-up run
+        # is idempotent - it only generates the genuinely-missing periods (T3).
+        existing_digest_ids = {d.digest_id for d in repository.iter_digests()}
         repository.rebuild_cache()
         conn = open_cache(layout)
         try:
@@ -372,6 +381,7 @@ def digest(ctx: typer.Context, kind: KindOpt = DigestKind.DAILY) -> None:
                 clock=state.clock,
                 run_id=run_id,
                 settings=settings,
+                existing_digest_ids=existing_digest_ids,
             )
         finally:
             conn.close()
@@ -400,6 +410,7 @@ def digest(ctx: typer.Context, kind: KindOpt = DigestKind.DAILY) -> None:
         counts={
             "categories": summary.categories_total,
             "digests_generated": summary.digests_generated,
+            "digests_already_present": summary.already_present,
             "categories_skipped": len(summary.skipped_categories),
             "categories_template": len(summary.template_categories),
         },
@@ -408,6 +419,7 @@ def digest(ctx: typer.Context, kind: KindOpt = DigestKind.DAILY) -> None:
     write_manifest(layout, manifest)
     typer.echo(
         f"digest ({kind.value}, {summary.period_key}): {summary.digests_generated} generated, "
+        f"{summary.already_present} already present, "
         f"{len(summary.skipped_categories)} skipped; run {run_id}"
     )
 
