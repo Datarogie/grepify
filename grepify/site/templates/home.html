@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}grepify - home{% endblock %}
 {% block content %}
-<h1>grepify</h1>
+<h1 class="visually-hidden">grepify home</h1>
 
 <section aria-label="Statistics">
 <ul class="stats">
@@ -9,8 +9,8 @@
 <li><span class="stat-value">{{ stats.source_count }}</span><span class="stat-label">sources</span></li>
 <li><span class="stat-value">{{ stats.keyword_count }}</span><span class="stat-label">keywords</span></li>
 <li><span class="stat-value">{{ stats.mention_count }}</span><span class="stat-label">mentions</span></li>
-<li><span class="stat-value">{{ stats.top_keyword or "-" }}</span><span class="stat-label">top keyword</span></li>
-<li><span class="stat-value">{{ stats.top_source or "-" }}</span><span class="stat-label">top source</span></li>
+<li><span class="stat-value small">{{ stats.top_keyword or "-" }}</span><span class="stat-label">top keyword</span></li>
+<li><span class="stat-value small">{{ stats.top_source or "-" }}</span><span class="stat-label">top source</span></li>
 </ul>
 </section>
 
@@ -19,7 +19,7 @@
 <div class="cloud">
 {% for kw in cloud.keywords %}
 {% if kw.keyword in keyword_pages %}{% set href = meta.base_path ~ "keyword/" ~ keyword_slug(kw.keyword) ~ "/" %}{% else %}{% set href = meta.base_path ~ "items/#keyword=" ~ (kw.keyword | urlencode) %}{% endif %}
-<a href="{{ href }}" style="font-size: {{ cloud_font_rem(kw.count, min_count=cloud.min_count, max_count=cloud.max_count) }}rem" title="{{ kw.count }} mentions">{{ kw.keyword }}{% if kw.delta > 0 %} <span class="delta-up">+{{ kw.delta }}</span>{% elif kw.delta < 0 %} <span class="delta-down">{{ kw.delta }}</span>{% endif %}</a>
+<a href="{{ href }}" class="w{{ cloud_weight_bucket(kw.count, min_count=cloud.min_count, max_count=cloud.max_count) }}" title="{{ kw.count }} mentions">{{ kw.keyword }}{% if kw.delta > 0 %} <span class="delta-up">+{{ kw.delta }}</span>{% elif kw.delta < 0 %} <span class="delta-down">{{ kw.delta }}</span>{% endif %}</a>
 {% endfor %}
 </div>
 {% else %}
