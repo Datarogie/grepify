@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Commit-hygiene guard for the commit MESSAGE (CLAUDE.md hard rules): no em/en
+# dashes and no AI-authorship attribution in the message itself.
+#
+# Escape hatch: `git commit --no-verify` (only for genuine external data).
+set -euo pipefail
+
+msg_file="$1"
+# Message body without git's comment lines.
+body="$(grep -v '^#' "$msg_file" || true)"
+
+fail() {
+  echo "commit blocked (commit-msg): $1" >&2
+  shift
+  for line in "$@"; do echo "  $line" >&2; done
+  exit 1
+}
+
+# chr() keeps this script itself dash-free; exits 1 if the message has a dash.
+if ! printf '%s' "$body" | python3 -c "import sys; sys.exit(1 if {chr(0x2014), chr(0x2013)} & set(sys.stdin.read()) else 0)"; then
+  fail "the commit message contains an em/en dash (U+2014 / U+2013)." \
+    "Use a spaced hyphen ' - ' or reword."
+fi
+
+if printf '%s' "$body" | grep -qiE 'co-authored-by:[[:space:]]*.*(claude|anthropic)|claude-session|generated (with|by) claude|claude\.ai/code'; then
+  fail "the commit message contains AI-authorship attribution." \
+    "Remove Co-Authored-By / Claude-Session / 'Generated with Claude' / claude.ai/code."
+fi
+
+exit 0
