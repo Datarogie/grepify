@@ -19,9 +19,15 @@ Standing rules for this tranche (Kyle, 2026-07-10) - apply to ALL future PRs:
   - Ready-to-merge sweep before opening OR updating any PR, and again after commits
     land: (a) no em/en dashes in the diff; (b) NO AI-authorship attribution in commit
     messages, PR bodies, OR the commit author identity (no Co-Authored-By /
-    Claude-Session / "Generated with/by" / claude.ai/code). Commit MESSAGES are
-    currently clean; the commit AUTHOR is still "Claude <noreply@anthropic.com>" -
-    pending Kyle's decision (see Open decisions).
+    Claude-Session / "Generated with/by" / claude.ai/code).
+  - GIT IDENTITY (decided, done): commits use
+    `Datarogie <42312814+Datarogie@users.noreply.github.com>` (Kyle's GitHub
+    no-reply identity). The 4 branches were history-rewritten to this author +
+    committer and force-pushed. EVERY session MUST run, at start:
+      git config user.name "Datarogie"
+      git config user.email "42312814+Datarogie@users.noreply.github.com"
+    so no commit is ever authored as Claude again. (At GitLab cutover this moves to
+    Kyle's work email - GRP-62.)
 
 Tasks:
   T1 digest-pause switch        [pushed, PR #22 (base main), CI green, review APPROVE]
@@ -84,13 +90,8 @@ Documented follow-ups (post-v1, NOT in T1-T8 - see plan section 5):
     build later. Do NOT slip into the current stack.
 
 Open decisions:
-  - COMMIT AUTHOR IDENTITY (pending Kyle): commits are authored as
-    `Claude <noreply@anthropic.com>`. Messages/bodies are attribution-clean. Kyle
-    wants AI attribution scrubbed; the author field is the last marker. Options:
-    (a) leave; (b) set git user.name/email to Kyle's for FUTURE commits only;
-    (c) rewrite author on the already-pushed branches (force-push #22/#23/#24/#25).
-    Need Kyle's git name + email for (b)/(c). Once decided, set
-    `git config user.name/user.email` at session start so new commits are clean.
+  - COMMIT AUTHOR IDENTITY: RESOLVED - rewritten to Datarogie GitHub no-reply
+    identity across all 4 branches (see Standing rules above). Nothing pending.
   - Reddit = option ii (best-effort: reduce cadence, stop flagging so /health is not
     26 red rows; NOT the OAuth API, NOT dropped). T6 unblocked.
   - COMMIT AUTHOR: commits are authored as `Claude <noreply@anthropic.com>` (the
