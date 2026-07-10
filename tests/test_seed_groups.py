@@ -21,7 +21,8 @@ from grepify.models import SourceKind
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 _SOURCES = _REPO_ROOT / "sources"
 
-# The five trendcloud-derived AI groups + Kyle's data-engineering group (PRD §7).
+# The five trendcloud-derived AI groups + Kyle's data-engineering group (PRD §7)
+# + the E5 X watchlist (GRP-50/51).
 _EXPECTED_GROUPS = {
     "ai-research",
     "ai-business",
@@ -29,8 +30,9 @@ _EXPECTED_GROUPS = {
     "youtube-ai",
     "reddit-ai",
     "data-engineering",
+    "x-watchlist",
 }
-_TRENDCLOUD_GROUPS = _EXPECTED_GROUPS - {"data-engineering"}
+_TRENDCLOUD_GROUPS = _EXPECTED_GROUPS - {"data-engineering", "x-watchlist"}
 # Only these two categories launch (PRD §14); crypto is excluded entirely (PRD §2).
 _ALLOWED_CATEGORIES = {"ai", "data-eng"}
 
@@ -72,6 +74,18 @@ def test_no_forbidden_category() -> None:
 def test_data_engineering_category() -> None:
     by_id = {g.group_id: g for g in _provider().groups()}
     assert by_id["data-engineering"].category == "data-eng"
+
+
+def test_x_watchlist_ships_disabled_ai_category() -> None:
+    # GRP-50/51: X is best-effort and its CI secret is pending, so the watchlist
+    # ships disabled under the ai category (PRD §13/§14 open-question #4).
+    by_id = {g.group_id: g for g in _provider().groups()}
+    watchlist = by_id["x-watchlist"]
+    assert watchlist.category == "ai"
+    assert watchlist.enabled is False
+    handles = [s for s in _provider().sources() if s.group_id == "x-watchlist"]
+    assert all(s.kind is SourceKind.X for s in handles)
+    assert {s.source_id for s in handles} >= {"x-karpathy", "x-simonw"}
 
 
 def test_prd_mandated_seeds_present() -> None:

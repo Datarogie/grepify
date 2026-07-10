@@ -15,6 +15,16 @@ dependencies = [
     "tzdata>=2024.1",
 ]
 
+[project.optional-dependencies]
+# E5 (M5) integrations, kept optional so the core install and `make check` stay
+# lean and network-free: the X fetcher (twscrape) and YouTube transcripts
+# (youtube-transcript-api) are best-effort source classes (PRD §13) whose real
+# clients import their library lazily. Core code never imports these at module
+# load; only the scheduled `pipeline` CI job installs them (`uv sync --extra x
+# --extra transcripts`). Tests drive both through fixture-based fakes.
+x = ["twscrape>=0.17"]
+transcripts = ["youtube-transcript-api>=1.0"]
+
 [project.scripts]
 grepify = "grepify.cli:app"
 

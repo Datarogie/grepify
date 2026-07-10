@@ -1,0 +1,28 @@
+group: x-watchlist
+name: X accounts
+category: ai
+# Ships disabled: X is a best-effort source (PRD §13) and the burner-account
+# secret (GREPIFY_X_ACCOUNTS) is not yet in CI. Flip to true once it is added
+# (see docs/epics/E5.md) - the X fetcher degrades to a logged skip until then,
+# so enabling early would only add error rows to the health page.
+enabled: false
+sources:
+  # PRD §14 open-question #4: karpathy confirmed; simonw/emollick/natolambert/
+  # swyx picked from the AI-lane candidates (4-6 handles). data-eng handles
+  # (bennstancil/jthandy) belong to a future data-eng watchlist, not this
+  # ai-category group.
+  - id: x-karpathy
+    kind: x
+    handle: karpathy
+  - id: x-simonw
+    kind: x
+    handle: simonw
+  - id: x-emollick
+    kind: x
+    handle: emollick
+  - id: x-natolambert
+    kind: x
+    handle: natolambert
+  - id: x-swyx
+    kind: x
+    handle: swyx

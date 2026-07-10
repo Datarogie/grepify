@@ -52,10 +52,26 @@ from grepify.ingest.orchestrator import (
 from grepify.ingest.reddit import RedditFetcher
 from grepify.ingest.registry import FetcherRegistry
 from grepify.ingest.rss import RssFetcher
+from grepify.ingest.transcript import (
+    TranscriptClient,
+    TranscriptStore,
+    YouTubeTranscriptApiClient,
+    excerpt_transcript,
+)
+from grepify.ingest.x import (
+    FakeTweetSource,
+    SinceIdProvider,
+    Tweet,
+    TweetSource,
+    XFetcher,
+    latest_since_ids,
+    no_since_id,
+)
 from grepify.ingest.youtube import YouTubeFetcher
 
 __all__ = [
     "FakeFetcher",
+    "FakeTweetSource",
     "Fetcher",
     "FetcherRegistry",
     "IngestServices",
@@ -63,15 +79,25 @@ __all__ = [
     "RawItem",
     "RedditFetcher",
     "RssFetcher",
+    "SinceIdProvider",
     "SourceResult",
+    "TranscriptClient",
+    "TranscriptStore",
+    "Tweet",
+    "TweetSource",
+    "XFetcher",
     "YouTubeFetcher",
+    "YouTubeTranscriptApiClient",
     "build_registry",
     "canonicalize_url",
     "compute_content_hash",
     "compute_item_id",
     "dedup_within_batch",
+    "excerpt_transcript",
     "group_near_duplicates",
     "hamming_distance",
+    "latest_since_ids",
+    "no_since_id",
     "normalize",
     "normalize_batch",
     "run_ingest",

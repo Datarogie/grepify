@@ -1,0 +1,30 @@
+{
+  "karpathy": [
+    {
+      "id": "1799000000000000001",
+      "url": "https://x.com/karpathy/status/1799000000000000001",
+      "text": "New nanoGPT speedrun: reproduced GPT-2 (124M) in 90 minutes on one 8XH100 node.\nCode + writeup soon.",
+      "author": "karpathy",
+      "created_at": "2026-07-08T15:04:00+00:00",
+      "lang": "en"
+    },
+    {
+      "id": "1799000000000000002",
+      "url": "https://x.com/karpathy/status/1799000000000000002",
+      "text": "The most underrated skill in the LLM era is still writing clearly.",
+      "author": "karpathy",
+      "created_at": "2026-07-08T16:20:00+00:00",
+      "lang": "en"
+    }
+  ],
+  "simonw": [
+    {
+      "id": "1799000000000000010",
+      "url": "https://x.com/simonw/status/1799000000000000010",
+      "text": "Shipped a new plugin for my datasette project that runs prompts against local models via llm.",
+      "author": "simonw",
+      "created_at": "2026-07-08T17:00:00+00:00",
+      "lang": "en"
+    }
+  ]
+}

@@ -60,7 +60,11 @@ jobs:
           enable-cache: true
 
       - name: Install
-        run: make install
+        # The cron pipeline needs the E5 optional extras (twscrape for X,
+        # youtube-transcript-api for transcripts); `make check`/`validate` stay
+        # on the lean `make install` (PRD §13 - both are best-effort source
+        # classes, kept out of the core install).
+        run: make install-pipeline
 
       - name: Configure git identity for data commits
         run: |
@@ -75,6 +79,14 @@ jobs:
         run: make digest-gate >> "$GITHUB_OUTPUT"
 
       - name: Ingest
+        # X account credentials are consumed only here (never the `validate`
+        # workflow, PRD §5 security). GREPIFY_X_ACCOUNTS is a JSON array of burner
+        # accounts (see docs/epics/E5.md); when the secret is unset the X fetcher
+        # degrades to a logged skip, so ingest is safe to run before it lands.
+        # Transcripts need no secret (F-ING-03, absence-tolerant).
+        env:
+          GREPIFY_X_ACCOUNTS: ${{ secrets.GREPIFY_X_ACCOUNTS }}
+          GREPIFY_X_ACCOUNTS_DB: ${{ secrets.GREPIFY_X_ACCOUNTS_DB }}
         run: make ingest
 
       - name: Extract

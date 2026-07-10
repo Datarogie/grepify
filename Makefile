@@ -6,7 +6,7 @@
 .DEFAULT_GOAL := help
 UV ?= uv
 
-.PHONY: help install fmt lint typecheck test check \
+.PHONY: help install install-pipeline fmt lint typecheck test check \
         ingest extract trends digest digest-daily digest-weekly build validate health backfill \
         digest-gate data-branch commit-data site eval
 
@@ -16,6 +16,9 @@ help: ## List available targets
 
 install: ## Sync the dev environment
 	$(UV) sync --group dev
+
+install-pipeline: ## Sync dev + the E5 optional extras (X via twscrape, YouTube transcripts) for the cron pipeline job
+	$(UV) sync --group dev --extra x --extra transcripts
 
 fmt: ## Auto-format
 	$(UV) run ruff format .
