@@ -188,3 +188,25 @@
 {"item_id":"c978b7dd74f1fc93251fcd856fd710f60798ce9c15fd41516a38d6636a953bb4","keyword":"executive bonuses","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:41:25+00:00"}
 {"item_id":"c978b7dd74f1fc93251fcd856fd710f60798ce9c15fd41516a38d6636a953bb4","keyword":"telecommunications","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:41:25+00:00"}
 {"item_id":"c978b7dd74f1fc93251fcd856fd710f60798ce9c15fd41516a38d6636a953bb4","keyword":"infrastructure failure","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:41:25+00:00"}
+{"item_id":"b22e4adbf2be190c82af288400ca212bbcebaed8821bfdf5832597014f1adde9","keyword":"robota","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
+{"item_id":"b22e4adbf2be190c82af288400ca212bbcebaed8821bfdf5832597014f1adde9","keyword":"karel capek","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
+{"item_id":"b22e4adbf2be190c82af288400ca212bbcebaed8821bfdf5832597014f1adde9","keyword":"rur","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
+{"item_id":"b22e4adbf2be190c82af288400ca212bbcebaed8821bfdf5832597014f1adde9","keyword":"robotics","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
+{"item_id":"b22e4adbf2be190c82af288400ca212bbcebaed8821bfdf5832597014f1adde9","keyword":"generative ai","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
+{"item_id":"b22e4adbf2be190c82af288400ca212bbcebaed8821bfdf5832597014f1adde9","keyword":"theater","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
+{"item_id":"b22e4adbf2be190c82af288400ca212bbcebaed8821bfdf5832597014f1adde9","keyword":"artificial intelligence","rank":7,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
+{"item_id":"b22e4adbf2be190c82af288400ca212bbcebaed8821bfdf5832597014f1adde9","keyword":"science fiction","rank":8,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
+{"item_id":"0628bfabd04f5d4ee33712b11d85ad48935e021a6c54fe9fe773f5e61b36b805","keyword":"gpt-5.6","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
+{"item_id":"0628bfabd04f5d4ee33712b11d85ad48935e021a6c54fe9fe773f5e61b36b805","keyword":"artificial intelligence","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
+{"item_id":"0628bfabd04f5d4ee33712b11d85ad48935e021a6c54fe9fe773f5e61b36b805","keyword":"large language models","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
+{"item_id":"0628bfabd04f5d4ee33712b11d85ad48935e021a6c54fe9fe773f5e61b36b805","keyword":"sol","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
+{"item_id":"0628bfabd04f5d4ee33712b11d85ad48935e021a6c54fe9fe773f5e61b36b805","keyword":"terra","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
+{"item_id":"0628bfabd04f5d4ee33712b11d85ad48935e021a6c54fe9fe773f5e61b36b805","keyword":"luna","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
+{"item_id":"0628bfabd04f5d4ee33712b11d85ad48935e021a6c54fe9fe773f5e61b36b805","keyword":"ai models","rank":7,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
+{"item_id":"ffe772d5626295fa16fa0fc12fd1f62c1a5e53cb20717e4e30ab30d1d38b64aa","keyword":"lingbot-world-infinity","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
+{"item_id":"ffe772d5626295fa16fa0fc12fd1f62c1a5e53cb20717e4e30ab30d1d38b64aa","keyword":"ant group","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
+{"item_id":"ffe772d5626295fa16fa0fc12fd1f62c1a5e53cb20717e4e30ab30d1d38b64aa","keyword":"world model","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
+{"item_id":"ffe772d5626295fa16fa0fc12fd1f62c1a5e53cb20717e4e30ab30d1d38b64aa","keyword":"video generation","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
+{"item_id":"ffe772d5626295fa16fa0fc12fd1f62c1a5e53cb20717e4e30ab30d1d38b64aa","keyword":"embodied intelligence","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
+{"item_id":"ffe772d5626295fa16fa0fc12fd1f62c1a5e53cb20717e4e30ab30d1d38b64aa","keyword":"moba attention","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
+{"item_id":"ffe772d5626295fa16fa0fc12fd1f62c1a5e53cb20717e4e30ab30d1d38b64aa","keyword":"agentic ai","rank":7,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T04:53:00+00:00"}
