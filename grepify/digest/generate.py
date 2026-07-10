@@ -19,11 +19,10 @@ Three outcomes for one category:
 
 Provenance (F-DIG-04)
 ---------------------
-``model`` records what produced the digest - the profile model on the LLM path,
-:data:`TEMPLATE_MODEL` on the degraded template path. Prompt provenance is the
-:data:`~grepify.digest.prompt.PROMPT_VERSION` code constant (model-only per-row,
-matching the E2 ``item_keywords`` decision - no ``prompt_version`` column in the
-PRD §6 schema).
+Both ``model`` and ``prompt_version`` are recorded per digest. On the LLM path
+that is the profile model plus :data:`~grepify.digest.prompt.PROMPT_VERSION`; on
+the degraded template path it is :data:`TEMPLATE_MODEL` plus
+:data:`TEMPLATE_PROMPT_VERSION` (``'none'`` - the template uses no LLM prompt).
 
 Determinism (F-SIT-08 / S8)
 ---------------------------
@@ -44,12 +43,13 @@ import json
 
 from grepify.clock import Clock, to_iso
 from grepify.digest.assemble import DigestInput
-from grepify.digest.prompt import build_messages
+from grepify.digest.prompt import PROMPT_VERSION, build_messages
 from grepify.errors import LlmError
 from grepify.llm import LlmClient
 from grepify.models import Digest, DigestKind
 
 TEMPLATE_MODEL = "template"  # provenance marker for a degraded (non-LLM) digest
+TEMPLATE_PROMPT_VERSION = "none"  # the template path uses no LLM prompt (F-DIG-04)
 
 
 def digest_id_for(kind: DigestKind, category: str, period_key: str) -> str:
@@ -75,10 +75,12 @@ def generate_digest(
     try:
         title, body_md = _generate_llm(digest_input, client, run_id=run_id)
         model = client.model
+        prompt_version = PROMPT_VERSION
     except LlmError:
         # LLM down or over budget or malformed reply -> deterministic template.
         title, body_md = _template_digest(digest_input)
         model = TEMPLATE_MODEL
+        prompt_version = TEMPLATE_PROMPT_VERSION
 
     return Digest(
         digest_id=digest_id_for(digest_input.kind, digest_input.category, digest_input.period.key),
@@ -90,6 +92,7 @@ def generate_digest(
         body_md=body_md,
         top_keywords=top_keywords_json,
         model=model,
+        prompt_version=prompt_version,
         created_at=created_at,
     )
 

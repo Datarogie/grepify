@@ -9,12 +9,9 @@ It must return exactly ``{"title", "tldr": [...], "body_md"}`` so the parser
 rendered from the deterministic assembler, not asked of the model.
 
 The prompt is versioned by the :data:`PROMPT_VERSION` module constant, bumped on
-any wording change so it is the audit anchor in code (PRD §5). Per-row
-provenance on the stored :class:`~grepify.models.Digest` is the ``model`` field
-only - the same model-only decision E2 took for ``item_keywords`` (no
-``prompt_version`` column in the PRD §6 schema; see ``docs/epics/E2.md``). The
-literal F-DIG-04 "prompt version recorded" is flagged as a PRD-diff candidate
-rather than met by a silent schema change.
+any wording change (PRD §5). It is recorded per digest: the stored
+:class:`~grepify.models.Digest` carries both ``model`` and ``prompt_version``
+(PRD §6 schema, F-DIG-04), so a mixed-provenance archive is auditable.
 
 Failure modes
 -------------

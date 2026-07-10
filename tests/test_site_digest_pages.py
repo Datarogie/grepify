@@ -84,6 +84,7 @@ def _digest() -> Digest:
         body_md="**TL;DR**\n\n- genai surged\n\nA short narrative about genai.",
         top_keywords=json.dumps([{"keyword": "genai", "count": 3}]),
         model="digest-model",
+        prompt_version="digest-v1",
         created_at="2026-07-08T13:00:00+00:00",
     )
 

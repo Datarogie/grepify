@@ -89,6 +89,7 @@ def test_llm_success_records_model_and_composed_body() -> None:
     )
     assert digest is not None
     assert digest.model == "digest-model"  # provenance = the model that wrote it
+    assert digest.prompt_version == "digest-v1"  # prompt provenance recorded (F-DIG-04)
     assert digest.digest_id == digest_id_for(DigestKind.DAILY, "ai", _PERIOD.key)
     assert digest.title == "AI moved fast"
     # body composes the TL;DR bullets then the narrative
@@ -116,6 +117,7 @@ def test_over_budget_degrades_to_template() -> None:
     )
     assert digest is not None
     assert digest.model == TEMPLATE_MODEL
+    assert digest.prompt_version == "none"  # template path used no LLM prompt
     assert "genai" in digest.body_md  # built from assembler data alone
 
 

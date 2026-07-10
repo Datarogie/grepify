@@ -48,6 +48,11 @@ ConfigProvider interface signatures, tooling standards), then implement
 GRP-01 through GRP-05 exactly as scoped in the PRD.
 
 Hard rules:
+- Follow CLAUDE.md writing conventions (top priority): never use em/en dashes
+  anywhere (use a spaced hyphen or reword); never add AI/agent authorship
+  attribution (no `Co-Authored-By:`, `Claude-Session:`, "Generated with Claude
+  Code", or `claude.ai/code` links) in commit messages, PR/MR titles or bodies,
+  code, or docs. Sweep the branch clean before opening or updating a PR.
 - Follow PRD §5 decisions verbatim (JSONL truth + SQLite cache, Jinja later,
   budget gates). No architecture changes without asking.
 - No features beyond the issues in scope. No silent behavior changes.

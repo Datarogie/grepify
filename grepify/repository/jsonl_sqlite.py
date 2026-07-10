@@ -247,8 +247,8 @@ class JsonlSqliteRepository(Repository):
         conn.executemany(
             "insert into digests "
             "(digest_id, kind, category, period_start, period_end, title, body_md, "
-            "top_keywords, model, created_at) "
-            "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "top_keywords, model, prompt_version, created_at) "
+            "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [
                 (
                     d.digest_id,
@@ -260,6 +260,7 @@ class JsonlSqliteRepository(Repository):
                     d.body_md,
                     d.top_keywords,
                     d.model,
+                    d.prompt_version,
                     d.created_at,
                 )
                 for d in self.iter_digests()

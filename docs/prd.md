@@ -181,6 +181,16 @@ create table digests (
   body_md        text not null,
   top_keywords   text not null,             -- json [{keyword, count}]
   model          text not null,
+  prompt_version text not null,             -- GRP-41 revision (Kyle-approved in
+                                            -- PR #13): F-DIG-04 wants "model +
+                                            -- prompt version recorded"; the
+                                            -- prompt id ('digest-v1', or 'none'
+                                            -- when the LLM-down template path
+                                            -- ran) is stored per row so a
+                                            -- mixed-provenance archive is
+                                            -- auditable. Unlike item_keywords
+                                            -- (model-only), digests carry the
+                                            -- version explicitly.
   created_at     text not null
 );
 
