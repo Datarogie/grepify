@@ -46,6 +46,20 @@ _SETTINGS = textwrap.dedent(
     """
 ).strip()
 
+_SETTINGS_PAUSED = textwrap.dedent(
+    """
+    llm:
+      active_profile: p
+      max_items_per_call: 25
+      profiles:
+        p: {endpoint: openai-compat, model: digest-model, max_calls_per_run: 40}
+    digest:
+      min_items: 2
+      enabled: false
+    timezone: America/Edmonton
+    """
+).strip()
+
 _GROUP = """
     group: g1
     name: G1
@@ -196,6 +210,55 @@ def test_digest_skips_category_below_threshold(
     manifest = latest_manifest(DataLayout(data))
     assert manifest is not None
     assert manifest.counts["categories_skipped"] == 1
+
+
+def test_digest_paused_when_disabled_generates_nothing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # digest.enabled=false freezes generation: no LLM calls, no digest files,
+    # exit 0, and a manifest note recording the pause (T1 pause switch).
+    monkeypatch.setenv("LLM_BASE_URL", "https://x/v1")
+
+    def _explode(*_a: object, **_k: object) -> object:
+        raise AssertionError("build_client must not run when digest is paused")
+
+    monkeypatch.setattr("grepify.cli.build_client", _explode)
+
+    cfg = write_config(tmp_path / "sources", groups={"g1.yml": _GROUP}, settings=_SETTINGS_PAUSED)
+    data = tmp_path / "data"
+    _seed(data)
+
+    result = _invoke(cfg, data, "digest", "--kind", "daily")
+    assert result.exit_code == 0, result.stdout
+    assert "paused" in result.stdout
+
+    manifest = latest_manifest(DataLayout(data))
+    assert manifest is not None
+    assert manifest.command == "digest"
+    assert manifest.ok is True
+    assert manifest.counts["digests_generated"] == 0
+    assert any("paused" in note for note in manifest.notes)
+
+    repo = JsonlSqliteRepository(data)
+    try:
+        assert list(repo.iter_digests()) == []
+    finally:
+        repo.close()
+
+
+def test_digest_paused_does_not_require_llm_base_url(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The pause is checked before the LLM_BASE_URL requirement, so remediation
+    # runs need no deployment secrets to keep digests frozen.
+    monkeypatch.delenv("LLM_BASE_URL", raising=False)
+    cfg = write_config(tmp_path / "sources", groups={"g1.yml": _GROUP}, settings=_SETTINGS_PAUSED)
+    data = tmp_path / "data"
+    _seed(data)
+
+    result = _invoke(cfg, data, "digest")
+    assert result.exit_code == 0, result.stdout
+    assert "paused" in result.stdout
 
 
 def test_digest_gate_prints_flags(tmp_path: Path) -> None:

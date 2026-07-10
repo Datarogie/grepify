@@ -148,6 +148,7 @@ class Windows(_ConfigModel):
 class DigestSettings(_ConfigModel):
     """Rising-detection + digest-shaping knobs (PRD §8 F-TRD-03 / F-DIG-01/03)."""
 
+    enabled: bool = True  # pause switch: when false, `digest` no-ops (no LLM calls, no files)
     rising_min_count: int = 3  # F-TRD-03: a keyword needs >= this count to be "rising"
     rising_ratio: float = 3.0  # F-TRD-03: and count/previous-count >= this ratio
     min_items: int = 10  # F-DIG-03: skip (not fail) a category digest below this

@@ -33,10 +33,13 @@ Failure modes
   propagates :class:`~grepify.errors.ConfigError` for bad config. Once running,
   per-batch LLM failures degrade to the fallback extractor (PRD §9) rather
   than failing the command.
-- ``digest`` exits non-zero if ``LLM_BASE_URL`` is unset (same convention as
-  ``extract``); once running, an LLM that is down or over budget degrades each
-  affected category to a deterministic template digest (PRD §9/§13) rather than
-  failing the run, and a category below the item threshold is skipped (F-DIG-03).
+- ``digest`` no-ops (writes a manifest note, exits 0, no LLM calls, no files)
+  when ``settings.digest.enabled`` is false - the pause switch for data
+  remediation. Otherwise it exits non-zero if ``LLM_BASE_URL`` is unset (same
+  convention as ``extract``); once running, an LLM that is down or over budget
+  degrades each affected category to a deterministic template digest (PRD §9/§13)
+  rather than failing the run, and a category below the item threshold is skipped
+  (F-DIG-03).
 - ``digest-gate`` is a pure clock read; it never fails.
 - The ``trends`` stub never fails the process; it writes a manifest noting the
   not-yet-implemented epic and returns 0.
@@ -289,15 +292,41 @@ def digest(ctx: typer.Context, kind: KindOpt = DigestKind.DAILY) -> None:
     run_id = new_run_id(state.clock)
     started_at = to_iso(state.clock.now())
 
+    config = FilesystemConfigProvider(state.config_root)
+    settings = config.settings()
+
+    # T1 pause switch (settings.digest.enabled): freeze generation during data
+    # remediation. When off, no LLM calls and no digest files - just a manifest
+    # note so the paused run is on the record, and exit 0 (not an error).
+    if not settings.digest.enabled:
+        manifest = RunManifest(
+            run_id=run_id,
+            command="digest",
+            started_at=started_at,
+            finished_at=to_iso(state.clock.now()),
+            ok=True,
+            counts={
+                "categories": 0,
+                "digests_generated": 0,
+                "categories_skipped": 0,
+                "categories_template": 0,
+            },
+            notes=["paused: settings.digest.enabled is false; no digests generated"],
+        )
+        write_manifest(layout, manifest)
+        typer.echo(
+            f"digest ({kind.value}): paused (settings.digest.enabled=false); "
+            f"nothing generated; run {run_id}"
+        )
+        return
+
     base_url = os.environ.get("LLM_BASE_URL")
     if not base_url:
         typer.echo("digest: LLM_BASE_URL is not set; nothing to do", err=True)
         raise typer.Exit(code=1)
 
-    config = FilesystemConfigProvider(state.config_root)
     repository = JsonlSqliteRepository(state.data_root)
     try:
-        settings = config.settings()
         profile = settings.llm.profiles[settings.llm.active_profile]
         client = build_client(
             profile,
