@@ -44,6 +44,11 @@ pages:
     - if: $CI_PIPELINE_SOURCE == "schedule"
     - if: $CI_PIPELINE_SOURCE == "web" # on-demand run from the UI
   resource_group: pipeline # serialize overlapping runs (≈ GH concurrency group)
+  # The pipeline needs the E5 optional extra (youtube-transcript-api for
+  # transcripts); `validate` stays on the lean `make install` from
+  # `default.before_script`. Transcripts need no secret (F-ING-03).
+  before_script:
+    - make install-pipeline
   variables:
     # project-Pages sub-path (https://<group>.gitlab.io/<project>/), from the
     # project name so a fork deploys with no code change (cloneability, PRD §5).

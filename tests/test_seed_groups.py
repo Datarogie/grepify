@@ -21,7 +21,8 @@ from grepify.models import SourceKind
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 _SOURCES = _REPO_ROOT / "sources"
 
-# The five trendcloud-derived AI groups + Kyle's data-engineering group (PRD §7).
+# The five trendcloud-derived AI groups + Kyle's data-engineering group (PRD §7)
+# + the E5 long-form AI-voices group (ai-voices, replaced the dropped X watchlist).
 _EXPECTED_GROUPS = {
     "ai-research",
     "ai-business",
@@ -29,8 +30,9 @@ _EXPECTED_GROUPS = {
     "youtube-ai",
     "reddit-ai",
     "data-engineering",
+    "ai-voices",
 }
-_TRENDCLOUD_GROUPS = _EXPECTED_GROUPS - {"data-engineering"}
+_TRENDCLOUD_GROUPS = _EXPECTED_GROUPS - {"data-engineering", "ai-voices"}
 # Only these two categories launch (PRD §14); crypto is excluded entirely (PRD §2).
 _ALLOWED_CATEGORIES = {"ai", "data-eng"}
 
@@ -72,6 +74,18 @@ def test_no_forbidden_category() -> None:
 def test_data_engineering_category() -> None:
     by_id = {g.group_id: g for g in _provider().groups()}
     assert by_id["data-engineering"].category == "data-eng"
+
+
+def test_ai_voices_group_is_rss_ai_category() -> None:
+    # E5 (Kyle's call): X watchlist dropped in favour of the same people's
+    # long-form RSS/Atom feeds - richer than tweets and needs no auth.
+    by_id = {g.group_id: g for g in _provider().groups()}
+    voices = by_id["ai-voices"]
+    assert voices.category == "ai"
+    sources = [s for s in _provider().sources() if s.group_id == "ai-voices"]
+    assert sources, "expected ai-voices feeds"
+    assert all(s.kind is SourceKind.RSS for s in sources)
+    assert {s.source_id for s in sources} >= {"simon-willison", "latent-space"}
 
 
 def test_prd_mandated_seeds_present() -> None:

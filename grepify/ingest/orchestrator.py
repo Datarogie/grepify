@@ -56,6 +56,7 @@ from grepify.ingest.normalize import dedup_within_batch, normalize_batch
 from grepify.ingest.reddit import RedditFetcher
 from grepify.ingest.registry import FetcherRegistry
 from grepify.ingest.rss import RssFetcher
+from grepify.ingest.transcript import TranscriptStore
 from grepify.ingest.youtube import YouTubeFetcher
 from grepify.models import FetchLogEntry, FetchStatus, Source
 from grepify.repository.base import Repository
@@ -116,11 +117,16 @@ class IngestSummary:
         return sum(r.duration_ms for r in self.results)
 
 
-def build_registry() -> FetcherRegistry:
-    """The production registry: one real fetcher per source kind (E1 scope)."""
+def build_registry(*, transcript_store: TranscriptStore | None = None) -> FetcherRegistry:
+    """The production registry: one real fetcher per source kind (rss/youtube/
+    reddit).
+
+    ``transcript_store``, when given, lets the YouTube fetcher attach a
+    transcript to each video (GRP-52); absent, YouTube behavior is unchanged.
+    """
     registry = FetcherRegistry()
     registry.register(RssFetcher())
-    registry.register(YouTubeFetcher())
+    registry.register(YouTubeFetcher(transcript_store=transcript_store))
     registry.register(RedditFetcher())
     return registry
 

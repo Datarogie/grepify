@@ -156,8 +156,12 @@ def test_build_writes_site_and_manifest(tmp_path: Path) -> None:
     assert manifest.counts["pages_written"] == 5
 
 
-def _fake_registry() -> FetcherRegistry:
-    """One RSS ``FakeFetcher``: ``good-src`` returns an item, ``bad-src`` errors."""
+def _fake_registry(**_kwargs: object) -> FetcherRegistry:
+    """One RSS ``FakeFetcher``: ``good-src`` returns an item, ``bad-src`` errors.
+
+    Accepts (and ignores) the ``build_registry`` kwargs (``transcript_store``)
+    so the CLI's real call site can pass them to this monkeypatched stand-in
+    unchanged."""
     reg = FetcherRegistry()
     reg.register(
         FakeFetcher(
@@ -207,7 +211,7 @@ class _ExplodingFetcher(Fetcher):
         raise ValueError("boom-unexpected")
 
 
-def _fake_registry_with_exploding_reddit() -> FetcherRegistry:
+def _fake_registry_with_exploding_reddit(**_kwargs: object) -> FetcherRegistry:
     reg = FetcherRegistry()
     reg.register(
         FakeFetcher(

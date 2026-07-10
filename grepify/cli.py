@@ -54,10 +54,12 @@ import typer
 
 from grepify.clock import Clock, SystemClock, to_iso
 from grepify.config.filesystem import FilesystemConfigProvider
+from grepify.config.schemas import SettingsConfig
 from grepify.digest import digest_gate, format_gate, run_digest_pipeline
 from grepify.extract import YakeFallbackExtractor, run_extract_pipeline, run_fallback_backfill
 from grepify.health import write_health_snapshot
 from grepify.ingest.orchestrator import IngestServices, build_registry, run_ingest
+from grepify.ingest.transcript import TranscriptStore, YouTubeTranscriptApiClient
 from grepify.keywords import KeywordRules
 from grepify.llm import build_client
 from grepify.models import DigestKind, RunManifest
@@ -105,11 +107,16 @@ def ingest(ctx: typer.Context) -> None:
     config = FilesystemConfigProvider(state.config_root)
     repository = JsonlSqliteRepository(state.data_root)
     try:
+        settings = config.settings()
+        # E5 transcripts (GRP-52), best-effort and absence-tolerant (PRD §13):
+        # the store degrades to null refs when youtube-transcript-api is absent
+        # or a transcript can't be fetched, so it is safe to wire unconditionally.
+        transcript_store = _transcript_store(layout, settings)
         summary = run_ingest(
             IngestServices(
                 config=config,
                 repository=repository,
-                registry=build_registry(),
+                registry=build_registry(transcript_store=transcript_store),
                 clock=state.clock,
             ),
             run_id=run_id,
@@ -195,6 +202,10 @@ def extract(ctx: typer.Context, force: ForceOpt = False) -> None:
         rules = KeywordRules.from_config(config.keywords())
         items = list(repository.iter_items())
         existing_keywords = list(repository.iter_item_keywords())
+        # GRP-53: feed each youtube item's stored transcript excerpt (<=1500
+        # chars) into its extraction prompt. Read-only here (ingest fetches +
+        # stores); a missing/unreadable blob just yields no excerpt (PRD §13).
+        transcript_store = _transcript_store(layout, settings)
         summary, new_keywords = run_extract_pipeline(
             items,
             existing_keywords,
@@ -205,6 +216,7 @@ def extract(ctx: typer.Context, force: ForceOpt = False) -> None:
             rules=rules,
             force=force,
             max_items_per_call=settings.llm.max_items_per_call,
+            transcript_reader=transcript_store.read,
         )
         written = repository.add_item_keywords(new_keywords)
     finally:
@@ -536,6 +548,20 @@ def health(ctx: typer.Context) -> None:
 
 
 # --- helpers ----------------------------------------------------------------
+
+
+def _transcript_store(layout: DataLayout, settings: SettingsConfig) -> TranscriptStore:
+    """A transcript store wired to the real youtube-transcript-api client and the
+    PRD §7 transcript caps/languages. The client imports its library lazily and
+    degrades to null refs when the optional ``transcripts`` extra is absent, so
+    this is safe to build unconditionally (E5). Used for fetch+store in
+    ``ingest`` and read-only excerpting in ``extract``."""
+    return TranscriptStore(
+        layout,
+        YouTubeTranscriptApiClient(),
+        max_chars=settings.limits.transcript_max_chars,
+        languages=settings.limits.transcript_langs,
+    )
 
 
 def _record_stub(ctx: typer.Context, command: str, epic: str) -> None:

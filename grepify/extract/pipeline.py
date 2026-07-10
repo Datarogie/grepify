@@ -71,6 +71,7 @@ from grepify.extract.batcher import (
     FallbackExtractor,
     run_extract,
 )
+from grepify.extract.prompt import TranscriptReader
 from grepify.extract.quality import DataQualityReport, assert_data_quality
 from grepify.keywords import KeywordRules, apply_to_keyword
 from grepify.llm import LlmClient
@@ -108,6 +109,7 @@ def run_extract_pipeline(  # noqa: PLR0913 - items+keywords+client+run context+r
     force: bool = False,
     max_items_per_call: int = DEFAULT_MAX_ITEMS_PER_CALL,
     max_keywords: int = DEFAULT_MAX_KEYWORDS,
+    transcript_reader: TranscriptReader | None = None,
 ) -> tuple[ExtractPipelineResult, list[ItemKeyword]]:
     """Select untagged items (or, with ``force``, every item), extract,
     normalize, and quality-gate the result.
@@ -115,7 +117,9 @@ def run_extract_pipeline(  # noqa: PLR0913 - items+keywords+client+run context+r
     Returns ``(summary, keyword_rows)``; the caller (the ``extract`` CLI
     command) is responsible for writing ``keyword_rows`` via
     :meth:`~grepify.repository.base.Repository.add_item_keywords` and
-    reporting ``summary`` on the run manifest. Raises
+    reporting ``summary`` on the run manifest. ``transcript_reader`` (GRP-53) is
+    passed to the batcher so youtube items with a stored transcript get a
+    <=1500-char excerpt in their prompt. Raises
     :class:`~grepify.errors.DataQualityError` (propagated from
     :func:`~grepify.extract.quality.assert_data_quality`) before anything is
     returned - the caller never has to write and then discover a violation.
@@ -129,6 +133,7 @@ def run_extract_pipeline(  # noqa: PLR0913 - items+keywords+client+run context+r
         fallback=fallback,
         max_items_per_call=max_items_per_call,
         max_keywords=max_keywords,
+        transcript_reader=transcript_reader,
     )
 
     normalized: list[ItemKeyword] = []

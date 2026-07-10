@@ -17,9 +17,10 @@ Public surface every E1/E2/E5 issue builds on:
 - Orchestration (GRP-15): :func:`run_ingest`, :class:`IngestServices`,
   :class:`IngestSummary`, :class:`SourceResult`, :func:`build_registry` - the
   per-source-isolated run loop the ``ingest`` CLI command drives.
-
-The X fetcher (E5) plugs into the same :class:`Fetcher` contract without
-changing it.
+- Transcripts (E5, GRP-52/53): :class:`TranscriptStore` + :class:`TranscriptClient`
+  fetch/cache a YouTube transcript per video (absence-tolerant), and
+  :func:`excerpt_transcript` cuts the <=1500-char excerpt the extract prompt
+  uses.
 
 Failure modes
 -------------
@@ -52,6 +53,12 @@ from grepify.ingest.orchestrator import (
 from grepify.ingest.reddit import RedditFetcher
 from grepify.ingest.registry import FetcherRegistry
 from grepify.ingest.rss import RssFetcher
+from grepify.ingest.transcript import (
+    TranscriptClient,
+    TranscriptStore,
+    YouTubeTranscriptApiClient,
+    excerpt_transcript,
+)
 from grepify.ingest.youtube import YouTubeFetcher
 
 __all__ = [
@@ -64,12 +71,16 @@ __all__ = [
     "RedditFetcher",
     "RssFetcher",
     "SourceResult",
+    "TranscriptClient",
+    "TranscriptStore",
     "YouTubeFetcher",
+    "YouTubeTranscriptApiClient",
     "build_registry",
     "canonicalize_url",
     "compute_content_hash",
     "compute_item_id",
     "dedup_within_batch",
+    "excerpt_transcript",
     "group_near_duplicates",
     "hamming_distance",
     "normalize",

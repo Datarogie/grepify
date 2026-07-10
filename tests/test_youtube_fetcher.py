@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+from pathlib import Path
+
 import pytest
 
 from grepify.errors import FetchError
-from grepify.ingest import YouTubeFetcher
+from grepify.ingest import TranscriptStore, YouTubeFetcher
 from grepify.ingest.http import HttpResponse
 from grepify.models import SourceKind
+from grepify.paths import DataLayout
 from tests.conftest import ScriptedTransport, fixture_response, make_source
 
 _CHANNEL_URL = "https://www.youtube.com/feeds/videos.xml?channel_id=UC1234567890abcdefghijk"
@@ -59,3 +63,36 @@ def test_malformed_feed_raises_fetch_error() -> None:
     transport = ScriptedTransport([fixture_response("rss", "malformed.xml")])
     with pytest.raises(FetchError, match="unparseable"):
         YouTubeFetcher(transport).fetch(make_source("s1", kind=SourceKind.YOUTUBE))
+
+
+class _FakeTranscriptClient:
+    def __init__(self, results: dict[str, str | None]) -> None:
+        self.results = results
+
+    def fetch(self, video_id: str, *, languages: Sequence[str]) -> str | None:
+        return self.results.get(video_id)
+
+
+def _transcript_store(tmp_path: Path, results: dict[str, str | None]) -> TranscriptStore:
+    return TranscriptStore(
+        DataLayout(tmp_path), _FakeTranscriptClient(results), max_chars=60000, languages=["en"]
+    )
+
+
+def test_transcript_ref_attached_when_store_present(tmp_path: Path) -> None:
+    transport = ScriptedTransport([fixture_response("youtube", "channel.xml")])
+    store = _transcript_store(tmp_path, {"vid0001AAA": "a transcript", "vid0002BBB": None})
+    source = make_source("two-minute-papers", kind=SourceKind.YOUTUBE, url=_CHANNEL_URL)
+
+    items = YouTubeFetcher(transport, transcript_store=store).fetch(source)
+
+    # F-ING-03: present transcript attached; absent one leaves transcript_ref null.
+    assert items[0].transcript_ref == "transcripts/vid0001AAA.txt.gz"
+    assert items[1].transcript_ref is None
+
+
+def test_no_transcript_refs_without_store() -> None:
+    transport = ScriptedTransport([fixture_response("youtube", "channel.xml")])
+    source = make_source("two-minute-papers", kind=SourceKind.YOUTUBE, url=_CHANNEL_URL)
+    items = YouTubeFetcher(transport).fetch(source)
+    assert all(i.transcript_ref is None for i in items)

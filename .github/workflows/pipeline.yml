@@ -60,7 +60,11 @@ jobs:
           enable-cache: true
 
       - name: Install
-        run: make install
+        # The cron pipeline needs the E5 optional extra (youtube-transcript-api
+        # for transcripts); `make check`/`validate` stay on the lean `make
+        # install` (PRD §13 - transcripts are a best-effort enrichment, kept out
+        # of the core install).
+        run: make install-pipeline
 
       - name: Configure git identity for data commits
         run: |
@@ -75,6 +79,8 @@ jobs:
         run: make digest-gate >> "$GITHUB_OUTPUT"
 
       - name: Ingest
+        # Transcripts need no secret (F-ING-03, absence-tolerant); a transcript
+        # blocked from CI IPs simply leaves transcript_ref null.
         run: make ingest
 
       - name: Extract

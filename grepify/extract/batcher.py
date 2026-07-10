@@ -51,7 +51,7 @@ from typing import Protocol
 
 from grepify.clock import Clock, to_iso
 from grepify.errors import BudgetExceededError, LlmError
-from grepify.extract.prompt import build_messages
+from grepify.extract.prompt import TranscriptReader, build_messages
 from grepify.llm import ChatMessage, LlmClient
 from grepify.models import ExtractionMethod, Item, ItemKeyword
 
@@ -98,12 +98,15 @@ def run_extract(  # noqa: PLR0913 - items+client+run context+fallback+tuning are
     max_items_per_call: int = DEFAULT_MAX_ITEMS_PER_CALL,
     max_keywords: int = DEFAULT_MAX_KEYWORDS,
     max_malformed_retries: int | None = None,
+    transcript_reader: TranscriptReader | None = None,
 ) -> ExtractResult:
     """Extract keywords for ``items``; see the module docstring for the contract.
 
     ``items`` are taken as-is (untagged-item selection and ``--force`` are GRP-25
     wiring). ``max_malformed_retries`` defaults to the number of batches, so at
-    most one retry per batch and never unbounded.
+    most one retry per batch and never unbounded. ``transcript_reader`` (GRP-53)
+    is passed through to the prompt so youtube items with a stored transcript get
+    a <=1500-char excerpt in their payload; ``None`` leaves the prompt unchanged.
     """
     batches = _chunk(list(items), max_items_per_call)
     retry_budget = len(batches) if max_malformed_retries is None else max_malformed_retries
@@ -122,7 +125,9 @@ def run_extract(  # noqa: PLR0913 - items+client+run context+fallback+tuning are
             continue
 
         batch_ids = [item.item_id for item in batch]
-        messages = build_messages(batch, max_keywords=max_keywords)
+        messages = build_messages(
+            batch, max_keywords=max_keywords, transcript_reader=transcript_reader
+        )
         parsed: dict[str, list[str]] | None = None
         try:
             parsed = _call_and_validate(
