@@ -207,13 +207,11 @@ def test_digest_daily_is_idempotent_across_runs(
     monkeypatch.setattr("grepify.cli.build_client", _scripted_build_client([]))
     second = _invoke(cfg, data, "digest", "--kind", "daily")
     assert second.exit_code == 0, second.stdout
+    # Assert on stdout + truth, not latest_manifest: both runs share the FixedClock
+    # so their run_ids differ only by random entropy, making the newest-manifest
+    # read a coin flip. The command output and stored truth are deterministic.
     assert "0 generated" in second.stdout
     assert "1 already present" in second.stdout
-
-    manifest = latest_manifest(DataLayout(data))
-    assert manifest is not None
-    assert manifest.counts["digests_generated"] == 0
-    assert manifest.counts["digests_already_present"] == 1
 
     repo = JsonlSqliteRepository(data)
     try:
@@ -221,6 +219,46 @@ def test_digest_daily_is_idempotent_across_runs(
     finally:
         repo.close()
     assert [d.digest_id for d in digests] == ["daily-ai-2026-07-07"]  # exactly one, not duplicated
+
+
+def test_digest_upgrades_template_digest_when_llm_recovers(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A digest written as a degraded template (LLM down) must not pin the day: a
+    # later run with a healthy LLM upgrades it rather than skipping it as present.
+    monkeypatch.setenv("LLM_BASE_URL", "https://x/v1")
+    monkeypatch.setenv("LLM_API_KEY", "test-key")
+    cfg = write_config(tmp_path / "sources", groups={"g1.yml": _GROUP}, settings=_SETTINGS)
+    data = tmp_path / "data"
+    _seed(data)
+
+    # First run: a malformed reply degrades to a template digest (PRD §13).
+    monkeypatch.setattr("grepify.cli.build_client", _scripted_build_client(["not json"]))
+    first = _invoke(cfg, data, "digest", "--kind", "daily")
+    assert first.exit_code == 0, first.stdout
+    repo = JsonlSqliteRepository(data)
+    try:
+        stored = list(repo.iter_digests())
+    finally:
+        repo.close()
+    assert [d.digest_id for d in stored] == ["daily-ai-2026-07-07"]
+    assert stored[0].model == "template"
+
+    # Second run: LLM healthy -> the template is regenerated (upgraded), not skipped.
+    reply = json.dumps({"title": "AI today", "tldr": ["genai up"], "body_md": "Real."})
+    monkeypatch.setattr("grepify.cli.build_client", _scripted_build_client([reply]))
+    second = _invoke(cfg, data, "digest", "--kind", "daily")
+    assert second.exit_code == 0, second.stdout
+    assert "1 generated" in second.stdout
+
+    repo = JsonlSqliteRepository(data)
+    try:
+        stored = list(repo.iter_digests())
+    finally:
+        repo.close()
+    assert [d.digest_id for d in stored] == ["daily-ai-2026-07-07"]  # still one digest
+    assert stored[0].model == "digest-model"  # upgraded from template
+    assert stored[0].title == "AI today"
 
 
 def test_digest_skips_category_below_threshold(
