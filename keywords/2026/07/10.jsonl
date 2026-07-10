@@ -175,3 +175,16 @@
 {"item_id":"240a9f39fc38eb77bc389f09d76fb329253dfedb348f681f3d93d6a006686ab0","keyword":"tech acquisitions","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:25:42+00:00"}
 {"item_id":"240a9f39fc38eb77bc389f09d76fb329253dfedb348f681f3d93d6a006686ab0","keyword":"us-china relations","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:25:42+00:00"}
 {"item_id":"240a9f39fc38eb77bc389f09d76fb329253dfedb348f681f3d93d6a006686ab0","keyword":"corporate divestment","rank":7,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:25:42+00:00"}
+{"item_id":"873ad4d4b28c70bfb222d277a977086df6e433ba0b5744800b96753056c08d48","keyword":"hippo harvest","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:41:25+00:00"}
+{"item_id":"873ad4d4b28c70bfb222d277a977086df6e433ba0b5744800b96753056c08d48","keyword":"indoor farming","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:41:25+00:00"}
+{"item_id":"873ad4d4b28c70bfb222d277a977086df6e433ba0b5744800b96753056c08d48","keyword":"robotics","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:41:25+00:00"}
+{"item_id":"873ad4d4b28c70bfb222d277a977086df6e433ba0b5744800b96753056c08d48","keyword":"agtech","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:41:25+00:00"}
+{"item_id":"873ad4d4b28c70bfb222d277a977086df6e433ba0b5744800b96753056c08d48","keyword":"series c funding","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:41:25+00:00"}
+{"item_id":"873ad4d4b28c70bfb222d277a977086df6e433ba0b5744800b96753056c08d48","keyword":"cox farms","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:41:25+00:00"}
+{"item_id":"873ad4d4b28c70bfb222d277a977086df6e433ba0b5744800b96753056c08d48","keyword":"greenhouse operations","rank":7,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:41:25+00:00"}
+{"item_id":"c978b7dd74f1fc93251fcd856fd710f60798ce9c15fd41516a38d6636a953bb4","keyword":"telstra","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:41:25+00:00"}
+{"item_id":"c978b7dd74f1fc93251fcd856fd710f60798ce9c15fd41516a38d6636a953bb4","keyword":"network outage","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:41:25+00:00"}
+{"item_id":"c978b7dd74f1fc93251fcd856fd710f60798ce9c15fd41516a38d6636a953bb4","keyword":"vicki brady","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:41:25+00:00"}
+{"item_id":"c978b7dd74f1fc93251fcd856fd710f60798ce9c15fd41516a38d6636a953bb4","keyword":"executive bonuses","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:41:25+00:00"}
+{"item_id":"c978b7dd74f1fc93251fcd856fd710f60798ce9c15fd41516a38d6636a953bb4","keyword":"telecommunications","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:41:25+00:00"}
+{"item_id":"c978b7dd74f1fc93251fcd856fd710f60798ce9c15fd41516a38d6636a953bb4","keyword":"infrastructure failure","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-10T03:41:25+00:00"}

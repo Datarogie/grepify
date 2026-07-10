@@ -1,0 +1,15 @@
+{
+  "run_id": "20260710T034126Z-c6c3b2",
+  "command": "digest",
+  "started_at": "2026-07-10T03:41:26+00:00",
+  "finished_at": "2026-07-10T03:41:30+00:00",
+  "ok": true,
+  "counts": {
+    "categories": 2,
+    "digests_generated": 2,
+    "categories_skipped": 0,
+    "categories_template": 0
+  },
+  "durations_ms": {},
+  "notes": []
+}
