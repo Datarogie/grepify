@@ -60,8 +60,6 @@ from grepify.extract import YakeFallbackExtractor, run_extract_pipeline, run_fal
 from grepify.health import write_health_snapshot
 from grepify.ingest.orchestrator import IngestServices, build_registry, run_ingest
 from grepify.ingest.transcript import TranscriptStore, YouTubeTranscriptApiClient
-from grepify.ingest.x import latest_since_ids
-from grepify.ingest.x_twscrape import build_tweet_source
 from grepify.keywords import KeywordRules
 from grepify.llm import build_client
 from grepify.models import DigestKind, RunManifest
@@ -108,34 +106,17 @@ def ingest(ctx: typer.Context) -> None:
 
     config = FilesystemConfigProvider(state.config_root)
     repository = JsonlSqliteRepository(state.data_root)
-    x_config_note: str | None = None
     try:
         settings = config.settings()
-        # E5 wiring, all best-effort and self-isolating (PRD §13): the transcript
-        # store degrades to null refs when youtube-transcript-api is absent or a
-        # transcript can't be fetched; the X tweet source is None (-> logged skip)
-        # unless the GREPIFY_X_ACCOUNTS secret is set; since_id is derived from the
-        # tweet ids already in truth (F-ING-05).
+        # E5 transcripts (GRP-52), best-effort and absence-tolerant (PRD §13):
+        # the store degrades to null refs when youtube-transcript-api is absent
+        # or a transcript can't be fetched, so it is safe to wire unconditionally.
         transcript_store = _transcript_store(layout, settings)
-        since_ids = latest_since_ids(repository.iter_items())
-        # A malformed GREPIFY_X_ACCOUNTS secret must not take the whole run down:
-        # X is best-effort and disabled by default (PRD §13), so a bad X secret
-        # degrades to a logged skip (tweet_source=None + a manifest note), exactly
-        # like a rate limit - never failing rss/youtube/reddit ingestion.
-        try:
-            tweet_source = build_tweet_source()
-        except ValueError as exc:
-            tweet_source = None
-            x_config_note = f"x accounts secret ignored (malformed): {exc}"
         summary = run_ingest(
             IngestServices(
                 config=config,
                 repository=repository,
-                registry=build_registry(
-                    tweet_source=tweet_source,
-                    since_ids=since_ids.get,
-                    transcript_store=transcript_store,
-                ),
+                registry=build_registry(transcript_store=transcript_store),
                 clock=state.clock,
             ),
             run_id=run_id,
@@ -149,9 +130,6 @@ def ingest(ctx: typer.Context) -> None:
     finally:
         repository.close()
 
-    notes = [f"{r.source_id}: {r.error}" for r in summary.results if r.error]
-    if x_config_note:
-        notes.append(x_config_note)
     manifest = RunManifest(
         run_id=run_id,
         command="ingest",
@@ -166,7 +144,7 @@ def ingest(ctx: typer.Context) -> None:
             "items_new": summary.items_new,
         },
         durations_ms={"total_ms": summary.duration_ms},
-        notes=notes,
+        notes=[f"{r.source_id}: {r.error}" for r in summary.results if r.error],
     )
     write_manifest(layout, manifest)
     typer.echo(

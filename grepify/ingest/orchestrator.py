@@ -57,7 +57,6 @@ from grepify.ingest.reddit import RedditFetcher
 from grepify.ingest.registry import FetcherRegistry
 from grepify.ingest.rss import RssFetcher
 from grepify.ingest.transcript import TranscriptStore
-from grepify.ingest.x import SinceIdProvider, TweetSource, XFetcher, no_since_id
 from grepify.ingest.youtube import YouTubeFetcher
 from grepify.models import FetchLogEntry, FetchStatus, Source
 from grepify.repository.base import Repository
@@ -118,19 +117,10 @@ class IngestSummary:
         return sum(r.duration_ms for r in self.results)
 
 
-def build_registry(
-    *,
-    tweet_source: TweetSource | None = None,
-    since_ids: SinceIdProvider = no_since_id,
-    transcript_store: TranscriptStore | None = None,
-) -> FetcherRegistry:
-    """The production registry: one real fetcher per source kind.
+def build_registry(*, transcript_store: TranscriptStore | None = None) -> FetcherRegistry:
+    """The production registry: one real fetcher per source kind (rss/youtube/
+    reddit).
 
-    E1 kinds (rss/youtube/reddit) are always registered; E5 adds X. The X
-    fetcher is registered **unconditionally** so an enabled X source never hits
-    the systemic "no fetcher for kind" ``KeyError`` - when ``tweet_source`` is
-    ``None`` (no burner accounts / twscrape extra absent) it degrades every X
-    source to a logged skip instead (PRD §13, see :mod:`grepify.ingest.x`).
     ``transcript_store``, when given, lets the YouTube fetcher attach a
     transcript to each video (GRP-52); absent, YouTube behavior is unchanged.
     """
@@ -138,7 +128,6 @@ def build_registry(
     registry.register(RssFetcher())
     registry.register(YouTubeFetcher(transcript_store=transcript_store))
     registry.register(RedditFetcher())
-    registry.register(XFetcher(tweet_source, since_ids=since_ids))
     return registry
 
 

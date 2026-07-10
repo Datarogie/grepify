@@ -17,9 +17,10 @@ Public surface every E1/E2/E5 issue builds on:
 - Orchestration (GRP-15): :func:`run_ingest`, :class:`IngestServices`,
   :class:`IngestSummary`, :class:`SourceResult`, :func:`build_registry` - the
   per-source-isolated run loop the ``ingest`` CLI command drives.
-
-The X fetcher (E5) plugs into the same :class:`Fetcher` contract without
-changing it.
+- Transcripts (E5, GRP-52/53): :class:`TranscriptStore` + :class:`TranscriptClient`
+  fetch/cache a YouTube transcript per video (absence-tolerant), and
+  :func:`excerpt_transcript` cuts the <=1500-char excerpt the extract prompt
+  uses.
 
 Failure modes
 -------------
@@ -58,20 +59,10 @@ from grepify.ingest.transcript import (
     YouTubeTranscriptApiClient,
     excerpt_transcript,
 )
-from grepify.ingest.x import (
-    FakeTweetSource,
-    SinceIdProvider,
-    Tweet,
-    TweetSource,
-    XFetcher,
-    latest_since_ids,
-    no_since_id,
-)
 from grepify.ingest.youtube import YouTubeFetcher
 
 __all__ = [
     "FakeFetcher",
-    "FakeTweetSource",
     "Fetcher",
     "FetcherRegistry",
     "IngestServices",
@@ -79,13 +70,9 @@ __all__ = [
     "RawItem",
     "RedditFetcher",
     "RssFetcher",
-    "SinceIdProvider",
     "SourceResult",
     "TranscriptClient",
     "TranscriptStore",
-    "Tweet",
-    "TweetSource",
-    "XFetcher",
     "YouTubeFetcher",
     "YouTubeTranscriptApiClient",
     "build_registry",
@@ -96,8 +83,6 @@ __all__ = [
     "excerpt_transcript",
     "group_near_duplicates",
     "hamming_distance",
-    "latest_since_ids",
-    "no_since_id",
     "normalize",
     "normalize_batch",
     "run_ingest",

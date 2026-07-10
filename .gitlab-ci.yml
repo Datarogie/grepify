@@ -44,12 +44,9 @@ pages:
     - if: $CI_PIPELINE_SOURCE == "schedule"
     - if: $CI_PIPELINE_SOURCE == "web" # on-demand run from the UI
   resource_group: pipeline # serialize overlapping runs (≈ GH concurrency group)
-  # The pipeline needs the E5 optional extras (twscrape for X,
-  # youtube-transcript-api for transcripts); `validate` stays on the lean
-  # `make install` from `default.before_script`. X credentials
-  # (GREPIFY_X_ACCOUNTS[/_DB]) are project CI/CD variables, auto-injected into
-  # this job's environment and read by `make ingest` - never by `validate`
-  # (PRD §5). When unset, the X fetcher degrades to a logged skip (PRD §13).
+  # The pipeline needs the E5 optional extra (youtube-transcript-api for
+  # transcripts); `validate` stays on the lean `make install` from
+  # `default.before_script`. Transcripts need no secret (F-ING-03).
   before_script:
     - make install-pipeline
   variables:

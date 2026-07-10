@@ -1,0 +1,27 @@
+group: ai-voices
+name: AI voices (long-form)
+category: ai
+# The long-form writing of individual AI practitioners, via their own RSS/Atom
+# feeds - no auth, no accounts (unlike watching them on X, which E5 originally
+# proposed and Kyle dropped: their blogs/Substacks carry richer, keyword-worthy
+# content than tweets and read over the machinery that already works). `grepify
+# validate` pings each feed on the MR; a feed that cannot be confirmed live
+# ships `enabled: false` rather than being omitted (GRP-07 convention).
+enabled: true
+sources:
+  - id: simon-willison
+    kind: rss
+    name: Simon Willison
+    url: https://simonwillison.net/atom/everything/
+  - id: one-useful-thing
+    kind: rss
+    name: Ethan Mollick - One Useful Thing
+    url: https://www.oneusefulthing.org/feed
+  - id: interconnects
+    kind: rss
+    name: Nathan Lambert - Interconnects
+    url: https://www.interconnects.ai/feed
+  - id: latent-space
+    kind: rss
+    name: swyx - Latent Space
+    url: https://www.latent.space/feed

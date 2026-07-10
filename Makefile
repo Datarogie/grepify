@@ -17,8 +17,8 @@ help: ## List available targets
 install: ## Sync the dev environment
 	$(UV) sync --group dev
 
-install-pipeline: ## Sync dev + the E5 optional extras (X via twscrape, YouTube transcripts) for the cron pipeline job
-	$(UV) sync --group dev --extra x --extra transcripts
+install-pipeline: ## Sync dev + the E5 optional extra (YouTube transcripts) for the cron pipeline job
+	$(UV) sync --group dev --extra transcripts
 
 fmt: ## Auto-format
 	$(UV) run ruff format .

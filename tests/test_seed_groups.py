@@ -22,7 +22,7 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 _SOURCES = _REPO_ROOT / "sources"
 
 # The five trendcloud-derived AI groups + Kyle's data-engineering group (PRD §7)
-# + the E5 X watchlist (GRP-50/51).
+# + the E5 long-form AI-voices group (ai-voices, replaced the dropped X watchlist).
 _EXPECTED_GROUPS = {
     "ai-research",
     "ai-business",
@@ -30,9 +30,9 @@ _EXPECTED_GROUPS = {
     "youtube-ai",
     "reddit-ai",
     "data-engineering",
-    "x-watchlist",
+    "ai-voices",
 }
-_TRENDCLOUD_GROUPS = _EXPECTED_GROUPS - {"data-engineering", "x-watchlist"}
+_TRENDCLOUD_GROUPS = _EXPECTED_GROUPS - {"data-engineering", "ai-voices"}
 # Only these two categories launch (PRD §14); crypto is excluded entirely (PRD §2).
 _ALLOWED_CATEGORIES = {"ai", "data-eng"}
 
@@ -76,16 +76,16 @@ def test_data_engineering_category() -> None:
     assert by_id["data-engineering"].category == "data-eng"
 
 
-def test_x_watchlist_ships_disabled_ai_category() -> None:
-    # GRP-50/51: X is best-effort and its CI secret is pending, so the watchlist
-    # ships disabled under the ai category (PRD §13/§14 open-question #4).
+def test_ai_voices_group_is_rss_ai_category() -> None:
+    # E5 (Kyle's call): X watchlist dropped in favour of the same people's
+    # long-form RSS/Atom feeds - richer than tweets and needs no auth.
     by_id = {g.group_id: g for g in _provider().groups()}
-    watchlist = by_id["x-watchlist"]
-    assert watchlist.category == "ai"
-    assert watchlist.enabled is False
-    handles = [s for s in _provider().sources() if s.group_id == "x-watchlist"]
-    assert all(s.kind is SourceKind.X for s in handles)
-    assert {s.source_id for s in handles} >= {"x-karpathy", "x-simonw"}
+    voices = by_id["ai-voices"]
+    assert voices.category == "ai"
+    sources = [s for s in _provider().sources() if s.group_id == "ai-voices"]
+    assert sources, "expected ai-voices feeds"
+    assert all(s.kind is SourceKind.RSS for s in sources)
+    assert {s.source_id for s in sources} >= {"simon-willison", "latent-space"}
 
 
 def test_prd_mandated_seeds_present() -> None:
