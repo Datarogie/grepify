@@ -136,14 +136,17 @@ command, tests. Also fold in two cheap hardening items: bounded retry on YouTube
 transient 5xx, and the entity-encoded-tag edge in `_strip_html`
 (strip -> unescape -> conservative second strip), each with a test.
 
-**T6 - Reddit strategy (needs Kyle's decision).**
+**T6 - Reddit strategy. DECIDED: option (ii) - best-effort + quiet (Kyle, 2026-07-10).**
 26 Reddit sources fail: `403` on `new.json`, `429` on the `.rss` fallback -
-datacenter-IP blocking, no code fix makes scraping reliable. Options:
-- (i) authenticated Reddit API (OAuth app, free) - robust, +1 CI secret;
-- (ii) mark Reddit best-effort: reduce cadence, stop flagging so `/health` is
-  not 26 red rows (recommended interim, zero-secret);
-- (iii) drop Reddit.
-Do not start until Kyle picks. Implementation depends on the choice.
+datacenter-IP blocking, no code fix makes scraping reliable. Kyle chose the
+zero-secret interim: **mark Reddit a best-effort source class** - reduce its
+fetch cadence relative to other kinds and stop flagging Reddit `error` rows on
+`/health` (so it is not 26 red rows of expected noise), while still attempting
+each run and logging the outcome. Do NOT build the OAuth API (option i) or drop
+Reddit (option iii). Implementation sketch: a per-kind "best-effort" flag (or a
+Reddit-specific health-suppression) so consecutive Reddit failures do not set
+the `flagged` bit, plus a cadence knob; keep the isolation contract (a Reddit
+failure never fails the run). Tests for the suppression + cadence logic.
 
 ### Phase C - polish + audit
 

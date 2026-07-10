@@ -11,14 +11,15 @@ Tasks:
   T3 daily-digest reliability   [todo]  (v1.0 blocker)
   T4 next-digest time on site   [todo]  (v1.0 gate)
   T5 feed-health audit + doctor [todo]
-  T6 reddit strategy            [blocked: needs Kyle i/ii/iii]
+  T6 reddit strategy            [decided: option ii - best-effort + quiet; ready to build]
   T7 eval doc fix               [todo]
   T8 code-review + simplify pass[todo]
 
-Current branch: claude/prev1-hardening (base: main) - the PLAN pr only, no code yet.
-Next concrete step: on Kyle's go-ahead, start T1 (branch claude/prev1-t1-digest-pause off this).
+Current branch: claude/prev1-hardening (the PLAN pr #21, merged to main) - no code yet.
+Next concrete step: start T1 (branch claude/prev1-t1-digest-pause off latest main).
 Operational steps run: O1 not yet.
-Open decisions: Reddit strategy (i auth-API / ii best-effort-quiet / iii drop) - PENDING Kyle. T6 blocked on it.
+Open decisions: none. Reddit = option ii (best-effort: reduce cadence, stop flagging
+  so /health is not 26 red rows; NOT the OAuth API, NOT dropped). T6 unblocked.
 Gotchas:
   - Local origin/main was stale earlier; always 'git fetch origin main' before branching.
   - HTML issue is STALE DATA, not a live normalizer bug (see plan section 0).
