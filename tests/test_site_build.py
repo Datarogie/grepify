@@ -1,0 +1,317 @@
+"""Build orchestrator tests (GRP-32/33/34/35): snapshots, determinism, emission.
+
+Builds a canned site into a temp dir with a :class:`FixedClock` + fixed run id
+(so ``generated_at``/``run_id`` are stable) and snapshots the four pages against
+committed goldens under ``tests/fixtures/site/pages/``. Also covers the
+trailing-90d emission rule, pagination, near-dup collapse in the output, static
+assets, the missing-health path, and determinism (build twice → identical
+bytes, the S8 "passes twice in CI" rule).
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import re
+import textwrap
+from datetime import UTC, datetime
+from pathlib import Path
+
+from grepify.clock import FixedClock
+from grepify.config.filesystem import FilesystemConfigProvider
+from grepify.health import HealthSnapshot, SourceHealth
+from grepify.models import ExtractionMethod, FetchStatus, Item, ItemKeyword, SourceKind
+from grepify.paths import DataLayout
+from grepify.repository.jsonl_sqlite import JsonlSqliteRepository
+from grepify.site.build import BuildResult, build_site
+
+GOLDEN = Path(__file__).parent / "fixtures" / "site" / "pages"
+_CLOCK = FixedClock(datetime(2026, 7, 8, tzinfo=UTC))
+_RUN_ID = "20260709T120000Z-testrun"
+
+_SETTINGS = textwrap.dedent(
+    """
+    llm:
+      active_profile: p
+      profiles:
+        p: {endpoint: openai-compat, model: m, max_calls_per_run: 40}
+    windows:
+      cloud_days: 7
+    """
+).strip()
+
+_KEYWORDS = textwrap.dedent(
+    """
+    aliases:
+      "gen ai": genai
+    mute:
+      - webinar
+    """
+).strip()
+
+_GROUP = textwrap.dedent(
+    """
+    group: ai-research
+    name: AI Research
+    category: ai
+    sources:
+      - {id: s1, kind: rss, name: Source One, url: 'https://ex.com/one/feed'}
+      - {id: s2, kind: youtube, name: Source Two, channel_id: UC123}
+    """
+).strip()
+
+
+def _item(
+    item_id: str, *, source_id: str, published_at: str, title: str, content_hash: str
+) -> Item:
+    return Item(
+        item_id=item_id,
+        source_id=source_id,
+        kind=SourceKind.RSS if source_id == "s1" else SourceKind.YOUTUBE,
+        external_id=item_id,
+        canonical_url=f"https://ex.com/{item_id}",
+        title=title,
+        summary="a summary",
+        published_at=published_at,
+        fetched_at="2026-07-08T11:00:00+00:00",
+        content_hash=content_hash,
+    )
+
+
+def _kw(
+    item_id: str, keyword: str, rank: int = 1, method: ExtractionMethod = ExtractionMethod.LLM
+) -> ItemKeyword:
+    return ItemKeyword(
+        item_id=item_id,
+        keyword=keyword,
+        rank=rank,
+        method=method,
+        model="m" if method is ExtractionMethod.LLM else None,
+        extracted_at="2026-07-08T12:00:00+00:00",
+    )
+
+
+def build_canned(
+    tmp_path: Path,
+    *,
+    extra_recent_items: int = 0,
+    with_health: bool = True,
+    base_path: str = "/grepify/",
+) -> tuple[BuildResult, Path]:
+    """Materialize config + truth, build the site, return (result, output_dir)."""
+    conf = tmp_path / "sources"
+    (conf / "groups").mkdir(parents=True, exist_ok=True)
+    (conf / "settings.yml").write_text(_SETTINGS, encoding="utf-8")
+    (conf / "keywords.yml").write_text(_KEYWORDS, encoding="utf-8")
+    (conf / "groups" / "ai-research.yml").write_text(_GROUP, encoding="utf-8")
+
+    data = tmp_path / "data"
+    repo = JsonlSqliteRepository(data)
+    items = [
+        _item(
+            "i1",
+            source_id="s1",
+            published_at="2026-07-05T10:00:00+00:00",
+            title="OpenAI ships GPT-5",
+            content_hash="0000000000000001",
+        ),
+        _item(
+            "i2",
+            source_id="s2",
+            published_at="2026-07-06T10:00:00+00:00",
+            title="OpenAI ships GPT-5!",
+            content_hash="0000000000000003",
+        ),  # near-dup of i1
+        _item(
+            "i3",
+            source_id="s1",
+            published_at="2026-07-07T10:00:00+00:00",
+            title="Anthropic releases Claude",
+            content_hash="ffffffffffffffff",
+        ),
+        _item(
+            "old",
+            source_id="s1",
+            published_at="2026-01-01T10:00:00+00:00",
+            title="Ancient news",
+            content_hash="00ff00ff00ff00ff",
+        ),  # >90d → not emitted
+    ]
+    items += [
+        _item(
+            f"x{n}",
+            source_id="s1",
+            published_at=f"2026-07-0{1 + n % 7}T0{n % 9}:00:00+00:00",
+            title=f"Filler story {n}",
+            content_hash=hashlib.blake2b(f"x{n}".encode(), digest_size=8).hexdigest(),
+        )
+        for n in range(extra_recent_items)
+    ]
+    repo.add_items(items)
+    repo.add_item_keywords(
+        [
+            _kw("i1", "genai"),
+            _kw("i1", "webinar", 2),  # muted
+            _kw("i2", "genai"),
+            _kw("i3", "agents"),
+            _kw("i3", "anthropic", 2),
+            _kw("i3", "agentic coding", 3),  # multi-word phrase (filters.js round-trip)
+            _kw("old", "genai"),
+        ]
+    )
+    repo.close()
+
+    if with_health:
+        snapshot = HealthSnapshot(
+            run_id="prior-run",
+            generated_at="2026-07-08T09:00:00+00:00",
+            sources=[
+                SourceHealth(
+                    source_id="s1",
+                    attempts=10,
+                    last_status=FetchStatus.OK,
+                    last_started_at="2026-07-08T08:00:00+00:00",
+                    consecutive_failures=0,
+                    flagged=False,
+                ),
+                SourceHealth(
+                    source_id="s2",
+                    attempts=8,
+                    last_status=FetchStatus.ERROR,
+                    last_started_at="2026-07-08T08:00:00+00:00",
+                    last_error="ratelimit",
+                    consecutive_failures=6,
+                    flagged=True,
+                ),
+            ],
+        )
+        layout = DataLayout(data)
+        layout.health_file.parent.mkdir(parents=True, exist_ok=True)
+        layout.health_file.write_text(snapshot.model_dump_json(indent=2) + "\n", encoding="utf-8")
+
+    result = build_site(
+        config=FilesystemConfigProvider(conf),
+        repository=JsonlSqliteRepository(data),
+        layout=DataLayout(data),
+        clock=_CLOCK,
+        run_id=_RUN_ID,
+        output_dir=tmp_path / "public",
+        base_path=base_path,
+    )
+    return result, tmp_path / "public"
+
+
+# --- snapshots ---------------------------------------------------------------
+
+
+def test_home_matches_golden(tmp_path: Path) -> None:
+    _, out = build_canned(tmp_path)
+    assert (out / "index.html").read_text(encoding="utf-8") == (GOLDEN / "index.html").read_text(
+        encoding="utf-8"
+    )
+
+
+def test_items_matches_golden(tmp_path: Path) -> None:
+    _, out = build_canned(tmp_path)
+    assert (out / "items" / "index.html").read_text(encoding="utf-8") == (
+        GOLDEN / "items_index.html"
+    ).read_text(encoding="utf-8")
+
+
+def test_sources_matches_golden(tmp_path: Path) -> None:
+    _, out = build_canned(tmp_path)
+    assert (out / "sources" / "index.html").read_text(encoding="utf-8") == (
+        GOLDEN / "sources_index.html"
+    ).read_text(encoding="utf-8")
+
+
+def test_health_matches_golden(tmp_path: Path) -> None:
+    _, out = build_canned(tmp_path)
+    assert (out / "health" / "index.html").read_text(encoding="utf-8") == (
+        GOLDEN / "health_index.html"
+    ).read_text(encoding="utf-8")
+
+
+def test_page_json_matches_golden(tmp_path: Path) -> None:
+    _, out = build_canned(tmp_path)
+    assert (out / "items" / "page-1.json").read_text(encoding="utf-8") == (
+        GOLDEN / "page-1.json"
+    ).read_text(encoding="utf-8")
+
+
+# --- determinism (S8) --------------------------------------------------------
+
+
+def test_build_is_deterministic_twice_in_a_row(tmp_path: Path) -> None:
+    _, first = build_canned(tmp_path / "a")
+    _, second = build_canned(tmp_path / "b")
+    first_files = {p.relative_to(first): p.read_bytes() for p in first.rglob("*") if p.is_file()}
+    second_files = {p.relative_to(second): p.read_bytes() for p in second.rglob("*") if p.is_file()}
+    assert first_files == second_files
+
+
+# --- emission window + collapse ----------------------------------------------
+
+
+def test_trailing_90d_emission(tmp_path: Path) -> None:
+    result, out = build_canned(tmp_path)
+    # 'old' (>90d) is in truth (items_total=4) but not emitted (3 recent items)
+    assert result.items_total == 4
+    assert result.items_emitted == 3
+    items_html = (out / "items" / "index.html").read_text(encoding="utf-8")
+    assert "Ancient news" not in items_html
+
+
+def test_near_dup_collapsed_in_output(tmp_path: Path) -> None:
+    _, out = build_canned(tmp_path)
+    items_html = (out / "items" / "index.html").read_text(encoding="utf-8")
+    assert "1 similar" in items_html  # i1 collapsed under i2
+
+
+def test_data_keywords_attribute_is_valid_json(tmp_path: Path) -> None:
+    # the filters.js contract: data-keywords is a JSON array of whole phrases,
+    # so multi-word keywords survive round-trip (the bug the JSON encoding fixes)
+    _, out = build_canned(tmp_path)
+    items_html = (out / "items" / "index.html").read_text(encoding="utf-8")
+    attrs = re.findall(r"data-keywords='([^']*)'", items_html)
+    assert attrs, "no data-keywords attributes rendered"
+    all_tags = []
+    for raw in attrs:
+        parsed = json.loads(raw)
+        assert isinstance(parsed, list)
+        all_tags.extend(parsed)
+    # the multi-word phrase survives as one element (would have been split
+    # into "agentic"/"coding" by the old space-joined attribute)
+    assert "agentic coding" in all_tags
+
+
+def test_pagination_emits_multiple_pages(tmp_path: Path) -> None:
+    # 3 base recent groups + 25 filler → 28 groups → 2 pages of 20
+    result, out = build_canned(tmp_path, extra_recent_items=25)
+    assert (out / "items" / "index.html").exists()
+    assert (out / "items" / "page-2" / "index.html").exists()
+    assert (out / "items" / "page-2.json").exists()
+    assert result.pages_written == 5  # home + 2 item pages + sources + health
+
+
+# --- static assets + resilience ----------------------------------------------
+
+
+def test_static_assets_written(tmp_path: Path) -> None:
+    _, out = build_canned(tmp_path)
+    assert (out / "static" / "style.css").is_file()
+    assert (out / "static" / "filters.js").is_file()
+
+
+def test_missing_health_renders_empty_page(tmp_path: Path) -> None:
+    _, out = build_canned(tmp_path, with_health=False)
+    health_html = (out / "health" / "index.html").read_text(encoding="utf-8")
+    assert "No health snapshot available" in health_html
+
+
+def test_rebuild_clears_stale_output(tmp_path: Path) -> None:
+    _, out = build_canned(tmp_path)
+    stale = out / "stale.html"
+    stale.write_text("stale", encoding="utf-8")
+    build_canned(tmp_path)  # rebuild into the same tmp_path/public
+    assert not stale.exists()

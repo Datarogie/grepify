@@ -87,8 +87,10 @@ After that, both workflows run as-is; `pipeline.yml` also has a
 (including from a PR branch, e.g. from a phone) instead of waiting for the
 schedule.
 
-Until the real site build lands (GRP-35, M3), `make site` deploys the static
-placeholder in `site-placeholder/`.
+`make build` renders the real site into `public/` from the SQLite cache +
+config (GRP-35); `GREPIFY_BASE_PATH` sets the deploy sub-path (the pipeline
+derives it from the repo name for project Pages). `make site` is an alias that
+runs `make build`.
 
 ## Data & storage
 

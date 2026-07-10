@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex">
+<title>grepify — health</title>
+<link rel="stylesheet" href="/grepify/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+<a class="brand" href="/grepify/">grepify</a>
+<nav class="site-nav" aria-label="Primary">
+<a href="/grepify/">Home</a>
+<a href="/grepify/items/">Items</a>
+<a href="/grepify/sources/">Sources</a>
+<a href="/grepify/health/" aria-current="page">Health</a>
+</nav>
+</header>
+<main id="main" class="site-main">
+<h1>Health</h1>
+<p class="muted">Snapshot from run prior-run, generated 2026-07-08T09:00:00+00:00</p>
+<table>
+<thead><tr><th>Source</th><th>Last status</th><th>Last attempt</th><th>Attempts</th><th>Consecutive failures</th></tr></thead>
+<tbody>
+<tr>
+<td>s1</td>
+<td class="status-ok">ok</td>
+<td>2026-07-08T08:00:00</td>
+<td>10</td>
+<td>0</td>
+</tr>
+<tr class="status-error">
+<td>s2</td>
+<td class="status-error">error</td>
+<td>2026-07-08T08:00:00</td>
+<td>8</td>
+<td>6 ⚑</td>
+</tr>
+</tbody>
+</table>
+</main>
+<footer class="site-footer">
+<span>Generated 2026-07-08T00:00:00+00:00</span>
+<span>run 20260709T120000Z-testrun</span>
+</footer>
+</body>
+</html>

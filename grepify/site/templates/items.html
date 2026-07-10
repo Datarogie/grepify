@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}grepify — items (page {{ page.number }}){% endblock %}
+{% block content %}
+<h1>Items</h1>
+<p class="muted">Page {{ page.number }} of {{ page.total_pages }} · trailing 90 days</p>
+
+<form class="filters" aria-label="Filter items">
+<label>Kind <select id="filter-kind"><option value="">all</option></select></label>
+<label>Source <select id="filter-source"><option value="">all</option></select></label>
+<label>Keyword <input id="filter-keyword" type="search" placeholder="substring"></label>
+<button type="button" id="filter-clear">Clear</button>
+</form>
+
+{% if page.groups %}
+<ul class="feed" id="items-list">
+{% for group in page.groups %}
+{% set item = group.representative %}
+{% set tags = item_tags.get(item.item_id, []) %}
+<li class="item" data-item-id="{{ item.item_id }}" data-kind="{{ item.kind }}" data-source="{{ item.source_id }}" data-keywords='{{ tags | tojson }}'>
+<a href="{{ item.canonical_url }}" rel="noopener noreferrer">{{ item.title }}</a>
+<div class="meta">{{ item.source_name }} · {{ item.kind }} · {{ item.published_at[:10] }}</div>
+{% if tags %}
+<div class="meta">{% for kw in tags %}<span class="tag">#{{ kw }}</span> {% endfor %}</div>
+{% endif %}
+{% if group.similar_count > 0 %}
+<details class="similar">
+<summary>{{ group.similar_count }} similar</summary>
+<ul class="feed">
+{% for dup in group.similar %}
+<li><a href="{{ dup.canonical_url }}" rel="noopener noreferrer">{{ dup.title }}</a><div class="meta">{{ dup.source_name }} · {{ dup.published_at[:10] }}</div></li>
+{% endfor %}
+</ul>
+</details>
+{% endif %}
+</li>
+{% endfor %}
+</ul>
+<p class="muted" id="items-empty" hidden>No items match these filters.</p>
+{% else %}
+<p class="muted">No items in the trailing-90-day window yet.</p>
+{% endif %}
+
+<nav class="pager" aria-label="Pagination">
+{% if page.has_prev %}
+<a href="{{ meta.base_path }}items/{% if page.number > 2 %}page-{{ page.number - 1 }}/{% endif %}">← Newer</a>
+{% endif %}
+{% if page.has_next %}
+<a href="{{ meta.base_path }}items/page-{{ page.number + 1 }}/">Older →</a>
+{% endif %}
+</nav>
+
+<script src="{{ meta.base_path }}static/filters.js" defer></script>
+{% endblock %}

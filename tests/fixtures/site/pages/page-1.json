@@ -1,0 +1,56 @@
+{
+  "facets": {
+    "keywords": [
+      "agentic coding",
+      "agents",
+      "anthropic",
+      "genai"
+    ],
+    "kinds": [
+      "rss",
+      "youtube"
+    ],
+    "sources": [
+      {
+        "id": "s1",
+        "name": "Source One"
+      },
+      {
+        "id": "s2",
+        "name": "Source Two"
+      }
+    ]
+  },
+  "items": [
+    {
+      "item_id": "i3",
+      "keywords": [
+        "agentic coding",
+        "agents",
+        "anthropic"
+      ],
+      "kind": "rss",
+      "published_at": "2026-07-07T10:00:00+00:00",
+      "similar_count": 0,
+      "source_id": "s1",
+      "source_name": "Source One",
+      "title": "Anthropic releases Claude",
+      "url": "https://ex.com/i3"
+    },
+    {
+      "item_id": "i2",
+      "keywords": [
+        "genai"
+      ],
+      "kind": "youtube",
+      "published_at": "2026-07-06T10:00:00+00:00",
+      "similar_count": 1,
+      "source_id": "s2",
+      "source_name": "Source Two",
+      "title": "OpenAI ships GPT-5!",
+      "url": "https://ex.com/i2"
+    }
+  ],
+  "page": 1,
+  "total_pages": 1
+}
