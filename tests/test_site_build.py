@@ -11,6 +11,8 @@ bytes, the S8 "passes twice in CI" rule).
 from __future__ import annotations
 
 import hashlib
+import json
+import re
 import textwrap
 from datetime import UTC, datetime
 from pathlib import Path
@@ -153,6 +155,7 @@ def build_canned(
             _kw("i2", "genai"),
             _kw("i3", "agents"),
             _kw("i3", "anthropic", 2),
+            _kw("i3", "agentic coding", 3),  # multi-word phrase (filters.js round-trip)
             _kw("old", "genai"),
         ]
     )
@@ -263,6 +266,23 @@ def test_near_dup_collapsed_in_output(tmp_path: Path) -> None:
     _, out = build_canned(tmp_path)
     items_html = (out / "items" / "index.html").read_text(encoding="utf-8")
     assert "1 similar" in items_html  # i1 collapsed under i2
+
+
+def test_data_keywords_attribute_is_valid_json(tmp_path: Path) -> None:
+    # the filters.js contract: data-keywords is a JSON array of whole phrases,
+    # so multi-word keywords survive round-trip (the bug the JSON encoding fixes)
+    _, out = build_canned(tmp_path)
+    items_html = (out / "items" / "index.html").read_text(encoding="utf-8")
+    attrs = re.findall(r"data-keywords='([^']*)'", items_html)
+    assert attrs, "no data-keywords attributes rendered"
+    all_tags = []
+    for raw in attrs:
+        parsed = json.loads(raw)
+        assert isinstance(parsed, list)
+        all_tags.extend(parsed)
+    # the multi-word phrase survives as one element (would have been split
+    # into "agentic"/"coding" by the old space-joined attribute)
+    assert "agentic coding" in all_tags
 
 
 def test_pagination_emits_multiple_pages(tmp_path: Path) -> None:

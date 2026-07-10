@@ -1,6 +1,7 @@
 {
   "facets": {
     "keywords": [
+      "agentic coding",
       "agents",
       "anthropic",
       "genai"
@@ -12,11 +13,11 @@
     "sources": [
       {
         "id": "s1",
-        "name": "s1"
+        "name": "Source One"
       },
       {
         "id": "s2",
-        "name": "s2"
+        "name": "Source Two"
       }
     ]
   },
@@ -24,6 +25,7 @@
     {
       "item_id": "i3",
       "keywords": [
+        "agentic coding",
         "agents",
         "anthropic"
       ],
@@ -31,7 +33,7 @@
       "published_at": "2026-07-07T10:00:00+00:00",
       "similar_count": 0,
       "source_id": "s1",
-      "source_name": "s1",
+      "source_name": "Source One",
       "title": "Anthropic releases Claude",
       "url": "https://ex.com/i3"
     },
@@ -44,7 +46,7 @@
       "published_at": "2026-07-06T10:00:00+00:00",
       "similar_count": 1,
       "source_id": "s2",
-      "source_name": "s2",
+      "source_name": "Source Two",
       "title": "OpenAI ships GPT-5!",
       "url": "https://ex.com/i2"
     }

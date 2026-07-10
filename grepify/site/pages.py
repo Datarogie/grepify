@@ -103,6 +103,35 @@ def paginate(groups: list[ItemGroup], *, per_page: int = ITEMS_PER_PAGE) -> list
     ]
 
 
+def build_pages(
+    items: list[ItemSummary],
+    *,
+    per_page: int = ITEMS_PER_PAGE,
+    max_distance: int = NEAR_DUP_MAX_DISTANCE,
+) -> list[Page]:
+    """Paginate raw items 20/page, then collapse near-dups **within each page**.
+
+    Collapsing per page (not over the whole corpus) keeps the O(n²) clustering
+    bounded to O(per_page²) per page — total O(n) across the trailing-90d set,
+    the "collapses per page/window, not the whole corpus" contract (PRD §6 note
+    2, F-SIT-03). A near-dup that straddles a page boundary is not grouped, an
+    accepted consequence of per-page collapse; ``items`` is already newest-first
+    so straddlers are rare (repost lag < one page of throughput).
+    """
+    if per_page <= 0:
+        raise ValueError("per_page must be positive")
+    chunks = [items[i : i + per_page] for i in range(0, len(items), per_page)] or [[]]
+    total_pages = len(chunks)
+    return [
+        Page(
+            number=n + 1,
+            total_pages=total_pages,
+            groups=collapse_near_duplicates(chunk, max_distance=max_distance),
+        )
+        for n, chunk in enumerate(chunks)
+    ]
+
+
 def item_matches_filter(  # noqa: PLR0913 — mirrors the JS predicate's inputs exactly
     *,
     kind: str,

@@ -16,7 +16,7 @@
 {% for group in page.groups %}
 {% set item = group.representative %}
 {% set tags = item_tags.get(item.item_id, []) %}
-<li class="item" data-item-id="{{ item.item_id }}" data-kind="{{ item.kind }}" data-source="{{ item.source_id }}" data-keywords="{{ tags | join(' ') }}">
+<li class="item" data-item-id="{{ item.item_id }}" data-kind="{{ item.kind }}" data-source="{{ item.source_id }}" data-keywords='{{ tags | tojson }}'>
 <a href="{{ item.canonical_url }}" rel="noopener noreferrer">{{ item.title }}</a>
 <div class="meta">{{ item.source_name }} · {{ item.kind }} · {{ item.published_at[:10] }}</div>
 {% if tags %}

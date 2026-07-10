@@ -49,8 +49,12 @@
     if (source && row.getAttribute("data-source") !== source) return false;
     if (keyword) {
       var needle = keyword.trim().toLowerCase();
-      var tags = (row.getAttribute("data-keywords") || "").toLowerCase();
-      if (needle && tags.split(" ").every(function (t) { return t.indexOf(needle) === -1; })) {
+      // data-keywords is a JSON array of (possibly multi-word) keyword phrases,
+      // so a phrase like "agentic coding" survives round-trip; substring-match
+      // the needle against each whole phrase — identical to item_matches_filter.
+      var tags = [];
+      try { tags = JSON.parse(row.getAttribute("data-keywords") || "[]"); } catch (e) { tags = []; }
+      if (needle && !tags.some(function (t) { return String(t).toLowerCase().indexOf(needle) !== -1; })) {
         return false;
       }
     }

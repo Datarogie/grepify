@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from grepify.site.pages import (
+    build_pages,
     collapse_near_duplicates,
     item_matches_filter,
     page_facets,
@@ -80,6 +81,35 @@ def test_paginate_empty_is_one_empty_page() -> None:
 def test_paginate_rejects_nonpositive_per_page() -> None:
     with pytest.raises(ValueError, match="positive"):
         paginate([], per_page=0)
+
+
+# --- build_pages: paginate raw items, collapse per page (O(n), not O(n²)) ----
+
+
+def test_build_pages_paginates_by_raw_item_count() -> None:
+    items = [_summary(f"i{n}", content_hash=f"{n:016x}") for n in range(45)]
+    pages = build_pages(items, per_page=20, max_distance=0)
+    assert [p.number for p in pages] == [1, 2, 3]
+    # 20 raw items/page → (with no collapse) 20 groups/page
+    assert [len(p.groups) for p in pages] == [20, 20, 5]
+
+
+def test_build_pages_collapses_within_a_page() -> None:
+    # two near-dups + one distinct, all on one page → 2 groups, "1 similar"
+    items = [
+        _summary("i1", content_hash="0000000000000001"),
+        _summary("i2", content_hash="0000000000000003"),  # ~i1
+        _summary("i3", content_hash="ffffffffffffffff"),
+    ]
+    pages = build_pages(items, per_page=20)
+    assert len(pages) == 1
+    assert len(pages[0].groups) == 2
+    assert pages[0].groups[0].similar_count == 1
+
+
+def test_build_pages_empty_is_one_empty_page() -> None:
+    pages = build_pages([], per_page=20)
+    assert len(pages) == 1 and pages[0].groups == []
 
 
 # --- filter predicate (pins the filters.js contract) ------------------------

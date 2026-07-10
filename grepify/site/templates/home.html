@@ -18,7 +18,7 @@
 {% if cloud.keywords %}
 <div class="cloud">
 {% for kw in cloud.keywords %}
-<a href="{{ meta.base_path }}items/#keyword={{ kw.keyword | urlencode }}" style="font-size: {{ cloud_font_rem(kw.count, min_count=cloud.min_count, max_count=cloud.max_count) }}rem" title="{{ kw.count }} mentions">{{ kw.keyword }}{% if kw.delta > 0 %} <span class="delta-up">+{{ kw.delta }}</span>{% endif %}</a>
+<a href="{{ meta.base_path }}items/#keyword={{ kw.keyword | urlencode }}" style="font-size: {{ cloud_font_rem(kw.count, min_count=cloud.min_count, max_count=cloud.max_count) }}rem" title="{{ kw.count }} mentions">{{ kw.keyword }}{% if kw.delta > 0 %} <span class="delta-up">+{{ kw.delta }}</span>{% elif kw.delta < 0 %} <span class="delta-down">{{ kw.delta }}</span>{% endif %}</a>
 {% endfor %}
 </div>
 {% else %}

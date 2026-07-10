@@ -57,10 +57,9 @@ from grepify.repository.base import Repository
 from grepify.site.pages import (
     ITEMS_PER_PAGE,
     Page,
-    collapse_near_duplicates,
+    build_pages,
     item_json,
     page_facets,
-    paginate,
 )
 from grepify.site.render import (
     PageContext,
@@ -104,6 +103,11 @@ def build_site(  # noqa: PLR0913 — distinct collaborators, all required
     base_path: str = "/",
 ) -> BuildResult:
     """Render the whole site into ``output_dir`` from the cache + config."""
+    # Project config-derived sources/groups into the cache before the rebuild
+    # so the `sources` table is populated — otherwise top-sources / latest-items
+    # would fall back to raw source_ids instead of display names. (`ingest`
+    # loads config in its own process; `build` runs standalone and must too.)
+    repository.load_config(config.groups(), config.sources())
     repository.rebuild_cache()
     settings = config.settings()
     rules = KeywordRules.from_config(config.keywords())
@@ -181,10 +185,8 @@ def _write_items(
     queries: TrendQueries,
     emitted_items: list[ItemSummary],
 ) -> int:
-    groups = collapse_near_duplicates(emitted_items)
-    pages = paginate(groups, per_page=ITEMS_PER_PAGE)
-    tag_ids = [item.item_id for group in groups for item in (group.representative, *group.similar)]
-    item_tags = queries.distinct_keywords_for_items(tag_ids)
+    pages = build_pages(emitted_items, per_page=ITEMS_PER_PAGE)
+    item_tags = queries.distinct_keywords_for_items(i.item_id for i in emitted_items)
 
     for page in pages:
         payload = _page_payload(page, item_tags)

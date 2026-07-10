@@ -55,6 +55,9 @@ pages:
     - eval "$(make digest-gate)" # sets shell vars daily=/weekly=
     - make ingest
     - make extract
+    # Two gated calls to the same `make digest` (a stub today) — mirrors
+    # pipeline.yml's separate daily/weekly steps so the Monday run records both
+    # digest kinds; GRP-41/42 give `digest` the daily/weekly distinction.
     - if [ "$daily" = "true" ]; then make digest; fi
     - if [ "$weekly" = "true" ]; then make digest; fi
     - make commit-data

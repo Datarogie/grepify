@@ -262,7 +262,7 @@ class TrendQueries:
         """Sources ranked by distinct in-window item count (F-SIT-01)."""
         rows = self._conn.execute(
             "select i.source_id, coalesce(s.name, i.source_id) as name, "
-            "coalesce(s.kind, i.kind) as kind, count(distinct i.item_id) as n "
+            "coalesce(s.kind, min(i.kind)) as kind, count(distinct i.item_id) as n "
             "from items i "
             "left join sources s on s.source_id = i.source_id "
             "where i.published_at >= ? and i.published_at < ? "

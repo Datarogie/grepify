@@ -32,6 +32,7 @@ from grepify.site.build import BuildResult, build_site
 from grepify.site.pages import (
     ItemGroup,
     Page,
+    build_pages,
     collapse_near_duplicates,
     item_matches_filter,
     paginate,
@@ -81,6 +82,7 @@ __all__ = [
     "Stats",
     "TrendQueries",
     "Window",
+    "build_pages",
     "build_site",
     "cloud_font_rem",
     "collapse_near_duplicates",
