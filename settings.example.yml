@@ -30,6 +30,7 @@ windows:
 # (these are the defaults); tune without a code change.
 digest:
   enabled: true # pause switch: set false to freeze `digest` (no LLM calls, no files) during data remediation
+  daily_lookback_days: 7 # catch-up window: a daily run backfills any missing digest over the last N days
   rising_min_count: 3 # a keyword is "rising" only at >= this count ...
   rising_ratio: 3.0 # ... and count / previous-window count >= this ratio
   min_items: 10 # skip (do not fail) a category digest below this many items

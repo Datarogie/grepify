@@ -171,3 +171,21 @@ Tag v1.0.0 only when: HTML remediation done (Phase A + O1), daily digests
 generate + persist automatically (T3), and the site shows the next digest run
 (T4). Feed audit (T5) and the audit pass (T8) are strongly recommended but the
 three above are the hard gate.
+
+## 5. Follow-ups surfaced during hardening (post-v1, Kyle-greenlit for a later set)
+
+**F1 - Digest keyword drill-down should be digest-scoped (Kyle, 2026-07-10).**
+Today a digest keyword chip links to the global keyword page
+(`keyword/<slug>/`), which is built over a 30-day trailing window across **all**
+categories (`grepify/site/trends.py` `keyword_details`, `windows.keyword_days`).
+So the articles/sources shown there do not match the chip's number, which is that
+digest's own scope: distinct articles for the keyword within the digest's period
+(daily or weekly) and category. Desired behavior: clicking a keyword **from a
+digest** opens the articles used in **that** digest for the keyword
+(period- and category-scoped), with a quick link out to the all-time / 30-day
+keyword page for the same term. Fold in the trivial wording fix at the same time:
+the chip tooltip in `grepify/site/templates/digest_detail.html` says "mentions"
+but the count is **distinct articles** - relabel it (e.g. "N articles"). Scope:
+a new or parameterized period+category-scoped keyword view + template + snapshot
+tests; a PRD-diff candidate (design to be confirmed before building). Not part of
+T1-T8; do **not** slip it into the current stack.

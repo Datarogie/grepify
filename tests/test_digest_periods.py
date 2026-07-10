@@ -11,7 +11,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from grepify.digest.periods import previous_day, previous_iso_week
+from grepify.digest.periods import previous_day, previous_iso_week, recent_days
 
 
 def test_previous_day_summer() -> None:
@@ -29,6 +29,20 @@ def test_previous_day_spans_fall_back_is_25h() -> None:
     assert period.key == "2026-11-01"
     assert period.start == "2026-11-01T06:00:00+00:00"  # MDT midnight
     assert period.end == "2026-11-02T07:00:00+00:00"  # MST midnight (offset changed)
+
+
+def test_recent_days_newest_first_and_matches_previous_day() -> None:
+    instant = datetime(2026, 7, 8, 13, 0, tzinfo=UTC)
+    days = recent_days(instant, 3)
+    assert [d.key for d in days] == ["2026-07-07", "2026-07-06", "2026-07-05"]
+    # the newest is exactly previous_day, and the periods tile without gaps
+    assert days[0] == previous_day(instant)
+    assert days[0].start == days[1].end
+    assert days[1].start == days[2].end
+
+
+def test_recent_days_non_positive_count_is_empty() -> None:
+    assert recent_days(datetime(2026, 7, 8, 13, 0, tzinfo=UTC), 0) == []
 
 
 def test_previous_iso_week_summer() -> None:
