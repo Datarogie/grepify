@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from grepify.extract.fallback import YakeFallbackExtractor
+from grepify.ingest import RawItem, normalize
 from grepify.models import Item, SourceKind
+from tests.conftest import make_source
 
 
 def _item(item_id: str, *, title: str, summary: str | None = "") -> Item:
@@ -101,3 +103,48 @@ def test_no_item_produces_keyword_longer_than_60_chars() -> None:
 def test_empty_items_list_returns_empty_mapping() -> None:
     extractor = YakeFallbackExtractor()
     assert extractor.extract([]) == {}
+
+
+# --- HTML-markup regression (phone test: div/class/span/href surfaced as
+# top home-cloud keywords because unstripped HTML from feed summaries reached
+# the extractor) ---------------------------------------------------------
+
+
+def test_script_body_in_summary_does_not_surface_as_keywords() -> None:
+    # A generic tag-strip alone would remove the <script> tags but leave the
+    # JS body text behind, reproducing the exact reported symptom (div/class/
+    # span/href surfacing as top keywords) from a different source.
+    source = make_source("s1")
+    raw = RawItem(
+        url="https://example.com/post",
+        title="New agentic coding framework released",
+        summary=(
+            '<script>var gridClass = "div class span href";</script>'
+            "Real article body about retrieval augmented generation accuracy gains."
+        ),
+    )
+    item = normalize(raw, source, fetched_at="2026-07-08T10:00:00+00:00")
+    extractor = YakeFallbackExtractor()
+    keywords = extractor.extract([item])[item.item_id]
+    lowered = [kw.lower() for kw in keywords]
+    for markup_fragment in ("div class span", "class span href", "div", "span", "href"):
+        assert markup_fragment not in lowered
+
+
+def test_html_markup_in_summary_does_not_surface_as_keywords() -> None:
+    source = make_source("s1")
+    raw = RawItem(
+        url="https://example.com/post",
+        title="New agentic coding framework released",
+        summary=(
+            '<div class="grid grid-cols-2"><section class="body">'
+            "<span>Retrieval augmented generation improves accuracy</span> "
+            '<a href="https://example.com">read more</a></section></div>'
+        ),
+    )
+    item = normalize(raw, source, fetched_at="2026-07-08T10:00:00+00:00")
+    extractor = YakeFallbackExtractor()
+    keywords = extractor.extract([item])[item.item_id]
+    lowered = [kw.lower() for kw in keywords]
+    for markup_fragment in ("div", "class", "span", "href", "grid grid", "section class"):
+        assert markup_fragment not in lowered

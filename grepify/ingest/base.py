@@ -44,7 +44,7 @@ class RawItem(BaseModel):
     url: str
     title: str
     external_id: str | None = None  # guid / video_id / reddit id / tweet id
-    summary: str | None = None  # raw description/selftext; normalizer truncates to 2k
+    summary: str | None = None  # raw description/selftext; normalizer strips html + truncates to 2k
     author: str | None = None
     published_at: str | None = None  # ISO-8601 if provided; None -> normalizer uses fetched_at
     lang: str | None = None

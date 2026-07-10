@@ -24,6 +24,32 @@ treats NULLs as distinct) and dedup on ``canonical_url`` via ``item_id``. An
 empty / whitespace-only ``external_id`` is coerced to ``None`` so a blank id can
 never masquerade as a shared non-null key.
 
+Summary cleaning
+----------------
+``RawItem.summary`` is raw source text (RSS/Atom ``<description>`` HTML,
+reddit ``selftext``) - fetchers deliberately don't clean it (E1 brief: fetchers
+own title text via ``feedutil.clean_title``, everything else funnels through
+here). :func:`normalize` drops ``<script>``/``<style>`` element bodies, strips
+remaining tags, and unescapes entities the same way before truncating to
+:data:`_SUMMARY_MAX_CHARS`, so ``item.summary`` never carries markup into
+downstream consumers (the YAKE fallback extractor treats it as plain text,
+PRD §7).
+
+Known limitation, shared with ``feedutil.clean_title``: this is a regex
+stripper, not a real HTML parser. A dangling/unclosed tag, or a tag whose
+attribute value itself contains a literal ``>``, is not stripped correctly.
+Entity-double-encoded markup (e.g. ``&amp;lt;div&amp;gt;``) is deliberately
+*not* unwound past one level - unescaping before stripping would also eat
+genuinely plain-text ``&lt;x&gt;``-shaped content (comparison operators, code
+snippets), which this aggregator's dev/AI-research feeds use often enough
+that the false-positive cost outweighs the double-encoding case; it only
+affects a source feed that is itself already double-escaped, not ordinary
+RSS/Atom or reddit output. Likewise, a ``<script>`` body that itself contains
+the literal string ``</script>`` (some legacy tracking snippets escape the
+slash to avoid this exact problem) can make the non-greedy body match end
+early and leak the remainder of the script as text - the same
+regex-vs-parser tradeoff as the rest of this list.
+
 Failure modes
 -------------
 Pure functions, no I/O. They can only raise ``pydantic.ValidationError``, and
@@ -38,6 +64,8 @@ text. Malformed URLs do not raise: :func:`canonicalize_url` passes non-``http(s)
 from __future__ import annotations
 
 import hashlib
+import html
+import re
 from collections.abc import Sequence
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
@@ -46,6 +74,16 @@ from grepify.ingest.dedup import compute_content_hash
 from grepify.models import Item, Source, SourceKind
 
 _SUMMARY_MAX_CHARS = 2000  # PRD §6 / F-ING-04: store a truncated excerpt only
+
+# Same tag-strip regex feedutil.clean_title applies to titles - summaries never
+# got the same treatment, so raw markup (<div>, class="...", <span>, ...) from
+# feed descriptions/reddit selftext was landing in item.summary and leaking
+# into the YAKE fallback as spurious "keywords".
+_TAG_RE = re.compile(r"<[^>]+>")
+# A generic tag-strip removes <script>/<style> tags but not their bodies, so
+# without this a feed embedding a <script> or <style> element would leak its
+# code/CSS text as if it were prose (same symptom as the reported bug).
+_SCRIPT_STYLE_RE = re.compile(r"<(script|style)\b[^>]*>.*?</\1\s*>", re.IGNORECASE | re.DOTALL)
 
 # Tracking/analytics query params dropped during canonicalization: they vary per
 # referral for the *same* article, so keeping them would defeat url-based dedup.
@@ -110,6 +148,18 @@ def compute_item_id(kind: SourceKind, canonical_url: str, external_id: str | Non
     return hashlib.sha256(f"{kind.value}\x00{identity}".encode()).hexdigest()
 
 
+def _strip_html(text: str) -> str:
+    """Drop script/style bodies, strip remaining markup, unescape entities,
+    collapse whitespace - the same treatment ``feedutil.clean_title`` gives
+    titles (plus the script/style step), applied here so every summary
+    (RSS/Atom description, reddit selftext) gets it too regardless of source
+    kind. See the module docstring's "Summary cleaning" section for the
+    known regex-vs-parser limitations."""
+    without_script_style = _SCRIPT_STYLE_RE.sub(" ", text)
+    without_tags = _TAG_RE.sub(" ", without_script_style)
+    return " ".join(html.unescape(without_tags).split())
+
+
 def _clean_external_id(external_id: str | None) -> str | None:
     """Coerce an empty / whitespace-only external id to ``None`` (see module
     docstring - protects the ``(kind, external_id)`` unique index)."""
@@ -128,7 +178,7 @@ def normalize(raw: RawItem, source: Source, *, fetched_at: str) -> Item:
     """
     canonical = canonicalize_url(raw.url)
     external_id = _clean_external_id(raw.external_id)
-    summary = raw.summary[:_SUMMARY_MAX_CHARS] if raw.summary is not None else None
+    summary = _strip_html(raw.summary)[:_SUMMARY_MAX_CHARS] if raw.summary is not None else None
     return Item(
         item_id=compute_item_id(source.kind, canonical, external_id),
         source_id=source.source_id,
