@@ -29,6 +29,7 @@ windows:
 # Rising-detection + digest shaping (PRD §8 F-TRD-03 / F-DIG-01/03). All optional
 # (these are the defaults); tune without a code change.
 digest:
+  enabled: true # pause switch: set false to freeze `digest` (no LLM calls, no files) during data remediation
   rising_min_count: 3 # a keyword is "rising" only at >= this count ...
   rising_ratio: 3.0 # ... and count / previous-window count >= this ratio
   min_items: 10 # skip (do not fail) a category digest below this many items
