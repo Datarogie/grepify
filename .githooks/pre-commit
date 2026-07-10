@@ -23,21 +23,26 @@ if printf '%s\n%s' "$email" "$name" | grep -qiE 'anthropic|noreply@anthropic|^cl
     "Set the project identity first: bash scripts/setup-git-identity.sh"
 fi
 
-# Added lines in the staged diff (drop the +++ file headers). `.githooks/` is
-# excluded: these scripts embed the very patterns below as detection strings, so
-# scanning them would self-trip; they are reviewed infra.
-added="$(git diff --cached --diff-filter=ACM -U0 -- . ':(exclude).githooks/' | { grep -E '^\+' || true; } | { grep -Ev '^\+\+\+' || true; })"
+# Added lines helper (drop the +++ file headers) for a given pathspec.
+staged_added() { git diff --cached --diff-filter=ACM -U0 -- "$@" | { grep -E '^\+' || true; } | { grep -Ev '^\+\+\+' || true; }; }
 
-# 2) No em/en dashes (U+2014 / U+2013). python3 is reliable where this box's
-#    grep -P is not; chr() keeps this script itself dash-free. Exits 1 on a hit.
-if ! printf '%s' "$added" | python3 -c "import sys; sys.exit(1 if {chr(0x2014), chr(0x2013)} & set(sys.stdin.read()) else 0)"; then
+# 2) No em/en dashes (U+2014 / U+2013). Scanned everywhere except `.githooks/`
+#    (dash-free by construction via chr()). python3 is reliable where this box's
+#    grep -P is not. Exits 1 on a hit.
+dash_added="$(staged_added . ':(exclude).githooks/')"
+if ! printf '%s' "$dash_added" | python3 -c "import sys; sys.exit(1 if {chr(0x2014), chr(0x2013)} & set(sys.stdin.read()) else 0)"; then
   fail "a staged line contains an em/en dash (U+2014 / U+2013)." \
     "Use a spaced hyphen ' - ' or reword. Genuine external data may keep it:" \
     "re-run with 'git commit --no-verify'."
 fi
 
-# 3) No AI-authorship attribution in staged content (code, comments, docs).
-if printf '%s' "$added" | grep -qiE 'co-authored-by:[[:space:]]*.*(claude|anthropic)|claude-session|generated (with|by) claude|claude\.ai/code'; then
+# 3) No AI-authorship attribution in staged content (code, comments). Meta-docs
+#    that legitimately QUOTE these patterns to document the rule are excluded so
+#    they don't self-trip: `.githooks/` (the detection strings), `HANDOFF.md`,
+#    `docs/`, and `.github/` (the PR template's sweep reminder). Real attribution
+#    belongs in code/messages, which stay covered.
+attr_added="$(staged_added . ':(exclude).githooks/' ':(exclude)HANDOFF.md' ':(exclude)docs/' ':(exclude).github/')"
+if printf '%s' "$attr_added" | grep -qiE 'co-authored-by:[[:space:]]*.*(claude|anthropic)|claude-session|generated (with|by) claude|claude\.ai/code'; then
   fail "a staged line contains AI-authorship attribution." \
     "Remove Co-Authored-By / Claude-Session / 'Generated with Claude' / claude.ai/code."
 fi
