@@ -163,6 +163,28 @@ class Limits(_ConfigModel):
     transcript_langs: list[str] = ["en"]
 
 
+class IngestSettings(_ConfigModel):
+    """Best-effort source-kind policy (T6, GRP-31 - Reddit strategy option ii).
+
+    ``min_interval_hours`` is how long, per :class:`~grepify.models.SourceKind`,
+    the ingest orchestrator (:mod:`grepify.ingest.cadence`) waits between real
+    fetch attempts for a source of that kind; a kind absent from the mapping
+    (or mapped to ``<= 0``) is fetched every run, unchanged from pre-T6
+    behavior. Reddit defaults to 20 hours so it is fetched about once a day
+    against the pipeline's roughly-every-6-12h cron cadence, rather than on
+    every run.
+
+    ``quiet_kinds`` lists the kinds whose consecutive fetch failures never set
+    the health-snapshot ``flagged`` bit (:mod:`grepify.health`) - the count is
+    still computed and shown, only the boolean is suppressed, so the ~26
+    currently-blocked Reddit sources stop reading as red/error noise on the
+    health page without losing auditability.
+    """
+
+    min_interval_hours: dict[SourceKind, int] = {SourceKind.REDDIT: 20}
+    quiet_kinds: list[SourceKind] = [SourceKind.REDDIT]
+
+
 class SettingsConfig(_ConfigModel):
     """Top-level settings (PRD §7 settings.yml)."""
 
@@ -170,4 +192,5 @@ class SettingsConfig(_ConfigModel):
     windows: Windows = Windows()
     limits: Limits = Limits()
     digest: DigestSettings = DigestSettings()
+    ingest: IngestSettings = IngestSettings()
     timezone: str = "America/Edmonton"

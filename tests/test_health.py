@@ -95,6 +95,50 @@ def test_flagged_source_is_never_auto_disabled() -> None:
     assert not hasattr(snapshot.sources[0], "disabled")
 
 
+# --- cadence-skip transparency (T6, GRP-31) ---------------------------------
+
+
+def test_skipped_entries_do_not_reset_the_failure_streak() -> None:
+    # A chronically-failing Reddit source: real ERRORs, then cadence SKIPs
+    # interleaved and trailing. The skips must be transparent - the streak
+    # still counts the real failures and the source still flags (if not quiet).
+    entries = [
+        _entry("s1", "r1", "2026-07-01T00:00:00+00:00", FetchStatus.ERROR, error="boom1"),
+        _entry("s1", "r2", "2026-07-01T06:00:00+00:00", FetchStatus.SKIPPED),
+        _entry("s1", "r3", "2026-07-01T12:00:00+00:00", FetchStatus.SKIPPED),
+        _entry("s1", "r4", "2026-07-02T00:00:00+00:00", FetchStatus.ERROR, error="boom2"),
+        _entry("s1", "r5", "2026-07-02T06:00:00+00:00", FetchStatus.ERROR, error="boom3"),
+        _entry("s1", "r6", "2026-07-02T12:00:00+00:00", FetchStatus.SKIPPED),
+    ]
+    snapshot = compute_health(entries, run_id="r6", generated_at="2026-07-02T13:00:00+00:00")
+    health = snapshot.sources[0]
+    assert health.consecutive_failures == 3  # three real ERRORs, skips ignored
+    assert health.last_status is FetchStatus.ERROR  # last *real* attempt, not the skip
+    assert health.last_error == "boom3"  # not blanked by the trailing skip
+    assert health.error_class is ErrorClass.OTHER
+    assert health.attempts == 3  # skips excluded from the attempt count
+    assert health.flagged is False  # 3 < threshold
+
+
+def test_quiet_reddit_keeps_error_streak_across_skips_but_stays_unflagged() -> None:
+    entries = [
+        _entry("reddit-1", f"r{n}", f"2026-07-0{n}T00:00:00+00:00", FetchStatus.ERROR, error="boom")
+        for n in range(1, 6)
+    ] + [_entry("reddit-1", "r6", "2026-07-06T00:00:00+00:00", FetchStatus.SKIPPED)]
+    snapshot = compute_health(
+        entries,
+        run_id="r6",
+        generated_at="2026-07-06T06:00:00+00:00",
+        quiet_source_ids={"reddit-1"},
+    )
+    health = snapshot.sources[0]
+    # Auditability preserved: the 5-failure streak and last error survive the skip.
+    assert health.consecutive_failures == 5
+    assert health.last_status is FetchStatus.ERROR
+    assert health.last_error == "boom"
+    assert health.flagged is False  # quiet: never flags despite the streak
+
+
 def test_multiple_sources_sorted_by_id() -> None:
     entries = [
         _entry("zzz", "r1", "2026-07-01T00:00:00+00:00", FetchStatus.OK),
@@ -160,6 +204,65 @@ def test_classify_error(error: str | None, expected: ErrorClass | None) -> None:
 def test_empty_history_yields_empty_snapshot() -> None:
     snapshot = compute_health([], run_id="r1", generated_at="2026-07-01T00:00:00+00:00")
     assert snapshot.sources == []
+
+
+# --- quiet_source_ids (T6, GRP-31: Reddit best-effort/quiet) ----------------
+def test_quiet_source_never_flags_despite_consecutive_failures() -> None:
+    entries = [
+        _entry("reddit-1", f"r{n}", f"2026-07-0{n}T00:00:00+00:00", FetchStatus.ERROR, error="boom")
+        for n in range(1, 6)
+    ]
+    snapshot = compute_health(
+        entries,
+        run_id="r5",
+        generated_at="2026-07-06T00:00:00+00:00",
+        quiet_source_ids={"reddit-1"},
+    )
+    health = snapshot.sources[0]
+    # The count is still fully computed/visible - only the boolean is suppressed.
+    assert health.consecutive_failures == 5
+    assert health.flagged is False
+
+
+def test_non_quiet_source_still_flags_normally_when_quiet_ids_given() -> None:
+    entries = [
+        _entry("rss-1", f"r{n}", f"2026-07-0{n}T00:00:00+00:00", FetchStatus.ERROR, error="boom")
+        for n in range(1, 6)
+    ]
+    snapshot = compute_health(
+        entries,
+        run_id="r5",
+        generated_at="2026-07-06T00:00:00+00:00",
+        quiet_source_ids={"reddit-1"},  # a different source - rss-1 is unaffected
+    )
+    assert snapshot.sources[0].flagged is True
+
+
+def test_quiet_source_ids_defaults_to_empty_and_behaves_like_before() -> None:
+    entries = [
+        _entry("s1", f"r{n}", f"2026-07-0{n}T00:00:00+00:00", FetchStatus.ERROR)
+        for n in range(1, 6)
+    ]
+    snapshot = compute_health(entries, run_id="r5", generated_at="2026-07-06T00:00:00+00:00")
+    assert snapshot.sources[0].flagged is True
+
+
+def test_write_health_snapshot_passes_through_quiet_source_ids(tmp_path: Path) -> None:
+    layout = DataLayout(tmp_path)
+    entries = [
+        _entry("reddit-1", f"r{n}", f"2026-07-0{n}T00:00:00+00:00", FetchStatus.ERROR)
+        for n in range(1, 6)
+    ]
+    snapshot = write_health_snapshot(
+        entries,
+        layout,
+        run_id="r5",
+        generated_at="2026-07-06T00:00:00+00:00",
+        quiet_source_ids={"reddit-1"},
+    )
+    assert snapshot.sources[0].flagged is False
+    written = HealthSnapshot.model_validate_json(layout.health_file.read_text(encoding="utf-8"))
+    assert written.sources[0].flagged is False
 
 
 def test_write_health_snapshot_writes_json(tmp_path: Path) -> None:

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import re
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -298,3 +299,107 @@ def test_doctor_is_repeatable_without_a_prior_ingest_run(tmp_path: Path) -> None
     assert first.stdout == second.stdout
     assert "bad-src" in first.stdout
     assert "never-fetched" in first.stdout
+
+
+# --- T6, GRP-31: Reddit best-effort cadence + quiet health status ------------
+
+_GROUP_RSS_AND_REDDIT_ALWAYS_ERROR = """
+    group: g3
+    name: G3
+    category: ai
+    sources:
+      - id: good-src
+        kind: rss
+        url: https://example.com/good/feed
+      - id: bad-rss-src
+        kind: rss
+        url: https://example.com/bad/feed
+      - id: bad-reddit-src
+        kind: reddit
+        subreddit: bad
+"""
+
+
+class _StepClock:
+    """A controllable clock double for CLI tests: each ``ingest`` invocation
+    constructs its own ``SystemClock()`` (see ``grepify.cli.main``), so this is
+    monkeypatched in as the ``SystemClock`` symbol itself - calling it returns
+    this same instance across every invocation in a test, letting the test
+    step wall-clock time between successive real CLI calls."""
+
+    def __init__(self, start: datetime) -> None:
+        self._now = start
+
+    def now(self) -> datetime:
+        return self._now
+
+    def advance(self, delta: timedelta) -> None:
+        self._now += delta
+
+
+def _always_error_registry(**_kwargs: object) -> FetcherRegistry:
+    reg = FetcherRegistry()
+    reg.register(
+        FakeFetcher(
+            SourceKind.RSS,
+            results={"bad-rss-src": FetchError("rss down")},
+            default=[RawItem(url="https://example.com/a", title="A", external_id="a")],
+        )
+    )
+    reg.register(_ExplodingFetcher())  # every reddit source errors (kind=reddit)
+    return reg
+
+
+def test_reddit_consecutive_failures_never_flag_but_rss_does(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    cfg = write_config(tmp_path / "sources", groups={"g3.yml": _GROUP_RSS_AND_REDDIT_ALWAYS_ERROR})
+    data = tmp_path / "data"
+    monkeypatch.setattr("grepify.cli.build_registry", _always_error_registry)
+
+    clock = _StepClock(datetime(2026, 7, 8, 12, 0, tzinfo=UTC))
+    monkeypatch.setattr("grepify.cli.SystemClock", lambda: clock)
+
+    # Each run is 21h apart - past the default 20h reddit cadence, so every
+    # run is a real attempt for both kinds (5 consecutive real failures each).
+    for _ in range(5):
+        result = _invoke(cfg, data, "ingest")
+        assert result.exit_code == 0
+        clock.advance(timedelta(hours=21))
+
+    health = json.loads((data / "health.json").read_text(encoding="utf-8"))
+    by_id = {s["source_id"]: s for s in health["sources"]}
+    assert by_id["bad-rss-src"]["consecutive_failures"] == 5
+    assert by_id["bad-rss-src"]["flagged"] is True
+    assert by_id["bad-reddit-src"]["consecutive_failures"] == 5
+    assert by_id["bad-reddit-src"]["flagged"] is False  # T6: Reddit stays quiet
+
+    doctor_result = _invoke(cfg, data, "doctor")
+    # 1 flagged (bad-rss-src only) despite 2 sources currently in error status.
+    assert "3 sources, 2 last-run error, 1 flagged (>=5 consecutive)" in doctor_result.stdout
+    assert "bad-reddit-src" in doctor_result.stdout
+
+
+def test_reddit_source_skipped_for_cadence_on_a_quick_rerun(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    cfg = write_config(tmp_path / "sources", groups={"g3.yml": _GROUP_RSS_AND_REDDIT_ALWAYS_ERROR})
+    data = tmp_path / "data"
+    monkeypatch.setattr("grepify.cli.build_registry", _always_error_registry)
+
+    clock = _StepClock(datetime(2026, 7, 8, 12, 0, tzinfo=UTC))
+    monkeypatch.setattr("grepify.cli.SystemClock", lambda: clock)
+
+    first = _invoke(cfg, data, "ingest")
+    assert first.exit_code == 0
+    # Same instant - well within the reddit cadence window.
+    second = _invoke(cfg, data, "ingest")
+    assert second.exit_code == 0
+    assert "1 skipped (cadence)" in second.stdout
+
+    run_id = _run_id_from_output(second.stdout)
+    manifest = RunManifest.model_validate_json(
+        DataLayout(data).run_manifest(run_id).read_text(encoding="utf-8")
+    )
+    assert manifest.counts["sources_skipped"] == 1
+    assert manifest.counts["sources_attempted"] == 2  # good-src + bad-rss-src; reddit excluded

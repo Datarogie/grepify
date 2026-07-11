@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -188,3 +188,79 @@ def test_fetch_log_written_with_expected_fields(tmp_path: Path) -> None:
     assert by_id["bad-src"].status is FetchStatus.ERROR
     assert by_id["bad-src"].error is not None
     assert by_id["empty-src"].status is FetchStatus.EMPTY
+
+
+# --- cadence (T6, GRP-31: Reddit best-effort scheduling) ---------------------
+
+
+def _services_at(tmp_path: Path, registry: FetcherRegistry, instant: datetime) -> IngestServices:
+    """Like ``_services`` but with an injectable clock instant, and a fresh
+    repository/config handle pointed at the *same* on-disk data/config roots -
+    so successive calls can simulate separate pipeline runs at different times
+    while sharing the same persisted fetch_log history."""
+    cfg_root = tmp_path / "sources"
+    if not cfg_root.exists():
+        write_config(cfg_root, groups=_GROUPS)
+    return IngestServices(
+        config=FilesystemConfigProvider(cfg_root),
+        repository=JsonlSqliteRepository(tmp_path / "data"),
+        registry=registry,
+        clock=FixedClock(instant),
+    )
+
+
+def test_reddit_source_is_skipped_on_a_run_within_the_cadence_interval(tmp_path: Path) -> None:
+    t0 = datetime(2026, 7, 8, 12, 0, tzinfo=UTC)
+    registry = _registry()
+    services = _services_at(tmp_path, registry, t0)
+    run_ingest(services, run_id="run-1")
+
+    # 6h later - well within the default 20h reddit interval. If the skip were
+    # not honored, the registered Reddit fetcher (_ExplodingFetcher) would be
+    # dispatched and raise, turning this into an ERROR rather than SKIPPED.
+    second = _services_at(tmp_path, _registry(), t0 + timedelta(hours=6))
+    summary = run_ingest(second, run_id="run-2")
+
+    by_id = {r.source_id: r for r in summary.results}
+    assert by_id["boom-src"].status is FetchStatus.SKIPPED
+    assert summary.sources_skipped == 1
+    assert summary.sources_attempted == 3  # good/bad/empty-src; boom-src excluded
+
+
+def test_rss_source_is_not_cadence_limited(tmp_path: Path) -> None:
+    # rss has no configured min_interval_hours (default 0) - it is due on
+    # every run regardless of how recently it was last attempted.
+    t0 = datetime(2026, 7, 8, 12, 0, tzinfo=UTC)
+    services = _services_at(tmp_path, _registry(), t0)
+    run_ingest(services, run_id="run-1")
+
+    second = _services_at(tmp_path, _registry(), t0 + timedelta(minutes=1))
+    summary = run_ingest(second, run_id="run-2")
+    by_id = {r.source_id: r for r in summary.results}
+    assert by_id["good-src"].status is FetchStatus.OK
+
+
+def test_reddit_source_becomes_due_again_after_the_interval_elapses(tmp_path: Path) -> None:
+    t0 = datetime(2026, 7, 8, 12, 0, tzinfo=UTC)
+    services = _services_at(tmp_path, _registry(), t0)
+    run_ingest(services, run_id="run-1")
+
+    later = _services_at(tmp_path, _registry(), t0 + timedelta(hours=21))
+    summary = run_ingest(later, run_id="run-2")
+    by_id = {r.source_id: r for r in summary.results}
+    assert by_id["boom-src"].status is FetchStatus.ERROR  # a real attempt, not skipped
+
+
+def test_cadence_skip_is_logged_to_fetch_log(tmp_path: Path) -> None:
+    t0 = datetime(2026, 7, 8, 12, 0, tzinfo=UTC)
+    services = _services_at(tmp_path, _registry(), t0)
+    run_ingest(services, run_id="run-1")
+
+    second = _services_at(tmp_path, _registry(), t0 + timedelta(hours=6))
+    run_ingest(second, run_id="run-2")
+
+    entries = [e for e in second.repository.iter_fetch_log() if e.source_id == "boom-src"]
+    assert entries[-1].status is FetchStatus.SKIPPED
+    assert entries[-1].run_id == "run-2"
+    assert entries[-1].items_new == 0
+    assert entries[-1].error is None

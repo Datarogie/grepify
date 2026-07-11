@@ -31,4 +31,9 @@ limits:
   transcript_max_chars: 60000
   transcript_langs: [en]
 
+ingest:
+  min_interval_hours:
+    reddit: 20
+  quiet_kinds: [reddit]
+
 timezone: America/Edmonton

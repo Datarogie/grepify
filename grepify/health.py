@@ -27,6 +27,30 @@ grepify/ingest``) - an HTTP status is matched first (most specific), then
 known substrings; anything else falls back to ``other`` rather than raising or
 guessing.
 
+Best-effort / quiet sources (T6, GRP-31)
+-----------------------------------------
+``quiet_source_ids`` (``compute_health`` / ``write_health_snapshot``) is the
+set of sources - Reddit's, by convention of the caller
+(:mod:`grepify.cli`, driven by ``settings.ingest.quiet_kinds`) - whose
+``flagged`` bit is always ``False``, regardless of ``consecutive_failures``.
+This is scoping, not hiding: ``consecutive_failures`` (and ``attempts``,
+``last_status``, ``last_error``, ``error_class``) are computed and shown
+exactly as for any other source, so the behavior stays fully auditable; only
+the boolean that turns a row red on the health page is suppressed for these
+sources, per the decided best-effort/quiet Reddit strategy.
+
+Cadence skips are transparent (T6, GRP-31)
+-------------------------------------------
+A reduced-cadence source (Reddit) is logged ``skipped`` on the runs it is not
+due (:mod:`grepify.ingest.cadence`). Those ``skipped`` rows are dropped before
+the per-source rollup, so a skip is a *non-event* here: it never resets the
+consecutive-failure streak and never overwrites ``last_status`` / ``last_error``
+/ ``error_class`` with blank values. Without this, a chronically-failing Reddit
+source - skipped on most runs - would read as ``skipped`` / streak 0 on the
+health page and drop out of the ``doctor`` error tally the moment a skip landed,
+losing the failure history the ``skipped`` rows in ``fetch_log`` (and this
+rollup) are meant to keep auditable.
+
 Failure modes
 -------------
 :func:`compute_health` and :func:`classify_error` are pure and never raise (an
@@ -139,29 +163,47 @@ class HealthSnapshot(BaseModel):
 
 
 def compute_health(
-    entries: Iterable[FetchLogEntry], *, run_id: str, generated_at: str
+    entries: Iterable[FetchLogEntry],
+    *,
+    run_id: str,
+    generated_at: str,
+    quiet_source_ids: Iterable[str] = (),
 ) -> HealthSnapshot:
     """Compute per-source health from fetch_log ``entries``.
 
     ``entries`` should already be in chronological order per source (the
     order :meth:`Repository.iter_fetch_log
     <grepify.repository.base.Repository.iter_fetch_log>` guarantees) - this
-    groups by ``source_id`` while preserving that order, so the last entry
-    seen for a source is its most recent attempt and consecutive failures are
-    a trailing count of ``error`` statuses back from there. Any non-error
-    status (``ok``, ``empty``, ``skipped``) resets the count.
+    groups by ``source_id`` while preserving that order. ``skipped`` entries
+    (a cadence non-attempt, T6) are transparent to the rollup: they are
+    dropped before the per-source computation, so the last entry that counts
+    for a source is its most recent *real* attempt and consecutive failures
+    are a trailing count of ``error`` statuses back from there. Any non-error
+    real status (``ok``, ``empty``) resets the count.
+
+    ``quiet_source_ids`` (T6) never get ``flagged=True`` no matter how many
+    consecutive failures they accumulate - see the module docstring.
     """
     by_source: dict[str, list[FetchLogEntry]] = {}
     for entry in entries:
+        if entry.status is FetchStatus.SKIPPED:
+            continue  # T6: a cadence non-attempt, transparent to the health rollup
         by_source.setdefault(entry.source_id, []).append(entry)
 
+    quiet = frozenset(quiet_source_ids)
     sources = [
-        _source_health(source_id, history) for source_id, history in sorted(by_source.items())
+        _source_health(source_id, history, quiet=source_id in quiet)
+        for source_id, history in sorted(by_source.items())
     ]
     return HealthSnapshot(run_id=run_id, generated_at=generated_at, sources=sources)
 
 
-def _source_health(source_id: str, history: list[FetchLogEntry]) -> SourceHealth:
+def _source_health(source_id: str, history: list[FetchLogEntry], *, quiet: bool) -> SourceHealth:
+    # ``history`` here is already ``skipped``-free (see compute_health), so
+    # every entry is a real fetch attempt: ``last`` is the last real attempt,
+    # ``attempts`` counts only real attempts, and the streak below ignores the
+    # cadence skips entirely (T6 auditability - a chronic Reddit outage keeps
+    # its error status/streak even on the runs it was skipped).
     last = history[-1]
     consecutive = 0
     for entry in reversed(history):
@@ -176,15 +218,22 @@ def _source_health(source_id: str, history: list[FetchLogEntry]) -> SourceHealth
         last_error=last.error,
         error_class=classify_error(last.error),
         consecutive_failures=consecutive,
-        flagged=consecutive >= CONSECUTIVE_FAILURE_THRESHOLD,
+        flagged=consecutive >= CONSECUTIVE_FAILURE_THRESHOLD and not quiet,
     )
 
 
 def write_health_snapshot(
-    entries: Iterable[FetchLogEntry], layout: DataLayout, *, run_id: str, generated_at: str
+    entries: Iterable[FetchLogEntry],
+    layout: DataLayout,
+    *,
+    run_id: str,
+    generated_at: str,
+    quiet_source_ids: Iterable[str] = (),
 ) -> HealthSnapshot:
     """Compute and persist ``data/health.json`` (PRD §5 diagram: ingest -> health snapshot)."""
-    snapshot = compute_health(entries, run_id=run_id, generated_at=generated_at)
+    snapshot = compute_health(
+        entries, run_id=run_id, generated_at=generated_at, quiet_source_ids=quiet_source_ids
+    )
     layout.health_file.parent.mkdir(parents=True, exist_ok=True)
     layout.health_file.write_text(snapshot.model_dump_json(indent=2) + "\n", encoding="utf-8")
     return snapshot

@@ -42,5 +42,13 @@ limits:
   transcript_max_chars: 60000
   transcript_langs: [en]
 
+# Best-effort source-kind policy (T6, GRP-31 - Reddit strategy option ii):
+# keep attempting every Reddit source every pipeline run, but at a reduced
+# cadence, and never let its consecutive failures turn the health page red.
+ingest:
+  min_interval_hours:
+    reddit: 20 # ~once/day against the pipeline's roughly 6-12h cron cadence, instead of every run
+  quiet_kinds: [reddit] # consecutive failures never set the health "flagged" bit for these kinds
+
 # Digest day boundary + cron gating are pinned to this zone, not UTC (PRD §5).
 timezone: America/Edmonton

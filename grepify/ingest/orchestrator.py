@@ -30,10 +30,24 @@ A source is ingested only if both its own ``enabled`` flag and its parent
 group's ``enabled`` flag are true (PRD §7 group semantics: disabling a group
 disables everything in it, not just its own flag).
 
+Cadence (T6, GRP-31)
+--------------------
+Enabled sources are further split into "due" and "cadence-skipped" by
+:mod:`grepify.ingest.cadence`, using ``settings.ingest.min_interval_hours``
+per :class:`~grepify.models.SourceKind` (Reddit's default reduces it to
+roughly once a day; every other kind is unaffected and stays due every run).
+A cadence-skipped source is never dispatched to its fetcher - it gets a
+``skipped`` :class:`~grepify.models.FetchLogEntry` directly, so the health
+page shows it was deliberately not attempted rather than looking stale, and
+:attr:`IngestSummary.sources_attempted` excludes it (it was never actually
+attempted this run - see :attr:`IngestSummary.sources_skipped`).
+
 Failure modes
 -------------
 - A single source's :class:`~grepify.errors.FetchError` or any other
-  exception -> logged ``error``, run continues (see above).
+  exception -> logged ``error``, run continues (see above). Cadence never
+  changes this: a cadence-skipped source is not dispatched at all, so it
+  cannot fail the run either.
 - An empty (post-cap) fetch result -> logged ``empty``, not an error.
 - A successful fetch (even with zero *new* items on a re-run) -> logged
   ``ok``; ``items_new`` is whatever :meth:`Repository.add_items
@@ -52,6 +66,7 @@ from dataclasses import dataclass, field
 from grepify.clock import Clock, to_iso
 from grepify.config.provider import ConfigProvider
 from grepify.errors import FetchError
+from grepify.ingest.cadence import last_real_attempt_at, split_by_cadence
 from grepify.ingest.normalize import dedup_within_batch, normalize_batch
 from grepify.ingest.reddit import RedditFetcher
 from grepify.ingest.registry import FetcherRegistry
@@ -93,10 +108,6 @@ class IngestSummary:
     results: list[SourceResult] = field(default_factory=list)
 
     @property
-    def sources_attempted(self) -> int:
-        return len(self.results)
-
-    @property
     def sources_ok(self) -> int:
         return sum(1 for r in self.results if r.status is FetchStatus.OK)
 
@@ -107,6 +118,16 @@ class IngestSummary:
     @property
     def sources_error(self) -> int:
         return sum(1 for r in self.results if r.status is FetchStatus.ERROR)
+
+    @property
+    def sources_skipped(self) -> int:
+        """Sources not dispatched this run for cadence (T6) - see the module
+        docstring. Excluded from :attr:`sources_attempted`."""
+        return sum(1 for r in self.results if r.status is FetchStatus.SKIPPED)
+
+    @property
+    def sources_attempted(self) -> int:
+        return sum(1 for r in self.results if r.status is not FetchStatus.SKIPPED)
 
     @property
     def items_new(self) -> int:
@@ -134,21 +155,51 @@ def build_registry(*, transcript_store: TranscriptStore | None = None) -> Fetche
 def run_ingest(
     services: IngestServices, *, run_id: str, item_cap: int = ITEM_CAP_DEFAULT
 ) -> IngestSummary:
-    """Fetch every enabled source, normalize+dedup, and append to the repository.
+    """Fetch every enabled, cadence-due source, normalize+dedup, and append to
+    the repository.
 
     Returns the run's :class:`IngestSummary`; see the module docstring for the
-    per-source isolation and cap rules.
+    per-source isolation, cap, and cadence rules.
     """
+    now = services.clock.now()
+    started_at = to_iso(now)
+    last_real_attempt = last_real_attempt_at(services.repository.iter_fetch_log())
+    decision = split_by_cadence(
+        _enabled_sources(services.config),
+        now=now,
+        last_real_attempt=last_real_attempt,
+        min_interval_hours=services.config.settings().ingest.min_interval_hours,
+    )
     results = [
-        _run_source(source, services, run_id=run_id, item_cap=item_cap)
-        for source in _enabled_sources(services.config)
-    ]
+        _skip_for_cadence(source, services, run_id=run_id, started_at=started_at)
+        for source in decision.skipped
+    ] + [_run_source(source, services, run_id=run_id, item_cap=item_cap) for source in decision.due]
     return IngestSummary(results=results)
 
 
 def _enabled_sources(config: ConfigProvider) -> list[Source]:
     enabled_groups = {g.group_id for g in config.groups() if g.enabled}
     return [s for s in config.sources() if s.enabled and s.group_id in enabled_groups]
+
+
+def _skip_for_cadence(
+    source: Source, services: IngestServices, *, run_id: str, started_at: str
+) -> SourceResult:
+    """Record a cadence skip (T6): logged as ``skipped``, never dispatched to
+    the fetcher, so it cannot affect the per-source isolation guarantee."""
+    services.repository.log_fetch(
+        FetchLogEntry(
+            source_id=source.source_id,
+            run_id=run_id,
+            started_at=started_at,
+            status=FetchStatus.SKIPPED,
+            items_new=0,
+            duration_ms=0,
+        )
+    )
+    return SourceResult(
+        source_id=source.source_id, status=FetchStatus.SKIPPED, items_new=0, duration_ms=0
+    )
 
 
 @dataclass(frozen=True)
