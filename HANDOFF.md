@@ -37,9 +37,9 @@ DONE and merged; v1.0.0 is taggable.
   digests.js. Nav link in render.py. Snapshot-test the server-rendered baseline.
 - Ordering stays consistent with #37 (newest-first by period). Build on merged #37.
 
-Open decision (carried from T8/#41, awaiting Kyle): consolidate ingest config schema
-(min_interval_hours dict + quiet_kinds list) into one policy. Recommendation: leave as
-two orthogonal fields (no change). Consolidation would be a PRD-diff proposal.
+Decision RESOLVED (Kyle, 2026-07-11): keep the ingest config as two orthogonal
+fields (min_interval_hours dict + quiet_kinds list). No consolidation, no change,
+no PRD diff. Closed.
 
 ## #39 investigation (DONE by orchestrator - handed to sub-agent)
 Ran `grepify doctor` against origin/data (worktree). Findings:
