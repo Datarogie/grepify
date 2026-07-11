@@ -36,11 +36,10 @@ One JSON object per line:
   real extraction input on the substance, not a byte-exact copy - a heavily
   boilerplate-laden item could score slightly differently here than in a
   real pipeline run for that reason.
-- `expected_keywords` currently holds a **first-pass draft**, written by the
-  agent (not the LLM under test) reading each title/summary - a starting
-  point for the manual labeling task (playbook S7k), not a finished label
-  set. Review and edit every item; anything left as drafted should be a
-  deliberate agreement, not an unreviewed default. Keep entries lowercase,
+- `expected_keywords` is **fully labeled (30/30)**, written by the agent (not
+  the LLM under test) reading each title/summary as the manual labeling task
+  (playbook S7k). If you disagree with a label, edit it directly - a change
+  here is a deliberate relabeling, not filling in a blank. Keep entries lowercase,
   2-8 per item, no punctuation - matching
   `grepify.keywords.normalize_keyword`'s output shape (the scorer normalizes
   both sides before comparing, so exact casing/whitespace doesn't matter, but

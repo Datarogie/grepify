@@ -12,9 +12,10 @@ worth unit-testing without a network, so it stays a thin script, mirroring
 
 The fixture (`tests/fixtures/eval/keyword_eval_candidates.jsonl`) is 30 real
 ingested items (title + summary), hand-curated once and committed as a fixed
-test fixture - not pipeline truth. `expected_keywords` starts empty per item
-(a manual labeling task, playbook S7k); unlabeled items are skipped from the
-mean score but still show their predicted keywords in the report.
+test fixture - not pipeline truth. `expected_keywords` is fully labeled today
+(30/30, a manual labeling task, playbook S7k); an item can still be reset to
+an empty list to re-open it for re-labeling, in which case it is skipped from
+the mean score but still shows its predicted keywords in the report.
 
 Failure modes
 --------------
