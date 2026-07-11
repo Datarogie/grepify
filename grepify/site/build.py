@@ -34,6 +34,16 @@ Failure modes
   is best-effort, PRD §8) - it never fails the build.
 - Writing ``public/`` propagates ``OSError`` (e.g. read-only fs), same as every
   other data-root write in the package.
+
+Next-scheduled-digest-run + last-digest-per-category (T4)
+-----------------------------------------------------------
+The health page also surfaces the next America/Edmonton digest-gate opening
+(:func:`~grepify.site.next_digest.next_scheduled_run`, a pure function of the
+build's injected ``clock``) and the most-recent digest per category
+(:func:`~grepify.site.pages.latest_digest_per_category`, a pure fold over the
+digests already queried for the digest pages). Neither reads new state - the
+digest gate (GRP-45, ``grepify.digest.gating``) stays the single source of
+truth for whether a digest actually runs; this only renders it.
 """
 
 from __future__ import annotations
@@ -42,7 +52,7 @@ import json
 import shutil
 import sqlite3
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import jinja2
@@ -55,11 +65,13 @@ from grepify.keywords import KeywordRules
 from grepify.models import Source
 from grepify.paths import DataLayout
 from grepify.repository.base import Repository
+from grepify.site.next_digest import next_scheduled_run
 from grepify.site.pages import (
     ITEMS_PER_PAGE,
     Page,
     build_pages,
     item_json,
+    latest_digest_per_category,
     page_facets,
 )
 from grepify.site.render import (
@@ -149,7 +161,7 @@ def build_site(  # noqa: PLR0913 - distinct collaborators, all required
             _write_home(env, meta, output_dir, queries, cloud_window, keyword_pages, settings)
             + _write_items(env, meta, output_dir, queries, emitted_items)
             + _write_sources(env, meta, output_dir, config)
-            + _write_health(env, meta, output_dir, layout)
+            + _write_health(env, meta, output_dir, layout, digests=digests, now=now)
             + _write_digests(env, meta, output_dir, digests)
             + _write_keyword_pages(env, meta, output_dir, keyword_details)
         )
@@ -249,14 +261,22 @@ def _write_sources(
     return 1
 
 
-def _write_health(
-    env: jinja2.Environment, meta: SiteMeta, output_dir: Path, layout: DataLayout
+def _write_health(  # noqa: PLR0913 - collaborators of one page render, all required
+    env: jinja2.Environment,
+    meta: SiteMeta,
+    output_dir: Path,
+    layout: DataLayout,
+    *,
+    digests: list[DigestDetail],
+    now: datetime,
 ) -> int:
     html = render_page(
         env,
         "health.html",
         PageContext(meta=meta, active="health"),
         health=_load_health(layout),
+        next_run=next_scheduled_run(now),
+        category_digests=latest_digest_per_category(digests),
     )
     _write(output_dir / "health" / "index.html", html)
     return 1

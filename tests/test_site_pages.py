@@ -8,10 +8,11 @@ from grepify.site.pages import (
     build_pages,
     collapse_near_duplicates,
     item_matches_filter,
+    latest_digest_per_category,
     page_facets,
     paginate,
 )
-from grepify.site.trends import ItemSummary
+from grepify.site.trends import DigestDetail, ItemSummary
 
 
 def _summary(
@@ -171,3 +172,52 @@ def test_page_facets_sorted_and_deduped() -> None:
     assert facets["kinds"] == ["rss", "youtube"]
     assert facets["sources"] == [{"id": "s1", "name": "S1"}, {"id": "s2", "name": "S2"}]
     assert facets["keywords"] == ["genai", "llm"]
+
+
+# --- latest digest per category (T4) -----------------------------------------
+
+
+def _digest(digest_id: str, *, category: str, kind: str = "daily", created_at: str) -> DigestDetail:
+    return DigestDetail(
+        digest_id=digest_id,
+        kind=kind,
+        category=category,
+        title=f"digest {digest_id}",
+        body_md="body",
+        top_keywords=[],
+        period_start="2026-07-07T00:00:00+00:00",
+        period_end="2026-07-08T00:00:00+00:00",
+        created_at=created_at,
+    )
+
+
+def test_latest_digest_per_category_keeps_newest_first_seen() -> None:
+    # input already in all_digests() order: created_at desc, digest_id desc
+    digests = [
+        _digest(
+            "weekly-ai-2026-W27",
+            category="ai",
+            kind="weekly",
+            created_at="2026-07-07T09:10:00+00:00",
+        ),
+        _digest(
+            "daily-ai-2026-07-07",
+            category="ai",
+            kind="daily",
+            created_at="2026-07-07T09:05:00+00:00",
+        ),
+        _digest(
+            "daily-policy-2026-07-06",
+            category="policy",
+            kind="daily",
+            created_at="2026-07-06T09:00:00+00:00",
+        ),
+    ]
+    result = latest_digest_per_category(digests)
+    assert [d.category for d in result] == ["ai", "policy"]  # sorted by category
+    assert result[0].digest_id == "weekly-ai-2026-W27"  # newest "ai" wins
+    assert result[1].digest_id == "daily-policy-2026-07-06"
+
+
+def test_latest_digest_per_category_empty_input() -> None:
+    assert latest_digest_per_category([]) == []
