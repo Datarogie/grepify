@@ -9,12 +9,22 @@ and determinism (identical results twice in a row).
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+import json
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+from grepify.clock import from_iso, to_iso
 from grepify.config.schemas import KeywordsConfig
 from grepify.keywords import KeywordRules
-from grepify.models import ExtractionMethod, Item, ItemKeyword, Source, SourceKind
+from grepify.models import (
+    Digest,
+    DigestKind,
+    ExtractionMethod,
+    Item,
+    ItemKeyword,
+    Source,
+    SourceKind,
+)
 from grepify.paths import DataLayout
 from grepify.repository import JsonlSqliteRepository
 from grepify.site.trends import (
@@ -235,6 +245,68 @@ def test_latest_items_ordering_and_since(tmp_path: Path) -> None:
 def test_latest_digests_empty(tmp_path: Path) -> None:
     q = _queries(tmp_path)
     assert q.latest_digests() == []
+
+
+def _digest(
+    digest_id: str,
+    *,
+    kind: DigestKind = DigestKind.DAILY,
+    period_start: str,
+    created_at: str,
+) -> Digest:
+    # period_end is never asserted on here, one day past period_start is enough
+    period_end = to_iso(from_iso(period_start) + timedelta(days=1))
+    return Digest(
+        digest_id=digest_id,
+        kind=kind,
+        category="ai",
+        period_start=period_start,
+        period_end=period_end,
+        title=f"digest {digest_id}",
+        body_md="body",
+        top_keywords=json.dumps([]),
+        model="m",
+        prompt_version="digest-v1",
+        created_at=created_at,
+    )
+
+
+def test_all_digests_and_latest_digests_order_by_period_not_created_at(tmp_path: Path) -> None:
+    """A catch-up run (T3, #24) can write several periods' digests with a
+    near-identical ``created_at`` - here an OLDER-period digest is written with
+    a LATER ``created_at`` than a NEWER-period digest written earlier in the
+    same run. Both queries must still read newest-period-first."""
+    repo = JsonlSqliteRepository(tmp_path)
+    repo.add_digest(
+        _digest(
+            "weekly-ai-2026-W27",
+            kind=DigestKind.WEEKLY,
+            period_start="2026-07-07T00:00:00+00:00",  # newer period
+            created_at="2026-07-05T09:00:00+00:00",  # earlier created_at
+        )
+    )
+    repo.add_digest(
+        _digest(
+            "daily-ai-2026-06-20",
+            period_start="2026-06-20T00:00:00+00:00",  # older period
+            created_at="2026-07-08T09:00:00+00:00",  # later created_at (catch-up)
+        )
+    )
+    repo.load_config([], [])
+    repo.rebuild_cache()
+    repo.close()
+
+    conn = open_cache(DataLayout(tmp_path))
+    q = TrendQueries(conn, _rules())
+
+    assert [d.digest_id for d in q.all_digests()] == [
+        "weekly-ai-2026-W27",
+        "daily-ai-2026-06-20",
+    ]
+    assert [d.digest_id for d in q.latest_digests()] == [
+        "weekly-ai-2026-W27",
+        "daily-ai-2026-06-20",
+    ]
 
 
 def test_distinct_keywords_for_items(tmp_path: Path) -> None:

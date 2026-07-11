@@ -424,11 +424,20 @@ class TrendQueries:
         ]
 
     def latest_digests(self, *, limit: int = DEFAULT_LATEST_DIGESTS_LIMIT) -> list[DigestSummary]:
-        """Most-recent digests (empty until E4 writes any)."""
+        """Most-recent digests by period, newest first (empty until E4 writes any).
+
+        Ordered by ``period_start`` desc first (the date shown on each row),
+        then ``created_at`` desc, then ``digest_id`` desc as a final
+        tie-breaker - a total order. A catch-up run can write several periods'
+        digests with a near-identical ``created_at``, so period comes first to
+        keep the visible period dates reading newest to oldest. Kept in step
+        with :meth:`all_digests` so the home page's list agrees with the
+        digest index page.
+        """
         rows = self._conn.execute(
             "select digest_id, kind, category, title, period_start, period_end, created_at "
             "from digests "
-            "order by created_at desc, digest_id desc "
+            "order by period_start desc, created_at desc, digest_id desc "
             "limit ?",
             (limit,),
         )
@@ -528,12 +537,21 @@ class TrendQueries:
     # --- digest detail (GRP-43) ----------------------------------------------
 
     def all_digests(self) -> list[DigestDetail]:
-        """Every digest, body included, newest first (``created_at`` desc, id)."""
+        """Every digest, body included, newest period first.
+
+        Ordered by ``period_start`` desc, then ``created_at`` desc, then
+        ``digest_id`` desc as a final tie-breaker - a total order, so the
+        result stays byte-stable. Period comes first (not ``created_at``)
+        because the digest index shows each row's period date: a catch-up run
+        can write several periods' digests with a near-identical
+        ``created_at``, and sorting on that alone would not read cleanly
+        newest to oldest by the visible date.
+        """
         rows = self._conn.execute(
             "select digest_id, kind, category, title, body_md, top_keywords, "
             "period_start, period_end, created_at "
             "from digests "
-            "order by created_at desc, digest_id desc"
+            "order by period_start desc, created_at desc, digest_id desc"
         )
         details: list[DigestDetail] = []
         for did, kind, cat, title, body_md, top_kw_json, ps, pe, created in rows:
