@@ -1,0 +1,23 @@
+{
+  "run_id": "20260711T142221Z-a0a1b8",
+  "command": "ingest",
+  "started_at": "2026-07-11T14:22:21+00:00",
+  "finished_at": "2026-07-11T14:25:10+00:00",
+  "ok": true,
+  "counts": {
+    "sources_attempted": 89,
+    "sources_ok": 85,
+    "sources_empty": 1,
+    "sources_error": 3,
+    "sources_skipped": 27,
+    "items_new": 27
+  },
+  "durations_ms": {
+    "total_ms": 168642
+  },
+  "notes": [
+    "artificial-lawyer: artificial-lawyer: HTTP 415",
+    "bdan-ai: bdan-ai: HTTP 415",
+    "la-biblia-de-la-ia: la-biblia-de-la-ia: HTTP 415"
+  ]
+}
