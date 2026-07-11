@@ -24,8 +24,8 @@ DONE and merged; v1.0.0 is taggable.
 
 ## Tranche status
   #39 health-page error capture + triage systematize  [MERGED #42]
-  #37 digest index order newest->oldest by period      [PR #43 OPEN, CI green, clean - awaiting Kyle merge]
-  #38 "your digest" personalized view (design-led)      [DESIGN APPROVED by Kyle - build AFTER #37 merges]
+  #37 digest index order newest->oldest by period      [MERGED #43]
+  #38 "your digest" personalized view (design-led)      [DESIGN APPROVED - build sub-agent dispatched off main @ 6f22a03]
 
 ## #38 design decisions (Kyle, 2026-07-11 - see scratchpad/your-digest-design.md)
 - Persistence: localStorage for now; future direction is profiles that save
