@@ -68,6 +68,16 @@ mobile-driven, agent-built project from drifting. Read them before touching code
 - **Max 2 active work streams** at any time. `[P]`-marked issues are the only
   safe parallels; everything else is sequential within an epic.
 
+## Agent skills
+
+### Issue tracker
+
+Issues are tracked as GitHub issues in this repo (`github.com/Datarogie/grepify`). See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context layout: a root `CONTEXT.md` (created lazily by `/domain-modeling` when needed) plus the existing `docs/adr/`. See `docs/agents/domain.md`.
+
 ## Engineering standards (enforced by `make check`)
 
 - Python 3.12, `uv` for env. `ruff` + `mypy --strict` on the core package,
