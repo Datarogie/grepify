@@ -24,7 +24,7 @@ DONE and merged; v1.0.0 is taggable.
 
 ## Tranche status
   #39 health-page error capture + triage systematize  [PR #42 OPEN, CI green, clean - awaiting Kyle merge]
-  #37 digest index order newest->oldest by period      [IN PROGRESS - sub-agent dispatched (parallel)]
+  #37 digest index order newest->oldest by period      [PR #43 OPEN, CI green, clean - awaiting Kyle merge]
   #38 "your digest" personalized view (design-led)      [DESIGN APPROVED by Kyle - build AFTER #37 merges]
 
 ## #38 design decisions (Kyle, 2026-07-11 - see scratchpad/your-digest-design.md)
