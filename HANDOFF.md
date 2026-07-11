@@ -23,7 +23,7 @@ DONE and merged; v1.0.0 is taggable.
 - Token here can push but CANNOT delete remote branches (403) - leave cleanup to Kyle.
 
 ## Tranche status
-  #39 health-page error capture + triage systematize  [PR #42 OPEN, CI green, clean - awaiting Kyle merge]
+  #39 health-page error capture + triage systematize  [MERGED #42]
   #37 digest index order newest->oldest by period      [PR #43 OPEN, CI green, clean - awaiting Kyle merge]
   #38 "your digest" personalized view (design-led)      [DESIGN APPROVED by Kyle - build AFTER #37 merges]
 
