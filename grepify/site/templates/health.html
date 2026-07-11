@@ -29,12 +29,13 @@
 <p class="muted">Snapshot from run {{ health.run_id }}, generated {{ health.generated_at }}</p>
 {% if health.sources %}
 <table>
-<thead><tr><th>Source</th><th>Last status</th><th>Last attempt</th><th>Attempts</th><th>Consecutive failures</th></tr></thead>
+<thead><tr><th>Source</th><th>Last status</th><th>Error</th><th>Last attempt</th><th>Attempts</th><th>Consecutive failures</th></tr></thead>
 <tbody>
 {% for s in health.sources %}
 <tr{% if s.flagged %} class="status-error"{% endif %}>
 <td>{{ s.source_id }}</td>
 <td class="status-{{ s.last_status }}">{{ s.last_status }}</td>
+<td{% if s.last_error %} title="{{ s.last_error }}"{% endif %}>{{ s.error_class if s.error_class else "-" }}</td>
 <td>{{ s.last_started_at[:19] }}</td>
 <td>{{ s.attempts }}</td>
 <td>{{ s.consecutive_failures }}{% if s.flagged %} ⚑{% endif %}</td>

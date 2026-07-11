@@ -98,6 +98,19 @@ jobs:
         # blocked from CI IPs simply leaves transcript_ref null.
         run: make ingest
 
+      # Feed triage (#39): capture per-source status + error-class every run,
+      # so new breakage is caught going forward (docs/feed-triage.md). Runs
+      # after Ingest so `fetch_log` is fresh; `make doctor` reads the data
+      # branch worktree at ./data (grepify doctor defaults --data-root data).
+      # Read-only and network/secret-free: it never touches the LLM secrets and
+      # exits 0, so it never breaks a deploy.
+      - name: Feed triage report (doctor)
+        run: |
+          echo '### Feed triage (doctor)' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          make doctor >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
       - name: Extract
         env:
           LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}

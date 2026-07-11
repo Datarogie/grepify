@@ -35,11 +35,12 @@
 
 <p class="muted">Snapshot from run prior-run, generated 2026-07-08T09:00:00+00:00</p>
 <table>
-<thead><tr><th>Source</th><th>Last status</th><th>Last attempt</th><th>Attempts</th><th>Consecutive failures</th></tr></thead>
+<thead><tr><th>Source</th><th>Last status</th><th>Error</th><th>Last attempt</th><th>Attempts</th><th>Consecutive failures</th></tr></thead>
 <tbody>
 <tr>
 <td>s1</td>
 <td class="status-ok">ok</td>
+<td>-</td>
 <td>2026-07-08T08:00:00</td>
 <td>10</td>
 <td>0</td>
@@ -47,6 +48,7 @@
 <tr class="status-error">
 <td>s2</td>
 <td class="status-error">error</td>
+<td title="returned HTTP 429 Too Many Requests">http_4xx</td>
 <td>2026-07-08T08:00:00</td>
 <td>8</td>
 <td>6 ⚑</td>

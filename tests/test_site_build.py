@@ -19,7 +19,7 @@ from pathlib import Path
 
 from grepify.clock import FixedClock
 from grepify.config.filesystem import FilesystemConfigProvider
-from grepify.health import HealthSnapshot, SourceHealth
+from grepify.health import ErrorClass, HealthSnapshot, SourceHealth
 from grepify.models import ExtractionMethod, FetchStatus, Item, ItemKeyword, SourceKind
 from grepify.paths import DataLayout
 from grepify.repository.jsonl_sqlite import JsonlSqliteRepository
@@ -179,7 +179,8 @@ def build_canned(
                     attempts=8,
                     last_status=FetchStatus.ERROR,
                     last_started_at="2026-07-08T08:00:00+00:00",
-                    last_error="ratelimit",
+                    last_error="returned HTTP 429 Too Many Requests",
+                    error_class=ErrorClass.HTTP_4XX,
                     consecutive_failures=6,
                     flagged=True,
                 ),
