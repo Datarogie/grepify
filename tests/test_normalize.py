@@ -164,6 +164,44 @@ def test_summary_preserves_literal_escaped_angle_brackets_as_text() -> None:
     assert item.summary == "a <b> c and c > a"
 
 
+def test_summary_entity_encoded_paired_tag_is_stripped() -> None:
+    # T5 audit fix: a source that HTML-escapes a whole element (e.g. a
+    # description field that was itself pasted from rendered HTML) used to
+    # leak the escaped markup verbatim, because the first strip pass runs
+    # before entities are unescaped and there was no second pass after.
+    source = make_source("s1")
+    raw_summary = "Intro &lt;div class=&quot;alert&quot;&gt;Breaking news&lt;/div&gt; outro"
+    item = normalize(_raw(summary=raw_summary), source, fetched_at=_FETCHED)
+    assert item.summary == "Intro Breaking news outro"
+
+
+def test_summary_entity_encoded_script_body_is_dropped() -> None:
+    source = make_source("s1")
+    raw_summary = "&lt;script&gt;alert(1)&lt;/script&gt;Real text"
+    item = normalize(_raw(summary=raw_summary), source, fetched_at=_FETCHED)
+    assert item.summary == "Real text"
+
+
+def test_summary_entity_encoded_unpaired_fragment_still_preserved() -> None:
+    # The conservative second pass requires a matched close tag of the SAME
+    # name; a lone unpaired fragment is still treated as text, same as the
+    # existing (unencoded) comparison-operator case just above.
+    source = make_source("s1")
+    item = normalize(
+        _raw(summary="a &lt;b&gt; c and c &gt; a, still &lt;unclosed&gt; markup"),
+        source,
+        fetched_at=_FETCHED,
+    )
+    assert item.summary == "a <b> c and c > a, still <unclosed> markup"
+
+
+def test_clean_summary_entity_encoded_tag_is_idempotent() -> None:
+    dirty = "Intro &lt;div class=&quot;alert&quot;&gt;Breaking news&lt;/div&gt; outro"
+    once = clean_summary(dirty)
+    assert once == "Intro Breaking news outro"
+    assert clean_summary(once) == once
+
+
 def test_clean_summary_is_idempotent_and_matches_normalize() -> None:
     # GRP-60 relies on this: the public cleaner must equal what normalize applies
     # (so a re-clean can't diverge from a fresh ingest) and be a fixed point on

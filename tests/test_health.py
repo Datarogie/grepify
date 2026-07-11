@@ -4,9 +4,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from grepify.health import (
     CONSECUTIVE_FAILURE_THRESHOLD,
+    ErrorClass,
     HealthSnapshot,
+    classify_error,
     compute_health,
     write_health_snapshot,
 )
@@ -98,6 +102,59 @@ def test_multiple_sources_sorted_by_id() -> None:
     ]
     snapshot = compute_health(entries, run_id="r1", generated_at="2026-07-01T00:00:00+00:00")
     assert [s.source_id for s in snapshot.sources] == ["aaa", "zzz"]
+
+
+def test_last_error_is_classified_on_the_snapshot() -> None:
+    entries = [
+        _entry("s1", "r1", "2026-07-01T00:00:00+00:00", FetchStatus.ERROR, error="s1: HTTP 403"),
+    ]
+    snapshot = compute_health(entries, run_id="r1", generated_at="2026-07-01T00:00:00+00:00")
+    assert snapshot.sources[0].error_class is ErrorClass.HTTP_4XX
+
+
+def test_non_error_status_has_no_error_class() -> None:
+    entries = [_entry("s1", "r1", "2026-07-01T00:00:00+00:00", FetchStatus.OK)]
+    snapshot = compute_health(entries, run_id="r1", generated_at="2026-07-01T00:00:00+00:00")
+    assert snapshot.sources[0].error_class is None
+
+
+# --- classify_error (T5 audit error-class report) ----------------------------
+
+
+@pytest.mark.parametrize(
+    ("error", "expected"),
+    [
+        (None, None),
+        ("ai-techpark: HTTP 403", ErrorClass.HTTP_4XX),
+        ("yt-futurepedia: HTTP 500", ErrorClass.HTTP_5XX),
+        ("r-openai: reddit json blocked and .rss fallback returned HTTP 429", ErrorClass.HTTP_4XX),
+        (
+            "aim-ai: unparseable feed: SAXParseException('syntax error')",
+            ErrorClass.UNPARSEABLE,
+        ),
+        ("s1: malformed reddit json: Expecting value", ErrorClass.UNPARSEABLE),
+        (
+            "GET https://insideainews.com/feed/ failed: "
+            "[SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:1000)",
+            ErrorClass.TLS,
+        ),
+        (
+            "GET https://bigdataanalyticsnews.com/feed/ failed: [Errno 111] Connection refused",
+            ErrorClass.CONNECTION,
+        ),
+        (
+            "GET https://yatter.in/feed/ failed: [Errno 101] Network is unreachable",
+            ErrorClass.CONNECTION,
+        ),
+        (
+            "GET https://www.artificiallawyer.com/feed/ failed: timed out",
+            ErrorClass.CONNECTION,
+        ),
+        ("s1: something unrecognized happened", ErrorClass.OTHER),
+    ],
+)
+def test_classify_error(error: str | None, expected: ErrorClass | None) -> None:
+    assert classify_error(error) is expected
 
 
 def test_empty_history_yields_empty_snapshot() -> None:

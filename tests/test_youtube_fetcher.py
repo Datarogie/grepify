@@ -59,6 +59,67 @@ def test_transport_exception_becomes_fetch_error() -> None:
         YouTubeFetcher(transport).fetch(make_source("s1", kind=SourceKind.YOUTUBE))
 
 
+# --- T5 audit: bounded retry with backoff on transient 5xx -------------------
+
+
+def test_transient_5xx_is_retried_then_succeeds() -> None:
+    transport = ScriptedTransport(
+        [
+            HttpResponse(status_code=503, content=b"", headers={}),
+            fixture_response("youtube", "channel.xml"),
+        ]
+    )
+    sleeps: list[float] = []
+    fetcher = YouTubeFetcher(transport, sleep=sleeps.append)
+    source = make_source("s1", kind=SourceKind.YOUTUBE, url=_CHANNEL_URL)
+
+    items = fetcher.fetch(source)
+
+    assert len(items) == 2
+    assert len(transport.calls) == 2  # one retry
+    assert sleeps == [1.0]  # backoff before the retry, none after success
+
+
+def test_5xx_retries_exhausted_raises_fetch_error() -> None:
+    transport = ScriptedTransport(
+        [
+            HttpResponse(status_code=502, content=b"", headers={}),
+            HttpResponse(status_code=503, content=b"", headers={}),
+            HttpResponse(status_code=500, content=b"", headers={}),
+        ]
+    )
+    sleeps: list[float] = []
+    fetcher = YouTubeFetcher(transport, sleep=sleeps.append, max_attempts=3)
+    source = make_source("s1", kind=SourceKind.YOUTUBE)
+
+    with pytest.raises(FetchError, match="500"):
+        fetcher.fetch(source)
+
+    assert len(transport.calls) == 3  # bounded - not unbounded retry
+    assert sleeps == [1.0, 2.0]  # exponential backoff, none after the final attempt
+
+
+def test_max_attempts_below_one_rejected_eagerly() -> None:
+    # Guards the backoff loop's invariant (it always runs >= 1 time) at
+    # construction time, so a misconfigured caller gets a clear ValueError
+    # instead of an assertion failing deep inside a retry loop.
+    with pytest.raises(ValueError, match="max_attempts"):
+        YouTubeFetcher(ScriptedTransport([]), max_attempts=0)
+
+
+def test_4xx_is_not_retried() -> None:
+    transport = ScriptedTransport([HttpResponse(status_code=403, content=b"", headers={})])
+    sleeps: list[float] = []
+    fetcher = YouTubeFetcher(transport, sleep=sleeps.append)
+    source = make_source("s1", kind=SourceKind.YOUTUBE)
+
+    with pytest.raises(FetchError, match="403"):
+        fetcher.fetch(source)
+
+    assert len(transport.calls) == 1  # no retry wasted on a hard client error
+    assert sleeps == []
+
+
 def test_malformed_feed_raises_fetch_error() -> None:
     transport = ScriptedTransport([fixture_response("rss", "malformed.xml")])
     with pytest.raises(FetchError, match="unparseable"):

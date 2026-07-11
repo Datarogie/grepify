@@ -1,7 +1,7 @@
 """Single-entrypoint CLI (PRD §8 F-OPS-01): ``grepify <subcommand>``.
 
-Subcommands: ``ingest extract trends digest build validate health backfill``,
-plus ``maintain renormalize`` (GRP-60 data remediation).
+Subcommands: ``ingest extract trends digest build validate health doctor
+backfill``, plus ``maintain renormalize`` (GRP-60 data remediation).
 ``ingest`` is wired to the E1 orchestrator (GRP-15/16); ``extract`` is wired to
 the E2 pipeline (GRP-25: untagged-item selection, real LLM client, keyword
 normalization, PRD §10.7 data-quality gate); ``validate`` is fully wired to
@@ -51,6 +51,12 @@ Failure modes
 - The ``trends`` stub never fails the process; it writes a manifest noting the
   not-yet-implemented epic and returns 0.
 - ``health`` with no recorded runs prints a friendly notice, exit 0.
+- ``doctor`` (T5, GRP-30) is a read-only per-source status + error-class
+  triage report (:mod:`grepify.doctor`); it recomputes fresh from ``fetch_log``
+  on every call (not from a possibly-stale ``health.json``), writes nothing,
+  and never fails the run itself - a malformed config still raises
+  :class:`~grepify.errors.ConfigError`, same as every other command that reads
+  config.
 """
 
 from __future__ import annotations
@@ -66,13 +72,14 @@ from grepify.clock import Clock, SystemClock, to_iso
 from grepify.config.filesystem import FilesystemConfigProvider
 from grepify.config.schemas import SettingsConfig
 from grepify.digest import TEMPLATE_MODEL, digest_gate, format_gate, run_digest_pipeline
+from grepify.doctor import build_doctor_report, format_doctor_report
 from grepify.extract import (
     ExtractPipelineResult,
     YakeFallbackExtractor,
     run_extract_pipeline,
     run_fallback_backfill,
 )
-from grepify.health import write_health_snapshot
+from grepify.health import compute_health, write_health_snapshot
 from grepify.ingest.orchestrator import IngestServices, build_registry, run_ingest
 from grepify.ingest.transcript import TranscriptStore, YouTubeTranscriptApiClient
 from grepify.keywords import KeywordRules
@@ -711,6 +718,29 @@ def health(ctx: typer.Context) -> None:
         typer.echo("no runs recorded yet")
         return
     typer.echo(manifest.model_dump_json(indent=2))
+
+
+@app.command()
+def doctor(ctx: typer.Context) -> None:
+    """Per-source fetch status + error-class triage report (T5, GRP-30).
+
+    Joins the configured sources with a fresh recompute over ``fetch_log``
+    (:mod:`grepify.doctor`) - repeatable and read-only, so re-running it as
+    triage progresses always reflects current config + current truth without
+    needing a prior ``ingest`` to have written ``health.json``.
+    """
+    state: AppState = ctx.obj
+    config = FilesystemConfigProvider(state.config_root)
+    repository = JsonlSqliteRepository(state.data_root)
+    try:
+        sources = config.sources()
+        entries = list(repository.iter_fetch_log())
+    finally:
+        repository.close()
+
+    snapshot = compute_health(entries, run_id="doctor", generated_at=to_iso(state.clock.now()))
+    rows = build_doctor_report(sources, snapshot)
+    typer.echo(format_doctor_report(rows))
 
 
 # --- helpers ----------------------------------------------------------------

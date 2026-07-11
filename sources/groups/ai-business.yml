@@ -7,9 +7,11 @@
 #
 # LIVENESS: feeds are NOT pinged here - this build environment blocks outbound
 # HTTPS to feed hosts. These are trendcloud's actively-aggregated feeds, so they
-# ship enabled; per-source health tracking (fetch_log / GRP-16) disables any that
-# fail persistently once the fetcher runs. `grepify validate` checks schema +
-# duplicate ids/url_hashes only (live pinging is deferred to GRP-10/11 by design).
+# ship enabled; per-source health tracking (fetch_log / GRP-16) FLAGS any that
+# fail persistently but never auto-disables (v1 non-goal, PRD §2) - a manual
+# triage pass reads that history and flips `enabled: false` here (T5, GRP-30).
+# `grepify validate` checks schema + duplicate ids/url_hashes only (live
+# pinging is deferred to GRP-10/11 by design).
 group: ai-business
 name: AI Business
 category: ai
@@ -40,6 +42,7 @@ sources:
     kind: rss
     name: AI TechPark
     url: https://ai-techpark.com/category/ai/feed/
+    enabled: false  # T5 (#30) audit 2026-07-11: dead - HTTP 403 on every fetch_log attempt (16/16)
     added_at: "2026-07-08"
   - id: ai-time-journal
     kind: rss
@@ -50,6 +53,7 @@ sources:
     kind: rss
     name: AIM AI
     url: https://analyticsindiamag.com/ai-news-updates/feed/
+    enabled: false  # T5 (#30) audit 2026-07-11: dead - serves an unparseable (HTML/challenge) page, not feed XML, on every fetch_log attempt (16/16)
     added_at: "2026-07-08"
   - id: ars-technica-ai
     kind: rss
@@ -130,6 +134,7 @@ sources:
     kind: rss
     name: Inside AI News
     url: https://insideainews.com/feed/
+    enabled: false  # T5 (#30) audit 2026-07-11: dead - TLS handshake failure on every fetch_log attempt (16/16)
     added_at: "2026-07-08"
   - id: just-ai-news
     kind: rss
@@ -140,6 +145,7 @@ sources:
     kind: rss
     name: KnowTechie AI
     url: https://knowtechie.com/category/ai/feed/
+    enabled: false  # T5 (#30) audit 2026-07-11: dead - TLS handshake failure on every fetch_log attempt (16/16)
     added_at: "2026-07-08"
   - id: la-biblia-de-la-ia
     kind: rss

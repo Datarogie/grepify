@@ -14,17 +14,33 @@ exercise :func:`compute_health`. :func:`write_health_snapshot` is the thin I/O
 wrapper the ``ingest`` CLI command calls, per the PRD §5 architecture diagram
 (health snapshot branches directly off ingest, not a separate pipeline stage).
 
+Error classes (T5 audit, GRP-30)
+---------------------------------
+:func:`classify_error` buckets the free-text ``fetch_log.error`` string into a
+coarse :class:`ErrorClass` (``http_4xx`` / ``http_5xx`` / ``tls`` /
+``connection`` / ``unparseable`` / ``other``), so a triage pass (the
+``doctor`` CLI report, :mod:`grepify.doctor`) can group the roughly two dozen
+recurring dead sources by *kind* of failure instead of re-reading every raw
+message by hand. It is a best-effort text classifier over the fixed set of
+messages the fetchers actually raise (see ``grep -rn 'raise FetchError' -
+grepify/ingest``) - an HTTP status is matched first (most specific), then
+known substrings; anything else falls back to ``other`` rather than raising or
+guessing.
+
 Failure modes
 -------------
-:func:`compute_health` is pure and never raises (an empty history yields an
-empty snapshot). :func:`write_health_snapshot` does file I/O - a filesystem
-error (e.g. a read-only data root) propagates uncaught, same as every other
-data-root write in this package (:mod:`grepify.run`).
+:func:`compute_health` and :func:`classify_error` are pure and never raise (an
+empty history yields an empty snapshot; an unrecognized error string yields
+``ErrorClass.OTHER``, not an exception). :func:`write_health_snapshot` does
+file I/O - a filesystem error (e.g. a read-only data root) propagates
+uncaught, same as every other data-root write in this package (:mod:`grepify.run`).
 """
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterable
+from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -32,6 +48,69 @@ from grepify.models import FetchLogEntry, FetchStatus
 from grepify.paths import DataLayout
 
 CONSECUTIVE_FAILURE_THRESHOLD = 5  # F-ING-08
+
+_HTTP_STATUS_RE = re.compile(r"\bHTTP (\d{3})\b")
+_UNPARSEABLE_MARKERS = ("unparseable feed", "malformed")
+_TLS_MARKERS = ("ssl", "tls", "certificate")
+_CONNECTION_MARKERS = (
+    "connection refused",
+    "connection reset",
+    "network is unreachable",
+    "timed out",
+    "timeout",
+    "name or service not known",
+    "no route to host",
+)
+
+
+class ErrorClass(StrEnum):
+    """Coarse bucket a ``fetch_log`` error message falls into (T5 audit)."""
+
+    HTTP_4XX = "http_4xx"
+    HTTP_5XX = "http_5xx"
+    TLS = "tls"
+    CONNECTION = "connection"
+    UNPARSEABLE = "unparseable"
+    OTHER = "other"
+
+
+def classify_error(error: str | None) -> ErrorClass | None:
+    """Classify a ``fetch_log.error`` string into an :class:`ErrorClass`.
+
+    Returns ``None`` for ``None`` (a non-error status carries no error text).
+    An HTTP status embedded anywhere in the message (``"HTTP 403"``,
+    ``"...returned HTTP 429"``) is checked first since it is the most
+    specific signal; substring markers for TLS/connection/unparseable
+    failures come next; anything unrecognized is :attr:`ErrorClass.OTHER`.
+    """
+    if error is None:
+        return None
+
+    by_status = _classify_by_http_status(error)
+    if by_status is not None:
+        return by_status
+
+    lowered = error.lower()
+    if any(marker in lowered for marker in _UNPARSEABLE_MARKERS):
+        return ErrorClass.UNPARSEABLE
+    if any(marker in lowered for marker in _TLS_MARKERS):
+        return ErrorClass.TLS
+    if any(marker in lowered for marker in _CONNECTION_MARKERS):
+        return ErrorClass.CONNECTION
+    return ErrorClass.OTHER
+
+
+def _classify_by_http_status(error: str) -> ErrorClass | None:
+    """Return the class for an embedded ``HTTP <code>`` status, if present."""
+    status_match = _HTTP_STATUS_RE.search(error)
+    if status_match is None:
+        return None
+    code = int(status_match.group(1))
+    if 400 <= code < 500:
+        return ErrorClass.HTTP_4XX
+    if 500 <= code < 600:
+        return ErrorClass.HTTP_5XX
+    return None
 
 
 class SourceHealth(BaseModel):
@@ -44,6 +123,7 @@ class SourceHealth(BaseModel):
     last_status: FetchStatus
     last_started_at: str
     last_error: str | None = None
+    error_class: ErrorClass | None = None
     consecutive_failures: int
     flagged: bool
 
@@ -94,6 +174,7 @@ def _source_health(source_id: str, history: list[FetchLogEntry]) -> SourceHealth
         last_status=last.status,
         last_started_at=last.started_at,
         last_error=last.error,
+        error_class=classify_error(last.error),
         consecutive_failures=consecutive,
         flagged=consecutive >= CONSECUTIVE_FAILURE_THRESHOLD,
     )
