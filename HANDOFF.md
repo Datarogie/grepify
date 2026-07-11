@@ -64,12 +64,23 @@ Tasks:
   T3 daily-digest reliability   [MERGED #24]
   T4 next-digest-time on site   [MERGED #34]
   T5 feed-health audit + doctor [MERGED #35]
-  T6 reddit best-effort/quiet   [IN PROGRESS - branch claude/t6-reddit-best-effort, sub-agent running]
-  T7 eval docstring fix         [IN PROGRESS - branch claude/t7-eval-docstring, sub-agent running]
-  O1 remediation run (operational)[STILL NOT RUN - blocked until #29-#32 all merged; see below]
+  T6 reddit best-effort/quiet   [IN PROGRESS - branch claude/t6-reddit-best-effort, sub-agent running; last hardening ticket left]
+  T7 eval docstring fix         [MERGED #36]
+  O1 remediation run (operational)[STILL NOT RUN - blocked until #29-#32 all merged (only T6/#31 left); see below]
   T8 full audit pass            [BLOCKED on #29-#32 merged + O1 done; #33, run on Opus]
 
-Next concrete step: when T6 (#31) and T7 (#32) merge, all of #29-#32 are done.
+**Kyle feedback 2026-07-11 -> new follow-up issues (AFTER the hardening tranche):**
+  #37 digest index default order newest->oldest by digest PERIOD (list sorts by
+      created_at now, which after catch-up runs doesn't match the shown period date).
+  #38 topic-following on the digest page. DECISION: build the full "your digest"
+      view (personalized, followed topics), NOT just a filter. Needs a DESIGN PASS
+      before build (static-site: how follow-set persists w/ no server). Design-led.
+  #39 health-page per-source error triage - systematize capture (build on T5 doctor)
+      + resolve case by case. Sequence AFTER T6 + O1 so counts are accurate.
+  Sequencing (Kyle deferred to my rec): finish hardening (T6 -> O1 -> T8) FIRST,
+  then this follow-up tranche (#37, then #38 design->build, #39).
+
+Next concrete step: when T6 (#31) merges, all of #29-#32 are done.
   Then run O1 (trigger `pipeline` workflow_dispatch with run_remediation=true,
   record the run id below), THEN dispatch T8 (#33) on Opus. Keep max 2
   claimed-and-unmerged; T6+T7 are the current 2.
