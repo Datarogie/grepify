@@ -4498,3 +4498,6 @@
 {"item_id":"b36de3d23b5cfd7e44fcefba25bf1604449a5601fb5fda160235cebbdcf948a6","keyword":"ai privacy","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T02:55:01+00:00"}
 {"item_id":"b36de3d23b5cfd7e44fcefba25bf1604449a5601fb5fda160235cebbdcf948a6","keyword":"copyright","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T02:55:01+00:00"}
 {"item_id":"b36de3d23b5cfd7e44fcefba25bf1604449a5601fb5fda160235cebbdcf948a6","keyword":"generative ai","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T02:55:01+00:00"}
+{"item_id":"a58e570b71a4b5fb618892daab33327076b9397263494f2cfdb63996e6b00f01","keyword":"artificial intelligence","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T03:49:12+00:00"}
+{"item_id":"a58e570b71a4b5fb618892daab33327076b9397263494f2cfdb63996e6b00f01","keyword":"ai news","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T03:49:12+00:00"}
+{"item_id":"a58e570b71a4b5fb618892daab33327076b9397263494f2cfdb63996e6b00f01","keyword":"machine learning","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T03:49:12+00:00"}
