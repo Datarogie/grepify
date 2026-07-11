@@ -25,7 +25,25 @@ DONE and merged; v1.0.0 is taggable.
 ## Tranche status
   #39 health-page error capture + triage systematize  [MERGED #42]
   #37 digest index order newest->oldest by period      [MERGED #43]
-  #38 "your digest" personalized view (design-led)      [DESIGN APPROVED - build sub-agent dispatched off main @ 6f22a03]
+  #38 "your digest" personalized view (design-led)      [PR #44 OPEN, CI green, clean - awaiting Kyle merge]
+
+TRANCHE COMPLETE (all three delivered): #39 merged (#42), #37 merged (#43), #38 PR #44 open.
+
+## Next tranche queued: issue #45 (Kyle, 2026-07-11)
+Feed sweep - work source-FETCH errors by error class (one class per PR): try a
+fetch-layer UA/Accept-header fix for http_4xx-403 + unparseable (may recover a
+batch), Accept-header for the 415 flappers, TLS setting for the sslv3 ones, else
+disable-with-evidence. Reddit stays quiet. HARD CONSTRAINT: build/CI cannot reach
+feed hosts, so fixes verify only via the next scheduled pipeline doctor summary.
+Scope is FETCH only; extract/digest/build error triage is a deferred later issue.
+Start after #44 merges. Label: ready-for-agent.
+
+## Orchestration gotcha learned this session
+The Agent worktree-cleanup can transiently leave the MAIN dir checked out on a
+finished sub-agent's ticket branch with a spurious dirty tree (D/M files). If you
+see `git status` on a ticket branch here: DO NOT commit. The sub-agent's work is
+already pushed to origin (verify local branch sha == origin sha), then recover with
+`git checkout -f claude/grepify-post-v1-tranche-w3i62x && git worktree prune`.
 
 ## #38 design decisions (Kyle, 2026-07-11 - see scratchpad/your-digest-design.md)
 - Persistence: localStorage for now; future direction is profiles that save
