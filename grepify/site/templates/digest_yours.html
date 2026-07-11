@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% import "_digest_row.html" as rows %}
-{% block title %}grepify - digests{% endblock %}
+{% block title %}grepify - your digest{% endblock %}
 {% block content %}
-<h1>Digests</h1>
+<h1>Your digest</h1>
 {% if digests %}
-<form class="filters" aria-label="Filter digests">
+<p class="muted">Follow the topics you care about. Follows are saved on this device; use Share to carry them elsewhere.</p>
+<form class="filters" aria-label="Filter your digest">
 <label>Show
 <select id="filter-digest-kind">
 <option value="">all</option>
@@ -15,15 +16,16 @@
 </form>
 <div class="topic-follow">
 <div class="topic-chips" id="topic-chips" hidden></div>
+<button type="button" class="topic-share" id="share-topics" hidden>Share</button>
 </div>
 <ul class="feed" id="digest-list">
 {% for d in digests %}
 {{ rows.digest_row(d, meta.base_path) }}
 {% endfor %}
 </ul>
-<p class="muted" id="digest-empty" hidden>No digests match this filter.</p>
+<p class="muted" id="digest-empty" hidden>No digests in your topics yet. <a href="{{ meta.base_path }}digest/">Browse all digests</a>.</p>
 <script src="{{ meta.base_path }}static/digests.js" defer></script>
 {% else %}
-<p class="muted">No digests generated yet.</p>
+<p class="muted">No digests generated yet. <a href="{{ meta.base_path }}digest/">Browse all digests</a>.</p>
 {% endif %}
 {% endblock %}

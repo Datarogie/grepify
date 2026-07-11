@@ -59,6 +59,7 @@ class NavLink:
 NAV: tuple[NavLink, ...] = (
     NavLink(key="home", label="Home", href=""),
     NavLink(key="digests", label="Digests", href="digest/"),
+    NavLink(key="your-digest", label="Your digest", href="digest/yours/"),
     NavLink(key="items", label="Items", href="items/"),
     NavLink(key="sources", label="Sources", href="sources/"),
     NavLink(key="health", label="Health", href="health/"),

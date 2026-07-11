@@ -1,0 +1,15 @@
+{#
+  Shared digest-row markup (GRP-38). One definition, rendered identically by
+  the Digests index (digest_index.html) and the "Your digest" page
+  (digest_yours.html). ``data-kind`` drives the daily/weekly filter and
+  ``data-category`` drives the topic-follow filter (both in digests.js).
+#}
+{% macro digest_row(d, base_path) -%}
+<li class="digest" data-kind="{{ d.kind }}" data-category="{{ d.category }}">
+<a href="{{ base_path }}digest/{{ d.kind }}/{{ digest_slug(d.digest_id, d.kind) }}/">{{ d.title }}</a>
+<div class="meta">{{ d.kind }} · {{ d.category }} · {% if d.kind == "weekly" %}week of {{ d.period_start[:10] }}{% else %}{{ d.period_start[:10] }}{% endif %}</div>
+{% if d.top_keywords %}
+<div class="meta">{% for chip in d.top_keywords %}<span class="tag">#{{ chip.keyword }} {{ chip.count }}</span> {% endfor %}</div>
+{% endif %}
+</li>
+{%- endmacro %}
