@@ -4651,3 +4651,14 @@
 {"item_id":"3e2c6e88becca952d6f0d475b69513dabf77259dbf07447dc117672bed694b17","keyword":"workflow automation","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T17:08:18+00:00"}
 {"item_id":"3e2c6e88becca952d6f0d475b69513dabf77259dbf07447dc117672bed694b17","keyword":"generative ai","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T17:08:18+00:00"}
 {"item_id":"3e2c6e88becca952d6f0d475b69513dabf77259dbf07447dc117672bed694b17","keyword":"productivity tools","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T17:08:18+00:00"}
+{"item_id":"441914f33e239f8a99eab0eaa43080c4d7b1f7f7bcecc3c5e0b76bc5dfc3d522","keyword":"artificial intelligence","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T17:30:17+00:00"}
+{"item_id":"441914f33e239f8a99eab0eaa43080c4d7b1f7f7bcecc3c5e0b76bc5dfc3d522","keyword":"stock market","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T17:30:17+00:00"}
+{"item_id":"441914f33e239f8a99eab0eaa43080c4d7b1f7f7bcecc3c5e0b76bc5dfc3d522","keyword":"valuation","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T17:30:17+00:00"}
+{"item_id":"441914f33e239f8a99eab0eaa43080c4d7b1f7f7bcecc3c5e0b76bc5dfc3d522","keyword":"corporate strategy","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T17:30:17+00:00"}
+{"item_id":"441914f33e239f8a99eab0eaa43080c4d7b1f7f7bcecc3c5e0b76bc5dfc3d522","keyword":"financial analysis","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T17:30:17+00:00"}
+{"item_id":"4802dd039d99f626b3fe5b86653ac7c576a87cfcb2b1b71e8440442056bf028e","keyword":"chatgpt","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T17:30:17+00:00"}
+{"item_id":"4802dd039d99f626b3fe5b86653ac7c576a87cfcb2b1b71e8440442056bf028e","keyword":"ai agents","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T17:30:17+00:00"}
+{"item_id":"4802dd039d99f626b3fe5b86653ac7c576a87cfcb2b1b71e8440442056bf028e","keyword":"productivity software","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T17:30:17+00:00"}
+{"item_id":"4802dd039d99f626b3fe5b86653ac7c576a87cfcb2b1b71e8440442056bf028e","keyword":"automation","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T17:30:17+00:00"}
+{"item_id":"4802dd039d99f626b3fe5b86653ac7c576a87cfcb2b1b71e8440442056bf028e","keyword":"office tools","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T17:30:17+00:00"}
+{"item_id":"4802dd039d99f626b3fe5b86653ac7c576a87cfcb2b1b71e8440442056bf028e","keyword":"codex","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T17:30:17+00:00"}
