@@ -186,8 +186,8 @@ def compute_health(
     """
     by_source: dict[str, list[FetchLogEntry]] = {}
     for entry in entries:
-        if entry.status is FetchStatus.SKIPPED:
-            continue  # T6: a cadence non-attempt, transparent to the health rollup
+        if not entry.status.is_real_attempt:
+            continue  # T6: a cadence non-attempt (SKIPPED), transparent to the health rollup
         by_source.setdefault(entry.source_id, []).append(entry)
 
     quiet = frozenset(quiet_source_ids)

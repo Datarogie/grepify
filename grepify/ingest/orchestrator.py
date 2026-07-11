@@ -182,12 +182,39 @@ def _enabled_sources(config: ConfigProvider) -> list[Source]:
     return [s for s in config.sources() if s.enabled and s.group_id in enabled_groups]
 
 
+def _record(repository: Repository, entry: FetchLogEntry) -> SourceResult:
+    """Persist one ``fetch_log`` row and return the :class:`SourceResult` that
+    mirrors it.
+
+    The single place a fetch_log row and its run-summary mirror are paired,
+    shared by both a real attempt (:func:`_finish`) and a cadence skip
+    (:func:`_skip_for_cadence`). The result is *derived from the entry that was
+    written*, so the two can never disagree on the fields they carry - the skip
+    path previously built the pair inline with hardcoded ``duration_ms``/
+    ``error``, exactly the desync this removes. ``entry.duration_ms`` is always
+    set by both callers (``0`` for a skip), so the ``or 0`` only guards the
+    optional-typed column, never actually substitutes.
+    """
+    repository.log_fetch(entry)
+    return SourceResult(
+        source_id=entry.source_id,
+        status=entry.status,
+        items_new=entry.items_new,
+        duration_ms=entry.duration_ms or 0,
+        error=entry.error,
+    )
+
+
 def _skip_for_cadence(
     source: Source, services: IngestServices, *, run_id: str, started_at: str
 ) -> SourceResult:
     """Record a cadence skip (T6): logged as ``skipped``, never dispatched to
-    the fetcher, so it cannot affect the per-source isolation guarantee."""
-    services.repository.log_fetch(
+    the fetcher, so it cannot affect the per-source isolation guarantee. A skip
+    has no attempt to time, so its ``duration_ms`` is zero and it carries no
+    error - built and recorded through :func:`_record` like every other
+    outcome."""
+    return _record(
+        services.repository,
         FetchLogEntry(
             source_id=source.source_id,
             run_id=run_id,
@@ -195,10 +222,7 @@ def _skip_for_cadence(
             status=FetchStatus.SKIPPED,
             items_new=0,
             duration_ms=0,
-        )
-    )
-    return SourceResult(
-        source_id=source.source_id, status=FetchStatus.SKIPPED, items_new=0, duration_ms=0
+        ),
     )
 
 
@@ -246,8 +270,8 @@ def _run_source(
 def _finish(
     attempt: _Attempt, status: FetchStatus, *, items_new: int = 0, error: str | None = None
 ) -> SourceResult:
-    duration_ms = int((time.monotonic() - attempt.t0) * 1000)
-    attempt.repository.log_fetch(
+    return _record(
+        attempt.repository,
         FetchLogEntry(
             source_id=attempt.source.source_id,
             run_id=attempt.run_id,
@@ -255,13 +279,6 @@ def _finish(
             status=status,
             items_new=items_new,
             error=error,
-            duration_ms=duration_ms,
-        )
-    )
-    return SourceResult(
-        source_id=attempt.source.source_id,
-        status=status,
-        items_new=items_new,
-        duration_ms=duration_ms,
-        error=error,
+            duration_ms=int((time.monotonic() - attempt.t0) * 1000),
+        ),
     )

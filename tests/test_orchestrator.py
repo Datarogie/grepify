@@ -264,3 +264,7 @@ def test_cadence_skip_is_logged_to_fetch_log(tmp_path: Path) -> None:
     assert entries[-1].run_id == "run-2"
     assert entries[-1].items_new == 0
     assert entries[-1].error is None
+    # A skip has no attempt to time; it is routed through the same _record
+    # helper as a real attempt (T8), so this stays a fixed zero rather than
+    # drifting if the skip and finish paths ever re-diverge.
+    assert entries[-1].duration_ms == 0

@@ -31,9 +31,9 @@ Failure modes
 -------------
 Pure computation over its inputs; :func:`last_real_attempt_at` and
 :func:`split_by_cadence` never raise. ``fetch_log.started_at`` is always
-written via :func:`grepify.clock.to_iso`, so it always parses with
-``datetime.fromisoformat``; a hand-edited or corrupted truth file is out of
-scope, same as every other reader of that column.
+written via :func:`grepify.clock.to_iso`, so :func:`grepify.clock.from_iso`
+always parses it; a hand-edited or corrupted truth file is out of scope, same
+as every other reader of that column.
 """
 
 from __future__ import annotations
@@ -42,15 +42,17 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
-from grepify.models import FetchLogEntry, FetchStatus, Source, SourceKind
-
-_REAL_ATTEMPT_STATUSES = frozenset({FetchStatus.OK, FetchStatus.EMPTY, FetchStatus.ERROR})
+from grepify.clock import from_iso
+from grepify.models import FetchLogEntry, Source, SourceKind
 
 
 def last_real_attempt_at(entries: Iterable[FetchLogEntry]) -> dict[str, datetime]:
     """Most recent real-attempt (not ``skipped``) instant per ``source_id``.
 
-    ``entries`` need only be chronological per source (the order
+    A "real attempt" is any status for which
+    :attr:`~grepify.models.FetchStatus.is_real_attempt` is true - the same
+    predicate the health rollup uses, so the two never disagree on what counts
+    as an attempt. ``entries`` need only be chronological per source (the order
     :meth:`~grepify.repository.base.Repository.iter_fetch_log` guarantees) - a
     later entry for a source simply overwrites the running value, so the
     result holds each source's latest real attempt regardless of how sources
@@ -58,8 +60,8 @@ def last_real_attempt_at(entries: Iterable[FetchLogEntry]) -> dict[str, datetime
     """
     last: dict[str, datetime] = {}
     for entry in entries:
-        if entry.status in _REAL_ATTEMPT_STATUSES:
-            last[entry.source_id] = datetime.fromisoformat(entry.started_at)
+        if entry.status.is_real_attempt:
+            last[entry.source_id] = from_iso(entry.started_at)
     return last
 
 
