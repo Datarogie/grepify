@@ -32,6 +32,10 @@ on:
         description: "Run the daily + weekly digest now, bypassing the time-of-day gate (for on-demand testing; scheduled runs stay gated)."
         type: boolean
         default: false
+      run_remediation:
+        description: "One-off O1 data remediation (docs/prev1-hardening.md): run `grepify maintain renormalize` against the data branch before ingest, cleaning pre-#19 HTML-contaminated keyword rows. Idempotent - safe to leave off by default."
+        type: boolean
+        default: false
 
 concurrency:
   group: pipeline
@@ -77,6 +81,17 @@ jobs:
       - name: Digest gate
         id: gate
         run: make digest-gate >> "$GITHUB_OUTPUT"
+
+      # O1 (docs/prev1-hardening.md): one-off cleanup of keyword rows
+      # extracted before #19's HTML-strip fix. Runs before ingest so today's
+      # ingest/extract/digest steps see corrected data. Idempotent - a clean
+      # corpus rewrites and re-extracts nothing.
+      - name: Remediate HTML-contaminated keywords (O1, one-off)
+        if: github.event.inputs.run_remediation == 'true'
+        env:
+          LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+        run: make maintain-renormalize
 
       - name: Ingest
         # Transcripts need no secret (F-ING-03, absence-tolerant); a transcript

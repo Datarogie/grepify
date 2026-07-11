@@ -40,24 +40,22 @@ Also merged (infra, off main): PR #25 PR-template, PR #26 commit-hygiene hooks +
 session bootstrap. Both live on main now; the git hooks + identity auto-apply to
 every future session (via .claude/hooks/session-start.sh -> setup-git-identity.sh).
 
+**Update (2026-07-11):** T3 merged (#24). The issue tracker is now GitHub Issues
+(see `docs/agents/issue-tracker.md`); T4-T8 are published there instead of being
+tracked in this file - #29 (T4), #30 (T5), #31 (T6), #32 (T7), #33 (T8, blocked
+by the other four, `ready-for-agent` label). Pick up work from the tracker, not
+from a task list here.
+
 Tasks:
   T1 digest-pause switch        [MERGED #22]
   T2 renormalize command (GRP-60)[MERGED #23]
-  T3 daily-digest reliability   [PR #24 open, rebased onto main, clean; review done + fixed]
-  O1 remediation run (operational)[UNBLOCKED - T1+T2 merged] <- can run now (see below)
-  T4 next-digest time on site   [todo]  (v1.0 gate) <- NEXT after T3 merges
-  T5 feed-health audit + doctor [todo]
-  T6 reddit strategy            [decided: option ii - best-effort + quiet; ready to build]
-  T7 eval doc fix               [todo]
-  T8 code-review + simplify pass[todo]
+  T3 daily-digest reliability   [MERGED #24]
+  O1 remediation run (operational)[STILL NOT RUN - see below, this is the live cause
+                                    of dirty div/span keywords still showing up]
+  T4-T8                         [see GitHub issues #29-#33]
 
-Current branch: claude/prev1-t3-daily-digest (base: main, after the T2-merge rebase).
-Next concrete step: START A FRESH SESSION for T4. Branch claude/prev1-t4-next-digest
-  off claude/prev1-t3-daily-digest. Surface on the health (and/or home) page: the
-  next scheduled digest time (America/Edmonton, from the GRP-45 gate in
-  grepify/digest/gating.py) and the last generated digest per category (from stored
-  digests). Pure render from clock + stored digests; snapshot-tested. Files:
-  site/trends.py or site/pages.py, a template, site/build.py, tests.
+Next concrete step: run O1 (see below), then work the tracker's frontier
+  (any of #29/#30/#31/#32 has no blocker; #33 waits on all four).
 
 --- Per-task summaries (done this session) ---
 
@@ -87,10 +85,16 @@ T3 (PR #24): self-healing daily digests. ROOT CAUSE (verified on the data branch
   Files: digest/periods.py, digest/pipeline.py, digest/__init__.py,
   config/schemas.py, cli.py, settings.example.yml, tests (periods/generate/cli_digest).
 
-Operational steps run: O1 not yet (do after T1+T2 merge to main; see plan §O1:
-  set digest.enabled false, run `grepify maintain renormalize` + `grepify extract`
-  on the data branch, grep keywords JSONL for zero HTML keywords, regenerate the
-  affected digests, set digest.enabled true; record the run id here).
+Operational steps run: O1 STILL NOT DONE (unblocked since T1+T2 merged;
+  see plan §O1: set digest.enabled false, run `grepify maintain renormalize` +
+  `grepify extract` on the data branch, grep keywords JSONL for zero HTML
+  keywords, regenerate the affected digests, set digest.enabled true; record
+  the run id here). Confirmed 2026-07-11: `keywords/2026/07/09.jsonl` on the
+  data branch still has ~115 dirty rows (`div`, `div class`, `span`, `span
+  class`); 07/10 and 07/11 have zero, confirming #19 stopped new dirty rows but
+  never cleaned the pre-existing ones. No `workflow_dispatch` input exists yet
+  to run this from Actions - either add one to pipeline.yml or run it locally
+  against the data worktree with LLM_API_KEY set.
 
 Documented follow-ups (post-v1, NOT in T1-T8 - see plan section 5):
   - F1 digest keyword drill-down should be digest-scoped: clicking a keyword on a

@@ -44,6 +44,9 @@ ingest: ## Fetch enabled sources (E1)
 extract: ## LLM keyword extraction (E2)
 	$(UV) run grepify extract
 
+maintain-renormalize: ## One-off O1 remediation: re-clean stored summaries + re-extract changed items (GRP-60)
+	$(UV) run grepify maintain renormalize
+
 trends: ## Compute trend datasets (E3/E4)
 	$(UV) run grepify trends
 
