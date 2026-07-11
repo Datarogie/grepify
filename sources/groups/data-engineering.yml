@@ -16,6 +16,7 @@ sources:
     kind: rss
     name: benn.substack.com (Benn Stancil)
     url: https://benn.substack.com/feed
+    enabled: false  # T5 (#30) audit 2026-07-11: dead - HTTP 403 on every fetch_log attempt (16/16)
     added_at: "2026-07-08"
   - id: getdbt-roundup
     kind: rss

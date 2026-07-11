@@ -7,7 +7,7 @@
 UV ?= uv
 
 .PHONY: help install install-pipeline fmt lint typecheck test check \
-        ingest extract trends digest digest-daily digest-weekly build validate health backfill \
+        ingest extract trends digest digest-daily digest-weekly build validate health doctor backfill \
         digest-gate data-branch commit-data site eval
 
 help: ## List available targets
@@ -66,6 +66,9 @@ validate: ## Schema-validate config (CI check on every MR)
 
 health: ## Print the latest run manifest
 	$(UV) run grepify health
+
+doctor: ## Per-source fetch status + error-class triage report (T5, GRP-30)
+	$(UV) run grepify doctor
 
 backfill: ## Re-extract method='fallback' rows through the real LLM (GRP-22); broader E6 modes are later work
 	$(UV) run grepify backfill

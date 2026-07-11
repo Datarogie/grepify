@@ -257,3 +257,44 @@ def test_ingest_rerun_is_idempotent(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     manifest_path = DataLayout(data).run_manifest(run_id)
     manifest = RunManifest.model_validate_json(manifest_path.read_text(encoding="utf-8"))
     assert manifest.counts["items_new"] == 0  # F-ING-07: rerun adds zero new rows
+
+
+# --- doctor (T5, GRP-30) ------------------------------------------------------
+
+
+def test_doctor_with_no_config_and_no_history(tmp_path: Path) -> None:
+    cfg = write_config(tmp_path / "sources")
+    result = _invoke(cfg, tmp_path / "data", "doctor")
+    assert result.exit_code == 0
+    assert "no sources configured" in result.stdout
+
+
+def test_doctor_reports_status_and_error_class_after_ingest(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    cfg = write_config(tmp_path / "sources", groups={"g1.yml": _GROUP_INGEST})
+    data = tmp_path / "data"
+    monkeypatch.setattr("grepify.cli.build_registry", _fake_registry)
+
+    ingest_result = _invoke(cfg, data, "ingest")
+    assert ingest_result.exit_code == 0
+
+    result = _invoke(cfg, data, "doctor")
+    assert result.exit_code == 0
+    assert "2 sources, 1 last-run error" in result.stdout
+    assert "bad-src" in result.stdout
+    assert "good-src" in result.stdout
+    assert "ok" in result.stdout
+
+
+def test_doctor_is_repeatable_without_a_prior_ingest_run(tmp_path: Path) -> None:
+    # Repeatable per the AC: no health.json, no prior run - still a valid,
+    # deterministic report over whatever config + fetch_log exist (here: none).
+    cfg = write_config(tmp_path / "sources", groups={"g1.yml": _GROUP_INGEST})
+    data = tmp_path / "data"
+    first = _invoke(cfg, data, "doctor")
+    second = _invoke(cfg, data, "doctor")
+    assert first.exit_code == 0 == second.exit_code
+    assert first.stdout == second.stdout
+    assert "bad-src" in first.stdout
+    assert "never-fetched" in first.stdout

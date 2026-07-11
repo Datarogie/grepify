@@ -7,9 +7,11 @@
 #
 # LIVENESS: feeds are NOT pinged here - this build environment blocks outbound
 # HTTPS to feed hosts. These are trendcloud's actively-aggregated feeds, so they
-# ship enabled; per-source health tracking (fetch_log / GRP-16) disables any that
-# fail persistently once the fetcher runs. `grepify validate` checks schema +
-# duplicate ids/url_hashes only (live pinging is deferred to GRP-10/11 by design).
+# ship enabled; per-source health tracking (fetch_log / GRP-16) FLAGS any that
+# fail persistently but never auto-disables (v1 non-goal, PRD §2) - a manual
+# triage pass reads that history and flips `enabled: false` here (T5, GRP-30).
+# `grepify validate` checks schema + duplicate ids/url_hashes only (live
+# pinging is deferred to GRP-10/11 by design).
 group: ai-tooling-dev
 name: AI Tooling & Dev
 category: ai
@@ -30,6 +32,7 @@ sources:
     kind: rss
     name: AIModels
     url: https://aimodels.substack.com/feed
+    enabled: false  # T5 (#30) audit 2026-07-11: dead - HTTP 403 on every fetch_log attempt (16/16)
     added_at: "2026-07-08"
   - id: analytics-vidhya
     kind: rss
@@ -45,6 +48,9 @@ sources:
     kind: rss
     name: Clarifai Blog
     url: https://www.clarifai.com/blog/rss.xml
+    enabled: false  # T5 (#30) audit 2026-07-11: dead - HTTP 404 on every fetch_log attempt (16/16); no
+                    # moved-URL evidence found (egress to feed hosts is blocked in this environment, so
+                    # no live discovery is possible) - disabled rather than guessing at a replacement URL
     added_at: "2026-07-08"
   - id: cogito-tech-blog
     kind: rss
@@ -55,6 +61,7 @@ sources:
     kind: rss
     name: Copyleaks Blog
     url: https://copyleaks.com/blog/feed
+    enabled: false  # T5 (#30) audit 2026-07-11: dead - HTTP 403 on every fetch_log attempt (16/16)
     added_at: "2026-07-08"
   - id: datarobot-blog
     kind: rss
@@ -160,6 +167,7 @@ sources:
     kind: rss
     name: Shaip Blog
     url: https://www.shaip.com/feed/
+    enabled: false  # T5 (#30) audit 2026-07-11: dead - serves an unparseable (HTML/challenge) page, not feed XML, on every fetch_log attempt (16/16)
     added_at: "2026-07-08"
   - id: spritle-blog
     kind: rss
@@ -170,6 +178,7 @@ sources:
     kind: rss
     name: Theodo Data & AI Blog
     url: https://data-ai.theodo.com/en/technical-blog/rss.xml
+    enabled: false  # T5 (#30) audit 2026-07-11: dead - serves an unparseable (HTML/challenge) page, not feed XML, on every fetch_log attempt (16/16)
     added_at: "2026-07-08"
   - id: towards-data-science
     kind: rss
