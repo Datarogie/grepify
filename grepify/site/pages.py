@@ -24,11 +24,12 @@ mismatched hash widths - a corrupt cache, surfaced loudly.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any
 
 from grepify.ingest.dedup import hamming_distance
-from grepify.site.trends import ItemSummary
+from grepify.site.trends import DigestDetail, ItemSummary
 
 ITEMS_PER_PAGE = 20  # F-SIT-03
 NEAR_DUP_MAX_DISTANCE = 3  # simhash Hamming bits (matches ingest default)
@@ -192,3 +193,20 @@ def page_facets(page: Page, item_tags: dict[str, list[str]]) -> dict[str, list[A
         "sources": [{"id": sid, "name": sources[sid]} for sid in sorted(sources)],
         "keywords": sorted(keywords),
     }
+
+
+def latest_digest_per_category(digests: Sequence[DigestDetail]) -> list[DigestDetail]:
+    """Most-recent digest per category, regardless of kind (T4 health page).
+
+    ``digests`` is expected in :meth:`~grepify.site.trends.TrendQueries.all_digests`'s
+    order (``created_at`` desc, ``digest_id`` desc - a total order), so the
+    first digest seen for a category is its latest; a plain ``setdefault`` fold
+    captures that without re-deriving the sort here. Categories are stored
+    per-digest text (not re-validated against currently configured groups), so
+    a category retired from config still shows its last digest. Sorted by
+    category name for byte-stable rendering. An empty ``digests`` yields ``[]``.
+    """
+    best: dict[str, DigestDetail] = {}
+    for digest in digests:
+        best.setdefault(digest.category, digest)
+    return [best[category] for category in sorted(best)]

@@ -2,6 +2,29 @@
 {% block title %}grepify - health{% endblock %}
 {% block content %}
 <h1>Health</h1>
+
+<h2>Next scheduled digest</h2>
+<p>Next digest run: <strong>{{ next_run.date_label }} {{ next_run.time_label }}</strong> America/Edmonton (UTC{{ next_run.utc_offset_label }}){% if next_run.is_weekly %} - also the weekly digest{% endif %}.</p>
+
+<h2>Last digest per category</h2>
+{% if category_digests %}
+<table>
+<thead><tr><th>Category</th><th>Digest</th><th>Kind</th><th>Generated</th></tr></thead>
+<tbody>
+{% for d in category_digests %}
+<tr>
+<td>{{ d.category }}</td>
+<td><a href="{{ meta.base_path }}digest/{{ d.kind }}/{{ digest_slug(d.digest_id, d.kind) }}/">{{ d.title }}</a></td>
+<td>{{ d.kind }}</td>
+<td>{{ d.created_at[:19] }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% else %}
+<p class="muted">No digests generated yet.</p>
+{% endif %}
+
 {% if health %}
 <p class="muted">Snapshot from run {{ health.run_id }}, generated {{ health.generated_at }}</p>
 {% if health.sources %}
