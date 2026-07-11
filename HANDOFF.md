@@ -52,7 +52,8 @@ off latest `main`, merged strictly one at a time, max 2 claimed-and-unmerged at
 once. Each ticket is dispatched to its own background sub-agent in an isolated git
 worktree (Sonnet for T4-T7, Opus for T8). Checkpoint pointer for a resumed session:
 this file is maintained on branch `claude/grepify-prev1-hardening-a5p9sr` (the
-orchestrator branch), NOT on main. Merged PRs so far: #34 (T4), #35 (T5).
+orchestrator branch), NOT on main. Merged: #34 (T4), #35 (T5), #36 (T7), #40 (T6);
+T8 #41 open + ready. O1 run done + verified. See Tasks block below for live state.
   AUTO-MERGE GOTCHA: the repo's "Allow auto-merge" setting (Settings -> General ->
   Pull Requests) is OFF, so `enable_pr_auto_merge` fails for every PR. Kyle is
   merging PRs manually/promptly instead. Either ask Kyle to flip that toggle (then
@@ -64,10 +65,20 @@ Tasks:
   T3 daily-digest reliability   [MERGED #24]
   T4 next-digest-time on site   [MERGED #34]
   T5 feed-health audit + doctor [MERGED #35]
-  T6 reddit best-effort/quiet   [IN PROGRESS - branch claude/t6-reddit-best-effort, sub-agent running; last hardening ticket left]
+  T6 reddit best-effort/quiet   [MERGED #40]
   T7 eval docstring fix         [MERGED #36]
-  O1 remediation run (operational)[STILL NOT RUN - blocked until #29-#32 all merged (only T6/#31 left); see below]
-  T8 full audit pass            [BLOCKED on #29-#32 merged + O1 done; #33, run on Opus]
+  O1 remediation run (operational)[DONE - pipeline run 29138532852 (workflow_dispatch, run_remediation=true) conclusion=success 2026-07-11T03:49Z. VERIFIED: data branch keywords/2026/07/09.jsonl now 4971 rows, zero div/span/class dirty rows (the ~115 pre-#19 rows cleaned); site rebuilt+deployed by the same run.]
+  T8 full audit pass            [PR #41 OPEN, ready for Kyle to merge - CI green, footer stripped, 532 passed. NOT yet merged.]
+
+**v1.0.0 readiness gate (docs/prev1-hardening.md §4) - ALL THREE HARD GATES MET:**
+  HTML remediation (Phase A + O1) DONE; auto daily digests (T3) DONE; next-digest
+  time on site (T4) DONE. The recommended extras (T5 feed audit, T8 audit) are also
+  done/ready. After #41 merges, Kyle can tag v1.0.0.
+
+**OPEN DECISION for Kyle (surfaced in PR #41, finding 4):** whether to consolidate
+  the ingest config schema (`min_interval_hours` dict + `quiet_kinds` list) into one
+  policy. No code change made (locked PRD §5). Recommendation: leave as two
+  independent orthogonal fields. If Kyle wants consolidation it's a PRD-diff proposal.
 
 **Kyle feedback 2026-07-11 -> new follow-up issues (AFTER the hardening tranche):**
   #37 digest index default order newest->oldest by digest PERIOD (list sorts by
