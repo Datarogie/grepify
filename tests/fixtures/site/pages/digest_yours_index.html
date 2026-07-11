@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex">
+<title>grepify - your digest</title>
+<link rel="stylesheet" href="/grepify/static/style.css">
+<script src="/grepify/static/theme.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+<div class="masthead-row">
+<a class="brand" href="/grepify/">grepify<span class="caret" aria-hidden="true"></span></a>
+<button type="button" class="theme-toggle" id="theme-toggle" aria-pressed="false" hidden>theme: dark</button>
+</div>
+<nav class="site-nav" aria-label="Primary">
+<a href="/grepify/">Home</a>
+<a href="/grepify/digest/">Digests</a>
+<a href="/grepify/digest/yours/" aria-current="page">Your digest</a>
+<a href="/grepify/items/">Items</a>
+<a href="/grepify/sources/">Sources</a>
+<a href="/grepify/health/">Health</a>
+</nav>
+</header>
+<main id="main" class="site-main">
+<h1>Your digest</h1>
+<p class="muted">Follow the topics you care about. Follows are saved on this device; use Share to carry them elsewhere.</p>
+<form class="filters" aria-label="Filter your digest">
+<label>Show
+<select id="filter-digest-kind">
+<option value="">all</option>
+<option value="daily">daily</option>
+<option value="weekly">weekly</option>
+</select>
+</label>
+</form>
+<div class="topic-follow">
+<div class="topic-chips" id="topic-chips" hidden></div>
+<button type="button" class="topic-share" id="share-topics" hidden>Share</button>
+</div>
+<ul class="feed" id="digest-list">
+<li class="digest" data-kind="daily" data-category="ai">
+<a href="/grepify/digest/daily/ai-2026-07-07/">AI moved fast today</a>
+<div class="meta">daily · ai · 2026-07-07</div>
+<div class="meta"><span class="tag">#genai 3</span> </div>
+</li>
+<li class="digest" data-kind="daily" data-category="data-eng">
+<a href="/grepify/digest/daily/data-eng-2026-07-07/">Data pipelines roundup</a>
+<div class="meta">daily · data-eng · 2026-07-07</div>
+</li>
+<li class="digest" data-kind="weekly" data-category="ai">
+<a href="/grepify/digest/weekly/ai-2026-W27/">AI weekly roundup</a>
+<div class="meta">weekly · ai · week of 2026-06-29</div>
+</li>
+</ul>
+<p class="muted" id="digest-empty" hidden>No digests in your topics yet. <a href="/grepify/digest/">Browse all digests</a>.</p>
+<script src="/grepify/static/digests.js" defer></script>
+</main>
+<footer class="site-footer">
+<span>Generated 2026-07-08T00:00:00+00:00</span>
+<span>run 20260709T120000Z-testrun</span>
+</footer>
+</body>
+</html>
