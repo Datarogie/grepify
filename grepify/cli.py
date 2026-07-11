@@ -23,7 +23,12 @@ Failure modes
 - ``validate`` exits non-zero when config is invalid (CI gate on every MR).
 - ``ingest`` never fails the process for a single dead source (isolated in the
   orchestrator, PRD §9); it only propagates systemic failures (bad config,
-  unreadable truth).
+  unreadable truth). A source whose kind is cadence-reduced (T6, GRP-31 -
+  Reddit by default) is simply not dispatched on runs it is not due, logged
+  ``skipped`` instead - never an error, never something that can fail the run.
+  The health snapshot it writes never flags a ``settings.ingest.quiet_kinds``
+  source (Reddit by default) on consecutive failures either, though the
+  failure count is still computed and shown (:mod:`grepify.health`).
 - ``extract`` exits non-zero if ``LLM_BASE_URL`` is unset (nothing to call) -
   same convention as ``backfill``, below. A :class:`~grepify.errors.DataQualityError`
   (PRD §10.7 gate failed) propagates and fails the run loudly, writing no
@@ -56,7 +61,8 @@ Failure modes
   on every call (not from a possibly-stale ``health.json``), writes nothing,
   and never fails the run itself - a malformed config still raises
   :class:`~grepify.errors.ConfigError`, same as every other command that reads
-  config.
+  config. Like ``ingest``'s health snapshot, it never flags a
+  ``settings.ingest.quiet_kinds`` source (T6, GRP-31).
 """
 
 from __future__ import annotations
@@ -85,7 +91,7 @@ from grepify.ingest.transcript import TranscriptStore, YouTubeTranscriptApiClien
 from grepify.keywords import KeywordRules
 from grepify.llm import build_client
 from grepify.maintenance import renormalize_summaries
-from grepify.models import DigestKind, RunManifest
+from grepify.models import DigestKind, RunManifest, Source
 from grepify.paths import DataLayout
 from grepify.repository.jsonl_sqlite import JsonlSqliteRepository
 from grepify.run import latest_manifest, new_run_id, write_manifest
@@ -153,6 +159,7 @@ def ingest(ctx: typer.Context) -> None:
             layout,
             run_id=run_id,
             generated_at=to_iso(state.clock.now()),
+            quiet_source_ids=_quiet_source_ids(config.sources(), settings),
         )
     finally:
         repository.close()
@@ -168,6 +175,7 @@ def ingest(ctx: typer.Context) -> None:
             "sources_ok": summary.sources_ok,
             "sources_empty": summary.sources_empty,
             "sources_error": summary.sources_error,
+            "sources_skipped": summary.sources_skipped,
             "items_new": summary.items_new,
         },
         durations_ms={"total_ms": summary.duration_ms},
@@ -176,7 +184,8 @@ def ingest(ctx: typer.Context) -> None:
     write_manifest(layout, manifest)
     typer.echo(
         f"ingest: {summary.sources_ok} ok, {summary.sources_empty} empty, "
-        f"{summary.sources_error} error, {summary.items_new} new items; run {run_id}"
+        f"{summary.sources_error} error, {summary.sources_skipped} skipped (cadence), "
+        f"{summary.items_new} new items; run {run_id}"
     )
 
 
@@ -734,16 +743,29 @@ def doctor(ctx: typer.Context) -> None:
     repository = JsonlSqliteRepository(state.data_root)
     try:
         sources = config.sources()
+        settings = config.settings()
         entries = list(repository.iter_fetch_log())
     finally:
         repository.close()
 
-    snapshot = compute_health(entries, run_id="doctor", generated_at=to_iso(state.clock.now()))
+    snapshot = compute_health(
+        entries,
+        run_id="doctor",
+        generated_at=to_iso(state.clock.now()),
+        quiet_source_ids=_quiet_source_ids(sources, settings),
+    )
     rows = build_doctor_report(sources, snapshot)
     typer.echo(format_doctor_report(rows))
 
 
 # --- helpers ----------------------------------------------------------------
+
+
+def _quiet_source_ids(sources: list[Source], settings: SettingsConfig) -> set[str]:
+    """Source ids whose kind is in ``settings.ingest.quiet_kinds`` (T6, GRP-31) -
+    the health snapshot never flags these on consecutive failures."""
+    quiet_kinds = set(settings.ingest.quiet_kinds)
+    return {s.source_id for s in sources if s.kind in quiet_kinds}
 
 
 def _transcript_store(layout: DataLayout, settings: SettingsConfig) -> TranscriptStore:
