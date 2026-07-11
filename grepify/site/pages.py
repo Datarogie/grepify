@@ -199,12 +199,13 @@ def latest_digest_per_category(digests: Sequence[DigestDetail]) -> list[DigestDe
     """Most-recent digest per category, regardless of kind (T4 health page).
 
     ``digests`` is expected in :meth:`~grepify.site.trends.TrendQueries.all_digests`'s
-    order (``created_at`` desc, ``digest_id`` desc - a total order), so the
-    first digest seen for a category is its latest; a plain ``setdefault`` fold
-    captures that without re-deriving the sort here. Categories are stored
-    per-digest text (not re-validated against currently configured groups), so
-    a category retired from config still shows its last digest. Sorted by
-    category name for byte-stable rendering. An empty ``digests`` yields ``[]``.
+    order (``period_start`` desc, ``created_at`` desc, ``digest_id`` desc - a
+    total order), so the first digest seen for a category is the one for its
+    latest period; a plain ``setdefault`` fold captures that without
+    re-deriving the sort here. Categories are stored per-digest text (not
+    re-validated against currently configured groups), so a category retired
+    from config still shows its last digest. Sorted by category name for
+    byte-stable rendering. An empty ``digests`` yields ``[]``.
     """
     best: dict[str, DigestDetail] = {}
     for digest in digests:
