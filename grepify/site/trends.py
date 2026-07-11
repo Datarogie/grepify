@@ -48,7 +48,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 
-from grepify.clock import to_iso
+from grepify.clock import from_iso, to_iso
 from grepify.keywords import KeywordRules
 from grepify.paths import DataLayout
 from grepify.site.urls import keyword_slug
@@ -82,7 +82,7 @@ def window_ending_at(instant: datetime, *, days: int) -> Window:
 
 def previous_window(window: Window) -> Window:
     """The immediately-preceding window of the same length (for deltas)."""
-    end = datetime.fromisoformat(window.start)
+    end = from_iso(window.start)
     start = end - timedelta(days=window.days)
     return Window(start=to_iso(start), end=to_iso(end), days=window.days)
 

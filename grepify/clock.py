@@ -51,3 +51,19 @@ def to_iso(instant: datetime) -> str:
     ``timestamptz``).
     """
     return instant.astimezone(UTC).replace(microsecond=0).isoformat()
+
+
+def from_iso(value: str) -> datetime:
+    """Parse an ISO-8601 timestamp written by :func:`to_iso` back to a datetime.
+
+    The inverse of :func:`to_iso` and the single place a stored *datetime*
+    timestamp is parsed (date-only columns still use ``date.fromisoformat`` on
+    the leading ``YYYY-MM-DD``). Because every stored timestamp is written through
+    ``to_iso`` (UTC, offset-qualified), the result is timezone-aware and never
+    has to guess a zone; parsing therefore always succeeds. A naive or
+    otherwise non-ISO string is only reachable from a hand-edited or corrupted
+    truth file (out of scope, PRD §10) and raises ``ValueError`` - exactly the
+    failure ``datetime.fromisoformat`` already raised at each former call site,
+    now surfaced in one guarded helper.
+    """
+    return datetime.fromisoformat(value)

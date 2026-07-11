@@ -32,6 +32,20 @@ class FetchStatus(StrEnum):
     ERROR = "error"
     SKIPPED = "skipped"
 
+    @property
+    def is_real_attempt(self) -> bool:
+        """Whether this status records a genuine fetch attempt.
+
+        ``SKIPPED`` is the one non-attempt status (a cadence non-event, T6):
+        the source was deliberately not dispatched, so it carries no fetch
+        signal. Every other status is a real attempt. Both the cadence math
+        (:func:`grepify.ingest.cadence.last_real_attempt_at`) and the health
+        rollup (:func:`grepify.health.compute_health`) filter on this single
+        definition so a future non-attempt status added here stays in sync
+        across both instead of silently desyncing one from the other.
+        """
+        return self is not FetchStatus.SKIPPED
+
 
 class DigestKind(StrEnum):
     DAILY = "daily"
