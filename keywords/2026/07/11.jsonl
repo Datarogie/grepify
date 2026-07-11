@@ -4662,3 +4662,26 @@
 {"item_id":"4802dd039d99f626b3fe5b86653ac7c576a87cfcb2b1b71e8440442056bf028e","keyword":"automation","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T17:30:17+00:00"}
 {"item_id":"4802dd039d99f626b3fe5b86653ac7c576a87cfcb2b1b71e8440442056bf028e","keyword":"office tools","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T17:30:17+00:00"}
 {"item_id":"4802dd039d99f626b3fe5b86653ac7c576a87cfcb2b1b71e8440442056bf028e","keyword":"codex","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T17:30:17+00:00"}
+{"item_id":"9f53f1171aa3f680398dfdd77ec563f64199343f4e625cbdf01315887a1f3ac5","keyword":"chatgpt","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T20:07:04+00:00"}
+{"item_id":"9f53f1171aa3f680398dfdd77ec563f64199343f4e625cbdf01315887a1f3ac5","keyword":"ai strategy","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T20:07:04+00:00"}
+{"item_id":"9f53f1171aa3f680398dfdd77ec563f64199343f4e625cbdf01315887a1f3ac5","keyword":"artificial intelligence","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T20:07:04+00:00"}
+{"item_id":"9f53f1171aa3f680398dfdd77ec563f64199343f4e625cbdf01315887a1f3ac5","keyword":"business automation","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T20:07:04+00:00"}
+{"item_id":"b1fa822627323bf5d7d3da80e4dd41d9ce92c92f69b3303b0cc2ed9271aefd42","keyword":"rag","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T20:07:04+00:00"}
+{"item_id":"b1fa822627323bf5d7d3da80e4dd41d9ce92c92f69b3303b0cc2ed9271aefd42","keyword":"llm evaluation","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T20:07:04+00:00"}
+{"item_id":"b1fa822627323bf5d7d3da80e4dd41d9ce92c92f69b3303b0cc2ed9271aefd42","keyword":"ragas","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T20:07:04+00:00"}
+{"item_id":"b1fa822627323bf5d7d3da80e4dd41d9ce92c92f69b3303b0cc2ed9271aefd42","keyword":"trulens","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T20:07:04+00:00"}
+{"item_id":"b1fa822627323bf5d7d3da80e4dd41d9ce92c92f69b3303b0cc2ed9271aefd42","keyword":"deepeval","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T20:07:04+00:00"}
+{"item_id":"b1fa822627323bf5d7d3da80e4dd41d9ce92c92f69b3303b0cc2ed9271aefd42","keyword":"hallucination","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T20:07:04+00:00"}
+{"item_id":"b1fa822627323bf5d7d3da80e4dd41d9ce92c92f69b3303b0cc2ed9271aefd42","keyword":"artificial intelligence","rank":7,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T20:07:04+00:00"}
+{"item_id":"1cad5b44351bdbf52962d76029aa4cc623e835b37066efb53c68ef359274c314","keyword":"chatgpt 5.6 sol","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T20:07:04+00:00"}
+{"item_id":"1cad5b44351bdbf52962d76029aa4cc623e835b37066efb53c68ef359274c314","keyword":"openai","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T20:07:04+00:00"}
+{"item_id":"1cad5b44351bdbf52962d76029aa4cc623e835b37066efb53c68ef359274c314","keyword":"ai agents","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T20:07:04+00:00"}
+{"item_id":"1cad5b44351bdbf52962d76029aa4cc623e835b37066efb53c68ef359274c314","keyword":"automation","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T20:07:04+00:00"}
+{"item_id":"1cad5b44351bdbf52962d76029aa4cc623e835b37066efb53c68ef359274c314","keyword":"fintech","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T20:07:04+00:00"}
+{"item_id":"1cad5b44351bdbf52962d76029aa4cc623e835b37066efb53c68ef359274c314","keyword":"claude","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T20:07:04+00:00"}
+{"item_id":"71259aafb31dc0aa55c456cd811c13d23016bcae0232fbe50d8de66095db7943","keyword":"copyright law","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T20:07:04+00:00"}
+{"item_id":"71259aafb31dc0aa55c456cd811c13d23016bcae0232fbe50d8de66095db7943","keyword":"artificial intelligence","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T20:07:04+00:00"}
+{"item_id":"71259aafb31dc0aa55c456cd811c13d23016bcae0232fbe50d8de66095db7943","keyword":"australia","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T20:07:04+00:00"}
+{"item_id":"71259aafb31dc0aa55c456cd811c13d23016bcae0232fbe50d8de66095db7943","keyword":"generative ai","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T20:07:04+00:00"}
+{"item_id":"71259aafb31dc0aa55c456cd811c13d23016bcae0232fbe50d8de66095db7943","keyword":"intellectual property","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T20:07:04+00:00"}
+{"item_id":"71259aafb31dc0aa55c456cd811c13d23016bcae0232fbe50d8de66095db7943","keyword":"anthony albanese","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T20:07:04+00:00"}
