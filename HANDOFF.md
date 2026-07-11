@@ -25,9 +25,11 @@ DONE and merged; v1.0.0 is taggable.
 ## Tranche status
   #39 health-page error capture + triage systematize  [MERGED #42]
   #37 digest index order newest->oldest by period      [MERGED #43]
-  #38 "your digest" personalized view (design-led)      [PR #44 OPEN, CI green, clean - awaiting Kyle merge]
+  #38 "your digest" personalized view (design-led)      [MERGED #44]
 
-TRANCHE COMPLETE (all three delivered): #39 merged (#42), #37 merged (#43), #38 PR #44 open.
+TRANCHE FULLY MERGED + CLOSED: #39 (#42), #37 (#43), #38 (#44) all in main.
+main @ 84b2301. Nothing left in this tranche. Next work is issue #45 (below),
+a SEPARATE session Kyle kicks off - do not auto-start it.
 
 ## Next tranche queued: issue #45 (Kyle, 2026-07-11)
 Feed sweep - work source-FETCH errors by error class (one class per PR): try a
