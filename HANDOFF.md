@@ -23,9 +23,19 @@ DONE and merged; v1.0.0 is taggable.
 - Token here can push but CANNOT delete remote branches (403) - leave cleanup to Kyle.
 
 ## Tranche status
-  #39 health-page error capture + triage systematize  [IN PROGRESS - sub-agent dispatched]
-  #37 digest index order newest->oldest by period      [TODO]
-  #38 "your digest" personalized view (design-led)      [TODO - design pass + Kyle review FIRST]
+  #39 health-page error capture + triage systematize  [PR #42 OPEN, CI green, clean - awaiting Kyle merge]
+  #37 digest index order newest->oldest by period      [IN PROGRESS - sub-agent dispatched (parallel)]
+  #38 "your digest" personalized view (design-led)      [DESIGN APPROVED by Kyle - build AFTER #37 merges]
+
+## #38 design decisions (Kyle, 2026-07-11 - see scratchpad/your-digest-design.md)
+- Persistence: localStorage for now; future direction is profiles that save
+  settings + manage notifications (do NOT build that now - keep the follow-set
+  store behind one accessor so a future profile layer can supersede it).
+- IA: dedicated "Your digest" page (digest/yours/, server-rendered all-topics
+  newest-first, JS-filtered to follows, graceful degradation + Share link) AND
+  add the topic filter to the main Digests index too. Reuse index row markup +
+  digests.js. Nav link in render.py. Snapshot-test the server-rendered baseline.
+- Ordering stays consistent with #37 (newest-first by period). Build on merged #37.
 
 Open decision (carried from T8/#41, awaiting Kyle): consolidate ingest config schema
 (min_interval_hours dict + quiet_kinds list) into one policy. Recommendation: leave as
