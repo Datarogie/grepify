@@ -4501,3 +4501,11 @@
 {"item_id":"a58e570b71a4b5fb618892daab33327076b9397263494f2cfdb63996e6b00f01","keyword":"artificial intelligence","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T03:49:12+00:00"}
 {"item_id":"a58e570b71a4b5fb618892daab33327076b9397263494f2cfdb63996e6b00f01","keyword":"ai news","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T03:49:12+00:00"}
 {"item_id":"a58e570b71a4b5fb618892daab33327076b9397263494f2cfdb63996e6b00f01","keyword":"machine learning","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T03:49:12+00:00"}
+{"item_id":"570ab25567c3dd69d43378882e4c0edb336ec537f62fc926f93996d950f5ef99","keyword":"china","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T04:15:43+00:00"}
+{"item_id":"570ab25567c3dd69d43378882e4c0edb336ec537f62fc926f93996d950f5ef99","keyword":"robotics","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T04:15:43+00:00"}
+{"item_id":"570ab25567c3dd69d43378882e4c0edb336ec537f62fc926f93996d950f5ef99","keyword":"automation","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T04:15:43+00:00"}
+{"item_id":"570ab25567c3dd69d43378882e4c0edb336ec537f62fc926f93996d950f5ef99","keyword":"manufacturing","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T04:15:43+00:00"}
+{"item_id":"570ab25567c3dd69d43378882e4c0edb336ec537f62fc926f93996d950f5ef99","keyword":"kunshan","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T04:15:43+00:00"}
+{"item_id":"570ab25567c3dd69d43378882e4c0edb336ec537f62fc926f93996d950f5ef99","keyword":"labor market","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T04:15:43+00:00"}
+{"item_id":"570ab25567c3dd69d43378882e4c0edb336ec537f62fc926f93996d950f5ef99","keyword":"unemployment","rank":7,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T04:15:43+00:00"}
+{"item_id":"570ab25567c3dd69d43378882e4c0edb336ec537f62fc926f93996d950f5ef99","keyword":"factory workers","rank":8,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-11T04:15:43+00:00"}
