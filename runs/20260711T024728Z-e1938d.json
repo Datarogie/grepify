@@ -1,0 +1,19 @@
+{
+  "run_id": "20260711T024728Z-e1938d",
+  "command": "maintain-renormalize",
+  "started_at": "2026-07-11T02:47:28+00:00",
+  "finished_at": "2026-07-11T02:51:34+00:00",
+  "ok": true,
+  "counts": {
+    "items_scanned": 2171,
+    "items_rewritten": 994,
+    "keyword_rows_deleted": 5503,
+    "items_reextracted": 994,
+    "keywords_written": 4379
+  },
+  "durations_ms": {},
+  "notes": [
+    "items with no keywords after re-extraction: f492e4a621199c7b63e3549f750cd117557c88baa8a09d531078e61f3f7ed202",
+    "llm budget exhausted before all changed items were re-extracted"
+  ]
+}
