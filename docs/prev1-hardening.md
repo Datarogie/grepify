@@ -75,6 +75,18 @@ Gotchas: <anything a resuming session must know>
 
 Ordered. Phase A first (Kyle's gate). T-numbers are the stack order.
 
+**Status (2026-07-11):** T1, T2, and T3 are merged to `main`. T4-T8 are now
+tracked as GitHub issues (`ready-for-agent` label) rather than duplicated here -
+see #29 (T4), #30 (T5), #31 (T6), #32 (T7), #33 (T8, blocked by the other four).
+The task write-ups below are kept as the original rationale/context, not the
+live source of truth for scope - read the issue for current AC.
+
+**O1 is still outstanding** and is not a code PR - it needs to actually be run
+against the `data` branch. Until it runs, pre-fix dirty keywords (`div`,
+`div class`, `span`, ...) extracted before #19 remain live in stored keyword
+rows and keep surfacing in the site's trend/cloud views, even though no new
+dirty rows have been created since #19 shipped.
+
 ### Phase A - stop dirty digests, then clean the data
 
 **T1 - Digest pause switch.**
@@ -106,7 +118,7 @@ digests, then set `digest.enabled: true`. Record the run id in `HANDOFF.md`.
 
 ### Phase B - reliability + connection errors
 
-**T3 - Daily-digest reliability (v1.0 blocker).**
+**T3 - Daily-digest reliability (v1.0 blocker). MERGED (#24).**
 Bug: only `daily-ai-2026-07-08` exists, yet the LLM log shows successful digest
 calls on 07-10 with no committed digest file for 07-09/07-10. Investigate
 generation-vs-persistence: does `add_digest` run, does `commit-data` include new
@@ -115,51 +127,15 @@ is produced + committed every day the gate fires. Add a regression test.
 Files: `digest/pipeline.py`, `digest/generate.py`, `scripts/commit_pipeline_data.py`,
 `cli.py`, tests.
 
-**T4 - Next-digest time on the site (v1.0 gate).**
-Surface on the health (and/or home) page: the next scheduled digest time
-(America/Edmonton, from the GRP-45 gate) and the last generated digest per
-category. Pure render from the clock + stored digests; snapshot-tested.
-Files: `site/trends.py` or `site/pages.py`, a template, `site/build.py`, tests.
-
-**T5 - Feed-health audit + `doctor` report.**
-Triage the ~25 dead/blocked RSS feeds from the fetch log:
-- HTTP 4xx (14: ai-techpark, aimodels, clarifai-blog, ...) - fix moved URLs
-  where trivially found, else `enabled: false`.
-- Unparseable (8: aim-ai, shaip-blog, theodo, ...) - serving HTML/challenge
-  pages; mostly `enabled: false`.
-- TLS/conn (3: insideainews, knowtechie - stuck on SSLv3; bdan-ai refused) -
-  `enabled: false`.
-Add `grepify doctor` (or extend `health`) that reports per-source last status +
-error class, so this triage is repeatable. Feed liveness is checked by
-`grepify validate` on the PR. Files: `sources/groups/*.yml`, a small report
-command, tests. Also fold in two cheap hardening items: bounded retry on YouTube
-transient 5xx, and the entity-encoded-tag edge in `_strip_html`
-(strip -> unescape -> conservative second strip), each with a test.
-
-**T6 - Reddit strategy. DECIDED: option (ii) - best-effort + quiet (Kyle, 2026-07-10).**
-26 Reddit sources fail: `403` on `new.json`, `429` on the `.rss` fallback -
-datacenter-IP blocking, no code fix makes scraping reliable. Kyle chose the
-zero-secret interim: **mark Reddit a best-effort source class** - reduce its
-fetch cadence relative to other kinds and stop flagging Reddit `error` rows on
-`/health` (so it is not 26 red rows of expected noise), while still attempting
-each run and logging the outcome. Do NOT build the OAuth API (option i) or drop
-Reddit (option iii). Implementation sketch: a per-kind "best-effort" flag (or a
-Reddit-specific health-suppression) so consecutive Reddit failures do not set
-the `flagged` bit, plus a cadence knob; keep the isolation contract (a Reddit
-failure never fails the run). Tests for the suppression + cadence logic.
+**T4, T5, T6, T7 - tracked as GitHub issues, not here.**
+See #29 (next-digest time on site), #30 (feed-health audit + doctor report),
+#31 (Reddit best-effort/quiet), #32 (eval docstring fix). Read each issue for
+current scope and acceptance criteria.
 
 ### Phase C - polish + audit
 
-**T7 - Doc fix (trivial).**
-`grepify/extract/eval.py` docstring + `tests/fixtures/eval/README.md` say
-`expected_keywords` "starts empty" - the set is 30/30 labeled. Correct the docs.
-
-**T8 - Full code-review + simplify + audit pass.**
-Run `/code-review` and `/simplify` (or a fresh-context reviewer) over the whole
-shipped package, not just a diff: correctness, dead code, duplication, interface
-hygiene, test gaps. Land fixes as their own PR(s). This is the pre-v1 audit Kyle
-asked for. Hold GitLab cutover (GRP-62) - explicitly out of scope until Kyle is
-ready.
+**T8 - Full code-review + simplify + audit pass. Tracked as #33** (blocked by
+#29-#32). Read the issue for current scope and acceptance criteria.
 
 ## 3. What is explicitly NOT in this work order
 - GitLab cutover (GRP-62) - deferred by Kyle.
