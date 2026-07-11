@@ -68,12 +68,15 @@ Tasks:
   T6 reddit best-effort/quiet   [MERGED #40]
   T7 eval docstring fix         [MERGED #36]
   O1 remediation run (operational)[DONE - pipeline run 29138532852 (workflow_dispatch, run_remediation=true) conclusion=success 2026-07-11T03:49Z. VERIFIED: data branch keywords/2026/07/09.jsonl now 4971 rows, zero div/span/class dirty rows (the ~115 pre-#19 rows cleaned); site rebuilt+deployed by the same run.]
-  T8 full audit pass            [PR #41 OPEN, ready for Kyle to merge - CI green, footer stripped, 532 passed. NOT yet merged.]
+  T8 full audit pass            [MERGED #41]
+
+  ==> PRE-V1 HARDENING TRANCHE COMPLETE. All of T1-T8 merged (#22/#23/#24/#34/
+      #35/#36/#40/#41) + O1 done+verified. Nothing left in this tranche.
 
 **v1.0.0 readiness gate (docs/prev1-hardening.md §4) - ALL THREE HARD GATES MET:**
   HTML remediation (Phase A + O1) DONE; auto daily digests (T3) DONE; next-digest
-  time on site (T4) DONE. The recommended extras (T5 feed audit, T8 audit) are also
-  done/ready. After #41 merges, Kyle can tag v1.0.0.
+  time on site (T4) DONE. Recommended extras (T5 feed audit, T8 audit) also DONE.
+  Kyle is clear to tag v1.0.0 whenever he wants.
 
 **OPEN DECISION for Kyle (surfaced in PR #41, finding 4):** whether to consolidate
   the ingest config schema (`min_interval_hours` dict + `quiet_kinds` list) into one
