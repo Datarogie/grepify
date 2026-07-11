@@ -46,16 +46,33 @@ tracked in this file - #29 (T4), #30 (T5), #31 (T6), #32 (T7), #33 (T8, blocked
 by the other four, `ready-for-agent` label). Pick up work from the tracker, not
 from a task list here.
 
+**Update (2026-07-11, orchestrator session):** running T4-T8 as an ORCHESTRATOR.
+Per Kyle's brief this tranche does NOT stack: each ticket is an independent branch
+off latest `main`, merged strictly one at a time, max 2 claimed-and-unmerged at
+once. Each ticket is dispatched to its own background sub-agent in an isolated git
+worktree (Sonnet for T4-T7, Opus for T8). Checkpoint pointer for a resumed session:
+this file is maintained on branch `claude/grepify-prev1-hardening-a5p9sr` (the
+orchestrator branch), NOT on main. Merged PRs so far: #34 (T4), #35 (T5).
+  AUTO-MERGE GOTCHA: the repo's "Allow auto-merge" setting (Settings -> General ->
+  Pull Requests) is OFF, so `enable_pr_auto_merge` fails for every PR. Kyle is
+  merging PRs manually/promptly instead. Either ask Kyle to flip that toggle (then
+  auto-merge works) or keep relying on his manual merges.
+
 Tasks:
   T1 digest-pause switch        [MERGED #22]
   T2 renormalize command (GRP-60)[MERGED #23]
   T3 daily-digest reliability   [MERGED #24]
-  O1 remediation run (operational)[STILL NOT RUN - see below, this is the live cause
-                                    of dirty div/span keywords still showing up]
-  T4-T8                         [see GitHub issues #29-#33]
+  T4 next-digest-time on site   [MERGED #34]
+  T5 feed-health audit + doctor [MERGED #35]
+  T6 reddit best-effort/quiet   [IN PROGRESS - branch claude/t6-reddit-best-effort, sub-agent running]
+  T7 eval docstring fix         [IN PROGRESS - branch claude/t7-eval-docstring, sub-agent running]
+  O1 remediation run (operational)[STILL NOT RUN - blocked until #29-#32 all merged; see below]
+  T8 full audit pass            [BLOCKED on #29-#32 merged + O1 done; #33, run on Opus]
 
-Next concrete step: run O1 (see below), then work the tracker's frontier
-  (any of #29/#30/#31/#32 has no blocker; #33 waits on all four).
+Next concrete step: when T6 (#31) and T7 (#32) merge, all of #29-#32 are done.
+  Then run O1 (trigger `pipeline` workflow_dispatch with run_remediation=true,
+  record the run id below), THEN dispatch T8 (#33) on Opus. Keep max 2
+  claimed-and-unmerged; T6+T7 are the current 2.
 
 --- Per-task summaries (done this session) ---
 
