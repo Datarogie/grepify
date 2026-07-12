@@ -1,0 +1,19 @@
+{
+  "run_id": "20260712T200557Z-d8ccf3",
+  "command": "ingest",
+  "started_at": "2026-07-12T20:05:57+00:00",
+  "finished_at": "2026-07-12T20:08:56+00:00",
+  "ok": true,
+  "counts": {
+    "sources_attempted": 89,
+    "sources_ok": 88,
+    "sources_empty": 1,
+    "sources_error": 0,
+    "sources_skipped": 27,
+    "items_new": 6
+  },
+  "durations_ms": {
+    "total_ms": 179066
+  },
+  "notes": []
+}
