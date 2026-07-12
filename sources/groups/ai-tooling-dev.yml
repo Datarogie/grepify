@@ -32,7 +32,8 @@ sources:
     kind: rss
     name: AIModels
     url: https://aimodels.substack.com/feed
-    enabled: false  # T5 (#30) audit 2026-07-11: dead - HTTP 403 on every fetch_log attempt (16/16)
+    # #45 2026-07-12: re-enabled to retry - was HTTP 403 (WAF/UA block, 16/16). RSS fetcher now sends a
+    #                 browser User-Agent + feed Accept header. Verify on next pipeline doctor summary.
     added_at: "2026-07-08"
   - id: analytics-vidhya
     kind: rss
@@ -48,9 +49,9 @@ sources:
     kind: rss
     name: Clarifai Blog
     url: https://www.clarifai.com/blog/rss.xml
-    enabled: false  # T5 (#30) audit 2026-07-11: dead - HTTP 404 on every fetch_log attempt (16/16); no
-                    # moved-URL evidence found (egress to feed hosts is blocked in this environment, so
-                    # no live discovery is possible) - disabled rather than guessing at a replacement URL
+    enabled: false  # #45 2026-07-12: kept disabled - HTTP 404 (16/16) is a moved/dead URL, not a WAF block,
+                    # so the browser-UA/Accept fetch-header fix does not apply here; needs a corrected URL.
+                    # (Egress to feed hosts is blocked in this environment, so no live discovery is possible.)
     added_at: "2026-07-08"
   - id: cogito-tech-blog
     kind: rss
@@ -61,7 +62,8 @@ sources:
     kind: rss
     name: Copyleaks Blog
     url: https://copyleaks.com/blog/feed
-    enabled: false  # T5 (#30) audit 2026-07-11: dead - HTTP 403 on every fetch_log attempt (16/16)
+    # #45 2026-07-12: re-enabled to retry - was HTTP 403 (WAF/UA block, 16/16). RSS fetcher now sends a
+    #                 browser User-Agent + feed Accept header. Verify on next pipeline doctor summary.
     added_at: "2026-07-08"
   - id: datarobot-blog
     kind: rss
@@ -167,7 +169,9 @@ sources:
     kind: rss
     name: Shaip Blog
     url: https://www.shaip.com/feed/
-    enabled: false  # T5 (#30) audit 2026-07-11: dead - serves an unparseable (HTML/challenge) page, not feed XML, on every fetch_log attempt (16/16)
+    # #45 2026-07-12: re-enabled to retry - was unparseable (HTML/challenge page, not feed XML, 16/16).
+    #                 RSS fetcher now sends a browser User-Agent + feed Accept header. Verify on next
+    #                 pipeline doctor summary.
     added_at: "2026-07-08"
   - id: spritle-blog
     kind: rss
@@ -178,7 +182,9 @@ sources:
     kind: rss
     name: Theodo Data & AI Blog
     url: https://data-ai.theodo.com/en/technical-blog/rss.xml
-    enabled: false  # T5 (#30) audit 2026-07-11: dead - serves an unparseable (HTML/challenge) page, not feed XML, on every fetch_log attempt (16/16)
+    # #45 2026-07-12: re-enabled to retry - was unparseable (HTML/challenge page, not feed XML, 16/16).
+    #                 RSS fetcher now sends a browser User-Agent + feed Accept header. Verify on next
+    #                 pipeline doctor summary.
     added_at: "2026-07-08"
   - id: towards-data-science
     kind: rss

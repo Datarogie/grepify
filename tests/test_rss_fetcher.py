@@ -34,7 +34,21 @@ def test_sends_user_agent_header() -> None:
     fetcher.fetch(make_source("s1"))
     _url, headers = transport.calls[0]
     assert "user-agent" in headers
-    assert "grepify" in headers["user-agent"]
+    # A realistic browser UA - WAF-fronted feeds (Cloudflare/Substack) 403 a bot UA.
+    assert headers["user-agent"].startswith("Mozilla/5.0")
+    assert "Chrome" in headers["user-agent"]
+
+
+def test_sends_accept_header() -> None:
+    transport = ScriptedTransport([fixture_response("rss", "empty.xml")])
+    fetcher = RssFetcher(transport)
+    fetcher.fetch(make_source("s1"))
+    _url, headers = transport.calls[0]
+    assert "accept" in headers
+    accept = headers["accept"]
+    assert "application/rss+xml" in accept
+    assert "application/atom+xml" in accept
+    assert "xml" in accept
 
 
 def test_bad_dates_fall_back_to_none() -> None:

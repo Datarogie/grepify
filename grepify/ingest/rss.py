@@ -7,6 +7,15 @@ entry. Per the fetcher contract (GRP-10), this never computes identity
 (``item_id`` / ``content_hash`` / ``canonical_url``) - that's the normalizer
 (GRP-14).
 
+Fetch headers
+-------------
+Requests go out with a realistic browser ``user-agent`` plus a feed ``accept``
+header (``application/rss+xml`` / ``application/atom+xml`` / xml). WAF-fronted
+feeds (Cloudflare / Substack) answer a bot User-Agent or a request carrying no
+``Accept`` header with an HTTP 403 or an HTML challenge page (which then fails
+feed parsing and surfaces as ``unparseable``); the browser UA + feed Accept
+header make those hosts return feed XML instead.
+
 Conditional GET
 ----------------
 Per-source ETag / Last-Modified pairs live in an in-memory ``dict`` supplied at
@@ -41,7 +50,13 @@ from grepify.ingest.http import HttpxTransport, Transport, get_or_raise
 from grepify.models import Source, SourceKind
 
 _TIMEOUT_SECONDS = 10.0
-_USER_AGENT = "grepify-ingest/0.1 (+https://github.com/Datarogie/grepify)"
+_USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+)
+_ACCEPT = (
+    "application/rss+xml, application/atom+xml, application/xml;q=0.9, text/xml;q=0.8, */*;q=0.5"
+)
 
 
 @dataclass
@@ -69,7 +84,7 @@ class RssFetcher(Fetcher):
         return SourceKind.RSS
 
     def fetch(self, source: Source) -> list[RawItem]:
-        headers = {"user-agent": _USER_AGENT}
+        headers = {"user-agent": _USER_AGENT, "accept": _ACCEPT}
         state = self._cache.get(source.source_id)
         if state is not None:
             if state.etag:

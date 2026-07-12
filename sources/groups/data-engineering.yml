@@ -16,7 +16,8 @@ sources:
     kind: rss
     name: benn.substack.com (Benn Stancil)
     url: https://benn.substack.com/feed
-    enabled: false  # T5 (#30) audit 2026-07-11: dead - HTTP 403 on every fetch_log attempt (16/16)
+    # #45 2026-07-12: re-enabled to retry - was HTTP 403 (WAF/UA block, 16/16). RSS fetcher now sends a
+    #                 browser User-Agent + feed Accept header. Verify on next pipeline doctor summary.
     added_at: "2026-07-08"
   - id: getdbt-roundup
     kind: rss
