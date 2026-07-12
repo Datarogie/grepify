@@ -1,0 +1,116 @@
+{"source_id":"ai-accelerator-institute","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:42+00:00","status":"ok","items_new":0,"error":null,"duration_ms":714}
+{"source_id":"ai-business","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:42+00:00","status":"ok","items_new":0,"error":null,"duration_ms":342}
+{"source_id":"ai-insider","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:43+00:00","status":"ok","items_new":0,"error":null,"duration_ms":164}
+{"source_id":"ai-news","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:43+00:00","status":"ok","items_new":0,"error":null,"duration_ms":671}
+{"source_id":"ai-time-journal","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:43+00:00","status":"empty","items_new":0,"error":null,"duration_ms":309}
+{"source_id":"ars-technica-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:44+00:00","status":"ok","items_new":0,"error":null,"duration_ms":249}
+{"source_id":"artificial-intelligence-blog","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:44+00:00","status":"ok","items_new":0,"error":null,"duration_ms":784}
+{"source_id":"artificial-lawyer","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:45+00:00","status":"ok","items_new":0,"error":null,"duration_ms":616}
+{"source_id":"aws-ai-news","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:45+00:00","status":"ok","items_new":0,"error":null,"duration_ms":297}
+{"source_id":"bdan-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:46+00:00","status":"ok","items_new":0,"error":null,"duration_ms":758}
+{"source_id":"computerworld-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:47+00:00","status":"ok","items_new":0,"error":null,"duration_ms":164}
+{"source_id":"crunchbase-ai-news","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:47+00:00","status":"ok","items_new":0,"error":null,"duration_ms":134}
+{"source_id":"edmonton-journal-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:47+00:00","status":"ok","items_new":0,"error":null,"duration_ms":251}
+{"source_id":"fast-company-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:47+00:00","status":"ok","items_new":14,"error":null,"duration_ms":93}
+{"source_id":"federal-news-network-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:47+00:00","status":"ok","items_new":0,"error":null,"duration_ms":224}
+{"source_id":"france-24-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:47+00:00","status":"ok","items_new":0,"error":null,"duration_ms":112}
+{"source_id":"ft-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:47+00:00","status":"ok","items_new":0,"error":null,"duration_ms":333}
+{"source_id":"geekwire-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:48+00:00","status":"ok","items_new":0,"error":null,"duration_ms":289}
+{"source_id":"government-technology-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:48+00:00","status":"ok","items_new":0,"error":null,"duration_ms":305}
+{"source_id":"hpc-wire-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:48+00:00","status":"ok","items_new":0,"error":null,"duration_ms":166}
+{"source_id":"just-ai-news","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:49+00:00","status":"ok","items_new":0,"error":null,"duration_ms":790}
+{"source_id":"la-biblia-de-la-ia","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:49+00:00","status":"ok","items_new":0,"error":null,"duration_ms":844}
+{"source_id":"marketing-artificial-intelligence-institute-blog","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:50+00:00","status":"ok","items_new":0,"error":null,"duration_ms":214}
+{"source_id":"microsoft-ai-news","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:50+00:00","status":"ok","items_new":0,"error":null,"duration_ms":168}
+{"source_id":"mint-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:51+00:00","status":"ok","items_new":0,"error":null,"duration_ms":404}
+{"source_id":"mit-ai-technology-review","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:51+00:00","status":"ok","items_new":0,"error":null,"duration_ms":169}
+{"source_id":"robot-writers-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:51+00:00","status":"ok","items_new":0,"error":null,"duration_ms":982}
+{"source_id":"scripps-news-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:52+00:00","status":"ok","items_new":0,"error":null,"duration_ms":421}
+{"source_id":"techcrunch-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:53+00:00","status":"ok","items_new":0,"error":null,"duration_ms":110}
+{"source_id":"techspective","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:53+00:00","status":"ok","items_new":0,"error":null,"duration_ms":150}
+{"source_id":"the-guardian-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:53+00:00","status":"ok","items_new":0,"error":null,"duration_ms":421}
+{"source_id":"the-new-york-times-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:53+00:00","status":"ok","items_new":0,"error":null,"duration_ms":95}
+{"source_id":"the-rundown-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:53+00:00","status":"ok","items_new":0,"error":null,"duration_ms":454}
+{"source_id":"the-verge-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:54+00:00","status":"ok","items_new":0,"error":null,"duration_ms":190}
+{"source_id":"venturebeat-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:54+00:00","status":"ok","items_new":0,"error":null,"duration_ms":220}
+{"source_id":"wired-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:54+00:00","status":"ok","items_new":0,"error":null,"duration_ms":184}
+{"source_id":"ahead-of-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:54+00:00","status":"ok","items_new":0,"error":null,"duration_ms":685}
+{"source_id":"aihub","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:55+00:00","status":"ok","items_new":0,"error":null,"duration_ms":3026}
+{"source_id":"bair-blog","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:58+00:00","status":"ok","items_new":0,"error":null,"duration_ms":631}
+{"source_id":"google-research","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:59+00:00","status":"ok","items_new":0,"error":null,"duration_ms":618}
+{"source_id":"live-science-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:24:59+00:00","status":"ok","items_new":0,"error":null,"duration_ms":431}
+{"source_id":"mit-news","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:00+00:00","status":"ok","items_new":0,"error":null,"duration_ms":225}
+{"source_id":"science-news-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:00+00:00","status":"ok","items_new":0,"error":null,"duration_ms":171}
+{"source_id":"sciencedaily-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:00+00:00","status":"ok","items_new":0,"error":null,"duration_ms":269}
+{"source_id":"ai2-people","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:00+00:00","status":"ok","items_new":0,"error":null,"duration_ms":535}
+{"source_id":"aiiot-artificial-intelligence","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:01+00:00","status":"ok","items_new":0,"error":null,"duration_ms":980}
+{"source_id":"analytics-vidhya","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:02+00:00","status":"ok","items_new":0,"error":null,"duration_ms":4779}
+{"source_id":"artificial-intelligence-plus","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:07+00:00","status":"ok","items_new":0,"error":null,"duration_ms":6223}
+{"source_id":"cogito-tech-blog","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:13+00:00","status":"ok","items_new":0,"error":null,"duration_ms":653}
+{"source_id":"datarobot-blog","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:14+00:00","status":"ok","items_new":0,"error":null,"duration_ms":153}
+{"source_id":"deepcognition-ai-blog","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:14+00:00","status":"ok","items_new":0,"error":null,"duration_ms":359}
+{"source_id":"dlabs-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:14+00:00","status":"ok","items_new":0,"error":null,"duration_ms":4331}
+{"source_id":"fusemachines-insights","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:18+00:00","status":"ok","items_new":0,"error":null,"duration_ms":517}
+{"source_id":"google-ai-blog","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:19+00:00","status":"ok","items_new":0,"error":null,"duration_ms":194}
+{"source_id":"gptzero-news","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:19+00:00","status":"ok","items_new":0,"error":null,"duration_ms":355}
+{"source_id":"infoworld-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:20+00:00","status":"ok","items_new":0,"error":null,"duration_ms":193}
+{"source_id":"kavita-ganesans-blog","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:20+00:00","status":"ok","items_new":0,"error":null,"duration_ms":782}
+{"source_id":"kdnugget","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:21+00:00","status":"ok","items_new":0,"error":null,"duration_ms":158}
+{"source_id":"kore-ai-blog","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:21+00:00","status":"ok","items_new":0,"error":null,"duration_ms":319}
+{"source_id":"machine-learning-mastery","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:21+00:00","status":"ok","items_new":0,"error":null,"duration_ms":85}
+{"source_id":"machine-learning-mastery-blog","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:21+00:00","status":"ok","items_new":0,"error":null,"duration_ms":74}
+{"source_id":"marktechpost","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:21+00:00","status":"ok","items_new":2,"error":null,"duration_ms":1823}
+{"source_id":"nanonets-blog","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:23+00:00","status":"ok","items_new":0,"error":null,"duration_ms":276}
+{"source_id":"nvidia-blog","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:23+00:00","status":"ok","items_new":0,"error":null,"duration_ms":389}
+{"source_id":"oreilly-ai-ml","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:24+00:00","status":"ok","items_new":0,"error":null,"duration_ms":200}
+{"source_id":"openai-news","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:24+00:00","status":"ok","items_new":0,"error":null,"duration_ms":853}
+{"source_id":"qudata","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:25+00:00","status":"ok","items_new":0,"error":null,"duration_ms":183}
+{"source_id":"saal-insights","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:25+00:00","status":"ok","items_new":0,"error":null,"duration_ms":510}
+{"source_id":"sas-ai-blog","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:25+00:00","status":"ok","items_new":0,"error":null,"duration_ms":1859}
+{"source_id":"spritle-blog","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:27+00:00","status":"ok","items_new":0,"error":null,"duration_ms":331}
+{"source_id":"towards-data-science","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:28+00:00","status":"ok","items_new":0,"error":null,"duration_ms":151}
+{"source_id":"vectra-ai-blog","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:28+00:00","status":"ok","items_new":0,"error":null,"duration_ms":201}
+{"source_id":"viact-blog","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:28+00:00","status":"ok","items_new":0,"error":null,"duration_ms":161}
+{"source_id":"yatter-blog","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:28+00:00","status":"ok","items_new":0,"error":null,"duration_ms":1207}
+{"source_id":"simon-willison","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:29+00:00","status":"ok","items_new":1,"error":null,"duration_ms":152}
+{"source_id":"one-useful-thing","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:29+00:00","status":"ok","items_new":0,"error":null,"duration_ms":340}
+{"source_id":"interconnects","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:30+00:00","status":"ok","items_new":0,"error":null,"duration_ms":215}
+{"source_id":"latent-space","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:30+00:00","status":"ok","items_new":0,"error":null,"duration_ms":289}
+{"source_id":"getdbt-roundup","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:30+00:00","status":"ok","items_new":0,"error":null,"duration_ms":261}
+{"source_id":"locally-optimistic","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:31+00:00","status":"ok","items_new":0,"error":null,"duration_ms":640}
+{"source_id":"r-dataengineering","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:31+00:00","status":"ok","items_new":3,"error":null,"duration_ms":974}
+{"source_id":"r-agi","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:32+00:00","status":"error","items_new":0,"error":"r-agi: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":141}
+{"source_id":"r-aiassisted","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:32+00:00","status":"error","items_new":0,"error":"r-aiassisted: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":133}
+{"source_id":"r-aicuriosity","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:32+00:00","status":"error","items_new":0,"error":"r-aicuriosity: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":134}
+{"source_id":"r-aitooltesting","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:33+00:00","status":"error","items_new":0,"error":"r-aitooltesting: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":125}
+{"source_id":"r-anthropic","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:33+00:00","status":"error","items_new":0,"error":"r-anthropic: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":142}
+{"source_id":"r-artificial","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:33+00:00","status":"error","items_new":0,"error":"r-artificial: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":128}
+{"source_id":"r-artificialinteligence","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:33+00:00","status":"error","items_new":0,"error":"r-artificialinteligence: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":135}
+{"source_id":"r-bard","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:33+00:00","status":"error","items_new":0,"error":"r-bard: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":136}
+{"source_id":"r-chatgpt","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:33+00:00","status":"error","items_new":0,"error":"r-chatgpt: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":147}
+{"source_id":"r-chatgptcoding","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:33+00:00","status":"error","items_new":0,"error":"r-chatgptcoding: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":122}
+{"source_id":"r-chatgptpro","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:34+00:00","status":"error","items_new":0,"error":"r-chatgptpro: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":144}
+{"source_id":"r-chatgptpromptgenius","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:34+00:00","status":"error","items_new":0,"error":"r-chatgptpromptgenius: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":143}
+{"source_id":"r-claudeai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:34+00:00","status":"error","items_new":0,"error":"r-claudeai: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":128}
+{"source_id":"r-claudecode","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:34+00:00","status":"error","items_new":0,"error":"r-claudecode: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":129}
+{"source_id":"r-codex","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:34+00:00","status":"error","items_new":0,"error":"r-codex: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":126}
+{"source_id":"r-deepseek","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:34+00:00","status":"error","items_new":0,"error":"r-deepseek: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":128}
+{"source_id":"r-geminiai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:34+00:00","status":"error","items_new":0,"error":"r-geminiai: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":136}
+{"source_id":"r-generativeai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:34+00:00","status":"error","items_new":0,"error":"r-generativeai: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":147}
+{"source_id":"r-google-antigravity","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:35+00:00","status":"error","items_new":0,"error":"r-google-antigravity: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":125}
+{"source_id":"r-localllama","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:35+00:00","status":"error","items_new":0,"error":"r-localllama: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":124}
+{"source_id":"r-machinelearning","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:35+00:00","status":"error","items_new":0,"error":"r-machinelearning: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":124}
+{"source_id":"r-mistralai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:35+00:00","status":"error","items_new":0,"error":"r-mistralai: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":123}
+{"source_id":"r-openai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:35+00:00","status":"error","items_new":0,"error":"r-openai: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":120}
+{"source_id":"r-perplexityai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:35+00:00","status":"error","items_new":0,"error":"r-perplexityai: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":136}
+{"source_id":"r-singularity","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:35+00:00","status":"error","items_new":0,"error":"r-singularity: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":123}
+{"source_id":"r-vibecoding","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:36+00:00","status":"error","items_new":0,"error":"r-vibecoding: reddit json blocked and .rss fallback returned HTTP 429","duration_ms":133}
+{"source_id":"yt-jack-roberts","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:36+00:00","status":"ok","items_new":1,"error":null,"duration_ms":13955}
+{"source_id":"yt-jeff-su","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:25:50+00:00","status":"ok","items_new":0,"error":null,"duration_ms":12633}
+{"source_id":"yt-ben-ai","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:26:02+00:00","status":"ok","items_new":0,"error":null,"duration_ms":13596}
+{"source_id":"yt-dylan-davis","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:26:16+00:00","status":"ok","items_new":0,"error":null,"duration_ms":14081}
+{"source_id":"yt-futurepedia","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:26:30+00:00","status":"ok","items_new":0,"error":null,"duration_ms":13748}
+{"source_id":"yt-greg-isenberg","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:26:44+00:00","status":"ok","items_new":0,"error":null,"duration_ms":14075}
+{"source_id":"yt-kevin-stratvert","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:26:58+00:00","status":"ok","items_new":0,"error":null,"duration_ms":13609}
+{"source_id":"yt-lex-fridman","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:27:11+00:00","status":"ok","items_new":0,"error":null,"duration_ms":14719}
+{"source_id":"yt-theprimeagen","run_id":"20260712T042441Z-168017","started_at":"2026-07-12T04:27:26+00:00","status":"ok","items_new":0,"error":null,"duration_ms":13207}
