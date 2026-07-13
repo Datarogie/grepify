@@ -16,6 +16,14 @@ Failure modes
 - :meth:`validate` catches all of the above per-file and adds cross-file checks
   (duplicate ``source_id`` or ``url_hash`` across groups), returning a
   :class:`~grepify.config.provider.ValidationReport` without raising.
+- :meth:`validate`, given ``registered_kinds`` (GRP-56), also errors on any
+  *enabled* source (own flag and parent group flag both true) whose ``kind``
+  is not in that set - schema alone accepts ``kind: x`` (there is a locator
+  rule for it in :mod:`grepify.config.schemas`), but nothing fetches it, and
+  without this check the failure would only appear later as a per-source
+  ``error`` fetch_log row (:mod:`grepify.ingest.orchestrator`) instead of
+  being rejected up front. A disabled source or a source in a disabled group
+  is never flagged - it is never dispatched either.
 
 Note: v1 filesystem config does not track a per-source *added_at* timestamp (that
 is a v2 DB concern); the projected ``Source.added_at`` uses the file's declared
@@ -25,6 +33,7 @@ fetcher exists (GRP-10/11) and is not performed here.
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, TypeVar
 
@@ -34,9 +43,19 @@ from pydantic import BaseModel, ValidationError
 from grepify.config.provider import ConfigProvider, ValidationReport
 from grepify.config.schemas import GroupFile, KeywordsConfig, SettingsConfig, SourceSpec
 from grepify.errors import ConfigError
-from grepify.models import Source, SourceGroup
+from grepify.models import Source, SourceGroup, SourceKind
 
 _M = TypeVar("_M", bound=BaseModel)
+
+
+@dataclass
+class _SeenIdentity:
+    """Cross-group identity tracking for :meth:`FilesystemConfigProvider.validate`
+    - source id and feed url-hash seen so far, each mapped to the file it first
+    appeared in (for the "also in ..." message on a duplicate)."""
+
+    source_ids: dict[str, str] = field(default_factory=dict)
+    url_hashes: dict[str, str] = field(default_factory=dict)
 
 
 class FilesystemConfigProvider(ConfigProvider):
@@ -74,7 +93,9 @@ class FilesystemConfigProvider(ConfigProvider):
 
     # --- validation (lenient, aggregating) ----------------------------------
 
-    def validate(self) -> ValidationReport:
+    def validate(
+        self, *, registered_kinds: frozenset[SourceKind] | None = None
+    ) -> ValidationReport:
         errors: list[str] = []
         warnings: list[str] = []
 
@@ -88,8 +109,7 @@ class FilesystemConfigProvider(ConfigProvider):
 
         parsed_groups: list[GroupFile] = []
         group_ids: dict[str, str] = {}
-        source_ids: dict[str, str] = {}
-        url_hashes: dict[str, str] = {}
+        seen = _SeenIdentity()
         source_count = 0
 
         for path in self._group_paths():
@@ -109,22 +129,7 @@ class FilesystemConfigProvider(ConfigProvider):
 
             for spec in gf.sources:
                 source_count += 1
-                if spec.id in source_ids:
-                    errors.append(
-                        f"{path.name}: duplicate source id {spec.id!r} "
-                        f"(also in {source_ids[spec.id]})"
-                    )
-                else:
-                    source_ids[spec.id] = path.name
-
-                uh = spec.url_hash
-                if uh in url_hashes:
-                    errors.append(
-                        f"{path.name}: duplicate feed {spec.canonical_url!r} "
-                        f"(source {spec.id!r} collides with {url_hashes[uh]})"
-                    )
-                else:
-                    url_hashes[uh] = spec.id
+                errors.extend(self._validate_source(path, gf, spec, seen, registered_kinds))
 
         if not self._group_paths():
             warnings.append("no group files under groups/ - nothing to ingest yet")
@@ -138,6 +143,61 @@ class FilesystemConfigProvider(ConfigProvider):
         )
 
     # --- internals -----------------------------------------------------------
+
+    def _validate_source(
+        self,
+        path: Path,
+        gf: GroupFile,
+        spec: SourceSpec,
+        seen: _SeenIdentity,
+        registered_kinds: frozenset[SourceKind] | None,
+    ) -> list[str]:
+        """Per-source validate checks: duplicate id, duplicate feed url, and
+        (GRP-56) kind coverage. ``seen`` is mutated in place to record this
+        source, mirroring the pre-GRP-56 inline loop."""
+        errors: list[str] = []
+
+        if spec.id in seen.source_ids:
+            errors.append(
+                f"{path.name}: duplicate source id {spec.id!r} (also in {seen.source_ids[spec.id]})"
+            )
+        else:
+            seen.source_ids[spec.id] = path.name
+
+        uh = spec.url_hash
+        if uh in seen.url_hashes:
+            errors.append(
+                f"{path.name}: duplicate feed {spec.canonical_url!r} "
+                f"(source {spec.id!r} collides with {seen.url_hashes[uh]})"
+            )
+        else:
+            seen.url_hashes[uh] = spec.id
+
+        coverage_error = self._kind_coverage_error(path, gf, spec, registered_kinds)
+        if coverage_error is not None:
+            errors.append(coverage_error)
+        return errors
+
+    def _kind_coverage_error(
+        self,
+        path: Path,
+        gf: GroupFile,
+        spec: SourceSpec,
+        registered_kinds: frozenset[SourceKind] | None,
+    ) -> str | None:
+        """The GRP-56 coverage check: an *enabled* source (own flag and parent
+        group flag both true) whose ``kind`` is not in ``registered_kinds``.
+        Returns ``None`` when ``registered_kinds`` is omitted, the source/group
+        is disabled, or the kind is covered."""
+        if registered_kinds is None or not gf.enabled or not spec.enabled:
+            return None
+        if spec.kind in registered_kinds:
+            return None
+        registered = ", ".join(sorted(k.value for k in registered_kinds)) or "none"
+        return (
+            f"{path.name}: source {spec.id!r} has kind {spec.kind.value!r} with no "
+            f"registered fetcher (registered kinds: {registered})"
+        )
 
     def _to_source(self, gf: GroupFile, spec: SourceSpec) -> Source:
         return Source(

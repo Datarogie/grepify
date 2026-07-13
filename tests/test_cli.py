@@ -100,6 +100,62 @@ def test_validate_invalid_exits_nonzero(tmp_path: Path) -> None:
     assert "INVALID" in result.stdout
 
 
+_GROUP_UNREGISTERED_KIND = """
+    group: g1
+    name: G1
+    category: ai
+    sources:
+      - id: x-src
+        kind: x
+        handle: someone
+      - id: good-src
+        kind: rss
+        url: https://example.com/good/feed
+"""
+
+
+def test_validate_rejects_source_with_unregistered_kind(tmp_path: Path) -> None:
+    """GRP-56: `validate` uses the real production registry (no monkeypatch
+    here), which never registers a fetcher for `x` - the same registry
+    `ingest` builds, so this is what a real misconfigured source hits."""
+    cfg = write_config(tmp_path / "sources", groups={"g.yml": _GROUP_UNREGISTERED_KIND})
+    result = _invoke(cfg, tmp_path / "data", "validate")
+    assert result.exit_code == 1
+    assert "INVALID" in result.stdout
+    assert "x-src" in result.stdout
+    assert "no registered fetcher" in result.stdout
+
+
+def test_ingest_isolates_unregistered_kind_and_exits_zero(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """GRP-56 defense in depth, exercised through the real CLI: a `kind: x`
+    source that slipped past `validate` becomes a per-source `error`
+    fetch_log row, `good-src` still ingests, and the run exits zero.
+    ``build_registry`` is monkeypatched to :func:`_fake_registry` (no network
+    access), same as the other ingest CLI tests in this module - it still
+    registers no fetcher for `x`, which is the only thing this test exercises.
+    """
+    cfg = write_config(tmp_path / "sources", groups={"g.yml": _GROUP_UNREGISTERED_KIND})
+    data = tmp_path / "data"
+    monkeypatch.setattr("grepify.cli.build_registry", _fake_registry)
+
+    result = _invoke(cfg, data, "ingest")
+    assert result.exit_code == 0
+    assert "1 error" in result.stdout
+
+    manifest = latest_manifest(DataLayout(data))
+    assert manifest is not None
+    assert manifest.counts["sources_error"] == 1
+    assert manifest.counts["sources_ok"] == 1
+    assert any("x-src" in note for note in manifest.notes)
+
+    health = json.loads((data / "health.json").read_text(encoding="utf-8"))
+    by_id = {s["source_id"]: s for s in health["sources"]}
+    assert by_id["x-src"]["last_status"] == "error"
+    assert by_id["good-src"]["last_status"] == "ok"
+
+
 def test_health_without_runs(tmp_path: Path) -> None:
     cfg = write_config(tmp_path / "sources")
     result = _invoke(cfg, tmp_path / "data", "health")

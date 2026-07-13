@@ -14,6 +14,11 @@ A malformed file raises ``pydantic.ValidationError`` (unknown kind, missing
 ``category``, wrong locator field for a kind). The provider translates these into
 :class:`~grepify.errors.ConfigError` (fail-fast) or into a
 :class:`~grepify.config.provider.ValidationReport` (lenient, for ``validate``).
+Schema shape alone cannot catch a valid :class:`~grepify.models.SourceKind`
+with no registered fetcher (``kind: x`` passes this layer - it has a locator
+rule below - even though no fetcher is wired for it); that coverage check is
+``registered_kinds``-aware and lives one layer up, in
+:meth:`~grepify.config.provider.ConfigProvider.validate` (GRP-56).
 """
 
 from __future__ import annotations

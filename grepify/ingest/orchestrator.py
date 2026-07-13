@@ -11,9 +11,16 @@ Per-source isolation (PRD §9)
 A source's whole attempt (fetch, normalize, dedup, write) is wrapped so that a
 :class:`~grepify.errors.FetchError` *or any other exception* is caught, logged
 as an ``error`` :class:`~grepify.models.FetchLogEntry`, and the run continues
-with the next source. One dead feed never fails the run. Config/repository
-construction failures (bad YAML, unreadable truth) are *not* caught here -
-those are systemic and are expected to fail the whole run (PRD §5).
+with the next source. One dead feed never fails the run. This includes a
+source whose ``kind`` has no fetcher registered (:class:`KeyError` from
+:meth:`~grepify.ingest.registry.FetcherRegistry.get`, GRP-56): ``grepify
+validate`` is the primary defense against that ever reaching ingest, but a
+config edited after the last validate run (or run out-of-band of CI) can
+still slip one through, so the orchestrator isolates it exactly like any
+other per-source failure rather than letting it take down every other source.
+Config/repository construction failures (bad YAML, unreadable truth) are *not*
+caught here - those are systemic and are expected to fail the whole run
+(PRD §5).
 
 Caps (F-ING-06)
 ---------------
@@ -44,18 +51,18 @@ attempted this run - see :attr:`IngestSummary.sources_skipped`).
 
 Failure modes
 -------------
-- A single source's :class:`~grepify.errors.FetchError` or any other
-  exception -> logged ``error``, run continues (see above). Cadence never
-  changes this: a cadence-skipped source is not dispatched at all, so it
-  cannot fail the run either.
+- A single source's :class:`~grepify.errors.FetchError`, an unregistered
+  ``source.kind`` (``KeyError``, GRP-56), or any other exception -> logged
+  ``error``, run continues (see above). Cadence never changes this: a
+  cadence-skipped source is not dispatched at all, so it cannot fail the run
+  either.
 - An empty (post-cap) fetch result -> logged ``empty``, not an error.
 - A successful fetch (even with zero *new* items on a re-run) -> logged
   ``ok``; ``items_new`` is whatever :meth:`Repository.add_items
   <grepify.repository.base.Repository.add_items>` actually wrote (F-ING-07:
   reruns yield zero new rows, not an error).
-- Loading config (:class:`~grepify.errors.ConfigError`) or dispatching an
-  unregistered ``source.kind`` (``KeyError``) are systemic and propagate,
-  failing the whole run.
+- Loading config (:class:`~grepify.errors.ConfigError`) is systemic and
+  propagates, failing the whole run.
 """
 
 from __future__ import annotations
@@ -257,12 +264,16 @@ def _run_source(
         return _finish(attempt, FetchStatus.OK, items_new=items_new)
     except FetchError as exc:
         return _finish(attempt, FetchStatus.ERROR, error=str(exc))
-    except KeyError:
-        # An unregistered source.kind is a systemic config/wiring bug (see
-        # FetcherRegistry.fetch), not a per-source hiccup - it must propagate
-        # and fail the run, so it is deliberately not isolated like the
-        # broader `except Exception` below.
-        raise
+    except KeyError as exc:
+        # An unregistered source.kind (FetcherRegistry.get) is a per-source
+        # config/wiring problem, not a systemic one (GRP-56): `grepify
+        # validate` is the primary defense and rejects this before ingest
+        # ever runs, so reaching this branch means a source slipped past that
+        # (config edited after the last validate, or run out-of-band of CI).
+        # Isolating it here - same as FetchError - is defense in depth: one
+        # misconfigured source still cannot take the whole run down.
+        message = str(exc.args[0]) if exc.args else str(exc)
+        return _finish(attempt, FetchStatus.ERROR, error=message)
     except Exception as exc:
         return _finish(attempt, FetchStatus.ERROR, error=f"{type(exc).__name__}: {exc}")
 

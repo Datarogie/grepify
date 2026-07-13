@@ -3,19 +3,24 @@
 The registry is the single dispatch point the ingest orchestrator (GRP-15) uses:
 it registers one fetcher per :class:`~grepify.models.SourceKind` and routes a
 :class:`~grepify.models.Source` to the fetcher matching ``source.kind``. Keeping
-dispatch here (not a ``match`` in the orchestrator) means adding the X fetcher in
-E5 is one ``register`` call, no orchestrator change.
+dispatch here (not a ``match`` in the orchestrator) means adding a new kind's
+fetcher is one ``register`` call, no orchestrator change.
 
 Failure modes
 -------------
-Registration/lookup problems are **systemic programming errors**, not per-source
-hiccups, so they raise loudly rather than being swallowed like
+Registration is a **systemic programming error** when it collides, so it
+raises loudly rather than being swallowed like
 :class:`~grepify.errors.FetchError`:
 
 - Registering two fetchers for the same kind → :class:`ValueError`.
-- Fetching / getting a kind with no registered fetcher → :class:`KeyError`.
 
-A failure *inside* a fetcher's ``fetch`` (a :class:`~grepify.errors.FetchError`)
+Fetching / getting a kind with no registered fetcher also raises
+:class:`KeyError` here, but it is no longer treated as systemic by every
+caller (GRP-56): ``grepify validate`` uses :meth:`registered_kinds` to reject
+an enabled source with an uncovered kind before ingest ever runs, and the
+orchestrator additionally isolates a :class:`KeyError` that reaches
+:meth:`fetch` per-source (defense in depth), the same as a
+:class:`~grepify.errors.FetchError` from inside a fetcher's ``fetch``, which
 propagates unchanged for the orchestrator to isolate.
 """
 
