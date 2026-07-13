@@ -48,6 +48,7 @@ truth for whether a digest actually runs; this only renders it.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import shutil
 import sqlite3
@@ -132,13 +133,21 @@ def build_site(  # noqa: PLR0913 - distinct collaborators, all required
     try:
         queries = TrendQueries(conn, rules)
         now = clock.now()
+        env = create_environment()
+        # Cache-busting: hash the exact bytes each static asset ships with so
+        # every page can reference it as `static/<name>?v=<hash>`. A changed
+        # asset (a redeployed digests.js) gets a new URL, so GitHub Pages cannot
+        # keep serving a stale cached copy after a deploy; identical content
+        # keeps its hash, so the build stays byte-stable. style.css is rendered
+        # (not copied), so it is hashed from that rendered string.
+        stylesheet = render_stylesheet(env)
         meta = SiteMeta(
             title=SITE_TITLE,
             base_path=base_path,
             generated_at=to_iso(now),
             run_id=run_id,
+            asset_versions=_asset_versions(stylesheet),
         )
-        env = create_environment()
 
         cloud_window = window_ending_at(now, days=settings.windows.cloud_days)
         emission_since = to_iso(now - timedelta(days=EMISSION_DAYS))
@@ -146,7 +155,7 @@ def build_site(  # noqa: PLR0913 - distinct collaborators, all required
 
         _reset_output(output_dir)
         (output_dir / "static").mkdir(parents=True, exist_ok=True)
-        _write(output_dir / "static" / "style.css", render_stylesheet(env))
+        _write(output_dir / "static" / "style.css", stylesheet)
         _copy_static(output_dir)
 
         emitted_items = queries.latest_items(limit=_ALL, since=emission_since)
@@ -377,6 +386,28 @@ def _reset_output(output_dir: Path) -> None:
     if output_dir.exists():
         shutil.rmtree(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+
+
+ASSET_HASH_LEN = 8  # short content hash for the `?v=` cache-buster
+
+
+def _asset_hash(data: bytes) -> str:
+    """Short, deterministic content hash for one static asset's bytes."""
+    return hashlib.sha256(data).hexdigest()[:ASSET_HASH_LEN]
+
+
+def _asset_versions(stylesheet: str) -> dict[str, str]:
+    """Map every shipped ``static/`` asset to a short content hash.
+
+    Covers the rendered ``style.css`` (passed in, since it is not a file on
+    disk) plus each file copied by :func:`_copy_static`. Deterministic: the same
+    asset bytes always yield the same hash, so the build stays byte-stable.
+    """
+    versions = {"style.css": _asset_hash(stylesheet.encode("utf-8"))}
+    for asset in sorted(STATIC_DIR.glob("*")):
+        if asset.is_file():
+            versions[asset.name] = _asset_hash(asset.read_bytes())
+    return versions
 
 
 def _copy_static(output_dir: Path) -> None:

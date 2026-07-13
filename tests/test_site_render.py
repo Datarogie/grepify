@@ -77,6 +77,26 @@ def test_base_path_prefixes_every_internal_link() -> None:
     assert brand in html
 
 
+def test_asset_url_falls_back_to_bare_when_unversioned() -> None:
+    # A SiteMeta with no registered versions (the pure-render path) emits the
+    # plain base-path URL, so render-only snapshots stay unversioned.
+    meta = _meta()
+    assert meta.asset("digests.js") == "/grepify/static/digests.js"
+
+
+def test_asset_url_appends_version_when_known() -> None:
+    meta = SiteMeta(
+        title="grepify",
+        base_path="/grepify/",
+        generated_at="2026-07-09T12:00:00+00:00",
+        run_id="20260709T120000Z-abc123",
+        asset_versions={"digests.js": "deadbeef"},
+    )
+    assert meta.asset("digests.js") == "/grepify/static/digests.js?v=deadbeef"
+    # an asset with no registered version still degrades to the bare URL
+    assert meta.asset("style.css") == "/grepify/static/style.css"
+
+
 def test_no_external_fonts_or_trackers() -> None:
     # F-SIT-07: no third-party requests. The one display face (League Gothic)
     # is embedded as an inline data URI, never fetched.

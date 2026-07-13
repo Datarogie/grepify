@@ -240,6 +240,51 @@ def test_page_json_matches_golden(tmp_path: Path) -> None:
     ).read_text(encoding="utf-8")
 
 
+# --- cache-busting (stale-deploy defence) ------------------------------------
+
+
+def test_static_refs_are_content_hashed(tmp_path: Path) -> None:
+    # Every static asset the pages reference must carry a ?v=<hash> whose value
+    # is the short sha256 of the exact bytes that asset ships with. This is what
+    # forces GitHub Pages onto a fresh URL after a deploy, so a fixed digests.js
+    # actually reaches readers instead of a stale cached copy.
+    _, out = build_canned(tmp_path)
+    index_html = (out / "index.html").read_text(encoding="utf-8")
+    items_html = (out / "items" / "index.html").read_text(encoding="utf-8")
+    both = index_html + items_html
+
+    refs = re.findall(r"/grepify/static/([\w.]+)\?v=([0-9a-f]+)", both)
+    seen = {name: ver for name, ver in refs}
+    # the chrome (style.css, theme.js) plus a page-specific script (filters.js)
+    assert {"style.css", "theme.js", "filters.js"} <= set(seen)
+
+    for name, ver in seen.items():
+        data = (out / "static" / name).read_bytes()
+        expected = hashlib.sha256(data).hexdigest()[:8]
+        assert ver == expected, f"{name} ?v= must match its content hash"
+
+
+def test_no_unversioned_static_refs(tmp_path: Path) -> None:
+    # No page may reference a static asset without the cache-buster - an
+    # unversioned URL is exactly the stale-cache hole this closes.
+    _, out = build_canned(tmp_path)
+    for page in out.rglob("*.html"):
+        html = page.read_text(encoding="utf-8")
+        bare = re.findall(r'/grepify/static/[\w.]+(?<!\.json)(?=["\'])', html)
+        assert not bare, f"{page} has unversioned static refs: {bare}"
+
+
+def test_asset_version_is_deterministic_and_content_derived(tmp_path: Path) -> None:
+    # Same content -> same URL (byte-stable goldens); this pins the ?v= scheme.
+    first_html = (build_canned(tmp_path / "a")[1] / "digest" / "index.html").read_text(
+        encoding="utf-8"
+    )
+    second_html = (build_canned(tmp_path / "b")[1] / "digest" / "index.html").read_text(
+        encoding="utf-8"
+    )
+    assert first_html == second_html
+
+
 # --- determinism (S8) --------------------------------------------------------
 
 
