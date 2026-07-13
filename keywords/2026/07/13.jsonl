@@ -170,3 +170,10 @@
 {"item_id":"c9b59be83a8fda32c20e4c4620f1d8d0a1e7a6892af8f51bf72107bf191281c6","keyword":"cinema","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T01:12:49+00:00"}
 {"item_id":"c9b59be83a8fda32c20e4c4620f1d8d0a1e7a6892af8f51bf72107bf191281c6","keyword":"technology","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T01:12:49+00:00"}
 {"item_id":"c9b59be83a8fda32c20e4c4620f1d8d0a1e7a6892af8f51bf72107bf191281c6","keyword":"oppenheimer","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T01:12:49+00:00"}
+{"item_id":"cdd1c2ed0e865f016a4219be0d8e0c6c9ca639f8f0907fa5acb5cd231f1e0e40","keyword":"china","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T02:09:46+00:00"}
+{"item_id":"cdd1c2ed0e865f016a4219be0d8e0c6c9ca639f8f0907fa5acb5cd231f1e0e40","keyword":"artificial intelligence","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T02:09:46+00:00"}
+{"item_id":"cdd1c2ed0e865f016a4219be0d8e0c6c9ca639f8f0907fa5acb5cd231f1e0e40","keyword":"ai adoption","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T02:09:46+00:00"}
+{"item_id":"cdd1c2ed0e865f016a4219be0d8e0c6c9ca639f8f0907fa5acb5cd231f1e0e40","keyword":"surveillance","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T02:09:46+00:00"}
+{"item_id":"cdd1c2ed0e865f016a4219be0d8e0c6c9ca639f8f0907fa5acb5cd231f1e0e40","keyword":"robotics","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T02:09:46+00:00"}
+{"item_id":"cdd1c2ed0e865f016a4219be0d8e0c6c9ca639f8f0907fa5acb5cd231f1e0e40","keyword":"drones","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T02:09:46+00:00"}
+{"item_id":"cdd1c2ed0e865f016a4219be0d8e0c6c9ca639f8f0907fa5acb5cd231f1e0e40","keyword":"medical avatars","rank":7,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T02:09:46+00:00"}
