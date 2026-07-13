@@ -78,6 +78,16 @@ jobs:
       - name: Checkout data branch (worktree at ./data)
         run: make data-branch
 
+      # GRP-63: sum items/keywords JSONL + transcripts under the data worktree
+      # every run, before ingest/extract spend any network/LLM budget. Warns
+      # (exit 0) at 100 MB, fails the step (and the run) at 200 MB; the line is
+      # always appended to the job summary via `tee`, pass or fail, so the
+      # current size is visible on every run regardless of outcome.
+      - name: Data-size guardrail (GRP-63)
+        run: |
+          set -o pipefail
+          make datasize | tee -a "$GITHUB_STEP_SUMMARY"
+
       - name: Digest gate
         id: gate
         run: make digest-gate >> "$GITHUB_OUTPUT"

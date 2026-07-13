@@ -1,7 +1,7 @@
 """Single-entrypoint CLI (PRD §8 F-OPS-01): ``grepify <subcommand>``.
 
 Subcommands: ``ingest extract trends digest build validate health doctor
-backfill``, plus ``maintain renormalize`` (GRP-60 data remediation).
+backfill datasize``, plus ``maintain renormalize`` (GRP-60 data remediation).
 ``ingest`` is wired to the E1 orchestrator (GRP-15/16); ``extract`` is wired to
 the E2 pipeline (GRP-25: untagged-item selection, real LLM client, keyword
 normalization, PRD §10.7 data-quality gate); ``validate`` is fully wired to
@@ -71,6 +71,13 @@ Failure modes
   :class:`~grepify.errors.ConfigError`, same as every other command that reads
   config. Like ``ingest``'s health snapshot, it never flags a
   ``settings.ingest.quiet_kinds`` source (T6, GRP-31).
+- ``datasize`` (GRP-63) is a read-only, config-free, network-free directory-size
+  sum over ``items/`` + ``keywords/`` + ``transcripts/`` under the data root
+  (:mod:`grepify.datasize`); it never raises for a missing directory (treated as
+  zero bytes) and writes no manifest. It exits 0 under the warn threshold, 0
+  (with a ``WARN`` line) in the warn band, and non-zero at/over the fail
+  threshold - the only command in this module whose exit code is a deliberate
+  CI gate on data volume rather than a config/LLM/systemic failure.
 """
 
 from __future__ import annotations
@@ -85,6 +92,13 @@ import typer
 from grepify.clock import Clock, SystemClock, to_iso
 from grepify.config.filesystem import FilesystemConfigProvider
 from grepify.config.schemas import SettingsConfig
+from grepify.datasize import (
+    DEFAULT_FAIL_BYTES,
+    DEFAULT_WARN_BYTES,
+    SizeLevel,
+    compute_data_size,
+    format_report,
+)
 from grepify.digest import TEMPLATE_MODEL, digest_gate, format_gate, run_digest_pipeline
 from grepify.doctor import build_doctor_report, format_doctor_report
 from grepify.extract import (
@@ -770,6 +784,38 @@ def doctor(ctx: typer.Context) -> None:
     )
     rows = build_doctor_report(sources, snapshot)
     typer.echo(format_doctor_report(rows))
+
+
+WarnBytesOpt = Annotated[
+    int, typer.Option(help="Warn threshold in bytes (GRP-63; default 100 MB).")
+]
+FailBytesOpt = Annotated[
+    int, typer.Option(help="Fail threshold in bytes (GRP-63; default 200 MB).")
+]
+
+
+@app.command()
+def datasize(
+    ctx: typer.Context,
+    warn_bytes: WarnBytesOpt = DEFAULT_WARN_BYTES,
+    fail_bytes: FailBytesOpt = DEFAULT_FAIL_BYTES,
+) -> None:
+    """Data-branch size guardrail: sum items/keywords JSONL + transcripts (GRP-63).
+
+    Read-only directory-size arithmetic over the data root
+    (:mod:`grepify.datasize`) - no config, no LLM, no manifest write - so it is
+    cheap to run every pipeline invocation ahead of the network/LLM steps.
+    Prints one summary line and exits 0 under ``--warn-bytes``, 0 with a
+    ``WARN`` line in the warn band, and non-zero at/over ``--fail-bytes``. See
+    :mod:`grepify.datasize` for the full threshold contract and the documented
+    parquet-compaction escape hatch for when the fail threshold is actually hit.
+    """
+    state: AppState = ctx.obj
+    layout = DataLayout(state.data_root)
+    report = compute_data_size(layout, warn_bytes=warn_bytes, fail_bytes=fail_bytes)
+    typer.echo(format_report(report))
+    if report.level is SizeLevel.FAIL:
+        raise typer.Exit(code=1)
 
 
 # --- helpers ----------------------------------------------------------------
