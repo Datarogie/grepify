@@ -1,68 +1,54 @@
-# HANDOFF - #45 source-fetch error sweep
+# HANDOFF - #45 source-fetch error sweep (DONE)
 
-Updated: 2026-07-13T01:12:16Z
-Issue: #45 (source-fetch error sweep, worked by error class). The issue is the
-source of truth for scope. Runbook: docs/feed-triage.md. Background (historical):
-docs/prev1-hardening.md.
-Branch base: main @ fb6987f6feb62e7fa3090a2ed025bfe84e79e98b (post-v1 tranche + #45 C1 (#46) + C3 (#49) +
-GRP-47 (#48) + GRP-50 (#51) all merged).
+Updated: 2026-07-13T01:25:23Z
+Issue: #45 (source-fetch error sweep, worked by error class) - COMPLETE. Runbook:
+docs/feed-triage.md. Background (historical): docs/prev1-hardening.md.
+Branch base: main @ 6b78116dc34c5057003032a6e6b3bcda53ce3fd3.
 
-## State
-Pre-v1 hardening and the post-v1 tranche are merged. The #45 sweep's code PRs are
-all merged (C1 #46, C3 #49). Also merged this session (NOT part of #45, from Kyle
-feedback): GRP-47 (#48) folded "Your digest" into a Digests All/Following tab, and
-GRP-50 (#51) made the All tab a fully unfiltered archive (all filters live on the
-Following tab). THIS PR is the #45 doctor-summary closeout.
-
-## Verification (run 20260713T003917Z, sha cf649e2 = C1 live; read from data branch fetch log)
-  C1 http_4xx 403 + unparseable  [MERGED #46; verified - 1/7 recovered]
-       RECOVERED: copyleaks-blog (ok under browser UA + feed Accept header). KEPT ENABLED.
-       STILL DEAD under the header fix, RE-DISABLED with evidence in this PR:
-         aimodels / ai-techpark / benn-substack - persistent HTTP 403 (server WAF/IP block).
-         aim-ai / shaip-blog / theodo-data-and-ai-blog - persistent unparseable HTML challenge page.
-       clarifai-blog stays disabled (404, unrelated to headers).
-  C2 http_4xx 415 flappers        [no code change; clean in latest window]
-       artificial-lawyer, bdan-ai, la-biblia-de-la-ia all status ok across the last
-       4 runs (incl. under C1's Accept header). Kept enabled and watched. No action.
-  C3 tls sslv3 handshake          [MERGED #49; verification PENDING]
-       inside-ai-news, knowtechie-ai re-enabled with a seclevel-1 SSL context. Not yet
-       verified: the only completed run with #45 fixes live (20260713T003917Z, sha
-       cf649e2) predated #49, so those two were still disabled then. Verify on the next
-       pipeline run that includes #49 (a scheduled run, or the waiting workflow_dispatch
-       run #30 on sha fb6987f once it completes) via the data branch fetch log;
-       disable-with-evidence if still dead.
+## Outcome (all classes verified via the data branch fetch log)
+  C1 http_4xx 403 + unparseable  [DONE - #46 fix, #52 closeout]
+       browser User-Agent + feed Accept header. Verified run 20260713T003917Z:
+       recovered copyleaks-blog only (1 of 7). aimodels / ai-techpark /
+       benn-substack (403) and aim-ai / shaip-blog / theodo-data-and-ai-blog
+       (unparseable) confirmed still dead, re-disabled with evidence (#52).
+       clarifai-blog stays disabled (404).
+  C2 http_4xx 415 flappers        [DONE - no code change]
+       artificial-lawyer, bdan-ai, la-biblia-de-la-ia status ok across recent runs
+       including under C1's Accept header. Kept enabled and watched.
+  C3 tls sslv3 handshake          [DONE - #49 fix, this PR closeout]
+       seclevel-1 SSL context (permit legacy ciphers, cert verification on, TLS 1.2
+       floor) shipped in #49. Verified run 20260713T010831Z (post-#49):
+       inside-ai-news and knowtechie-ai STILL SSLV3_ALERT_HANDSHAKE_FAILURE - the
+       fix did not recover them. Confirmed dead, re-disabled with evidence (this PR).
+       Did NOT drop to deprecated TLS 1.0/1.1 (bad tradeoff for 2 minor sources;
+       Kyle delegated the call). The seclevel-1 transport posture is retained as a
+       mild general allowance; reverting it is a trivial follow-up if desired.
   C4 http_429                     [no action - Reddit, quiet by design (T6)]
 
-Scope is FETCH errors only. Extract/digest/build-stage error triage is a deferred
-separate issue.
+Net: of the non-Reddit fetch errors, 1 source recovered (copyleaks-blog); the rest
+are confirmed dead at the network level (WAF/IP 403, HTML-challenge unparseable, or
+unrecoverable TLS) and disabled with evidence. The 415 flappers stay enabled and
+healthy. #45 is closed.
 
-## Hard constraint
-CI/build egress to feed hosts is BLOCKED (agent proxy returns 403 CONNECT). A fetch
-fix cannot be verified locally or in a PR's validate run. Verify via the data branch
-fetch log after a pipeline run (the doctor report is written only to the Actions job
-summary, which the MCP tools cannot fetch). Keep fixes conservative; unit-test wiring.
+## Also merged this session (NOT part of #45, from Kyle feedback)
+  GRP-47 (#48): "Your digest" folded into a Digests All/Following tab.
+  GRP-50 (#51): the All tab is a fully unfiltered archive; all filters live on the
+  Following tab.
 
-## Orchestration
-One class = one branch off latest main = one PR = merged one at a time. Max 2
-claimed-and-unmerged PRs. Git identity per commit: Datarogie
-<42312814+Datarogie@users.noreply.github.com>. Every PR uses
-.github/pull_request_template.md with a phone-first How-to-test. After every
-create_pull_request, immediately update_pull_request with the same clean body to
-strip the auto-appended "Generated by Claude Code" footer, then re-fetch to confirm.
-Never push to main. make check must be green.
-
-## Gotchas
-  - Ignore the stale scratch branches (claude/grepify-post-v1-tranche-w3i62x and the
-    -37/-38/-39 ones). Do NOT base work on them or open PRs for them.
-  - Data branch holds truth at the REPO ROOT (logs/fetch, items/, digests/, runs/),
-    NOT under data/. Inspect via a detached worktree: git fetch origin data &&
-    git worktree add --detach ./_data origin/data ; grep logs/fetch/YYYY/MM/DD.jsonl;
-    git worktree remove ./_data (never commit it).
-  - Auto-merge is OFF (enable_pr_auto_merge fails - expected); Kyle merges PRs
-    manually. The git token can push but CANNOT delete remote branches (403).
+## Gotchas / how to verify feeds
+  - Egress to feed hosts is BLOCKED in CI/build; verify by inspecting the data
+    branch fetch log (logs/fetch/YYYY/MM/DD.jsonl) via a detached worktree - the
+    doctor report is written only to the Actions job summary
+    (make doctor >> $GITHUB_STEP_SUMMARY), which the MCP tools cannot fetch.
+  - Data branch truth is at the REPO ROOT (logs/, items/, digests/, runs/), not
+    under data/.
+  - Auto-merge is OFF (Kyle merges PRs manually); the git token cannot delete
+    remote branches (403).
   - No em/en dashes and no AI-authorship attribution anywhere.
+  - Stale scratch branches exist (claude/grepify-post-v1-tranche-w3i62x and the
+    -37/-38/-39 ones); ignore them.
 
-## Next concrete step
-Verify C3 (tls) on the next pipeline run that includes #49: inspect the data branch
-fetch log for inside-ai-news / knowtechie-ai, record the outcome in docs/feed-triage.md,
-and disable-with-evidence if still dead. That closes #45.
+## Next
+  #45 is done. Follow-ups NOT in scope here: extract/digest/build-stage error
+  triage (a separate deferred issue); optionally revert the seclevel-1 TLS posture
+  now that its target sources are confirmed dead.

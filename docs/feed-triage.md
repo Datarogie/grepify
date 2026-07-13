@@ -104,7 +104,7 @@ verified against a completed pipeline run.
   last 4 runs, including under Class 1's Accept header. Kept enabled and
   watched; no action taken.
 
-**Class 3 - `tls` sslv3 handshake failure (fix shipped in #49, verification pending).**
+**Class 3 - `tls` sslv3 handshake failure (fix shipped in #49; confirmed terminal, closeout this PR).**
 
 - **Root cause.** `inside-ai-news` and `knowtechie-ai` fail with an "sslv3 alert
   handshake failure". On modern Python/OpenSSL 3 this means the SERVER offers
@@ -120,11 +120,22 @@ verified against a completed pipeline run.
   feed-reader posture. Kyle approved permitting legacy TLS for public-feed
   fetches (2026-07-13). `inside-ai-news` and `knowtechie-ai` were re-enabled
   with an inline `#45` evidence note in `sources/groups/ai-business.yml`.
-- **Verification is pending.** The only completed run with #45's fixes live
-  (`20260713T003917Z`, sha cf649e2) predated #49, so both sources were still
-  disabled at that point and this fix has not been observed live yet. Confirm on
-  the next pipeline run that includes #49 (read from the data branch fetch
-  log), and disable again with evidence if either is still dead.
+- **Verified on run `20260713T010831Z`** (sha fb6987f, #49 live; read from the
+  data branch fetch log): the seclevel-1 context did **not** recover either
+  source - both still fail with `[SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3
+  alert handshake failure`. The servers' legacy configuration is incompatible
+  even at security level 1.
+- **Re-disabled with evidence (this PR).** `inside-ai-news` and `knowtechie-ai`
+  are back to `enabled: false` with an inline `#45` closeout note in
+  `sources/groups/ai-business.yml`. We deliberately did not drop the SSL
+  context further to permit deprecated TLS 1.0/1.1 to chase two minor sources -
+  that tradeoff was rejected (Kyle, delegated call). Both are confirmed dead at
+  the network level.
+- **Transport posture retained.** The seclevel-1 `HttpxTransport` context
+  itself (`grepify/ingest/http.py`) is kept as-is: a mild general allowance for
+  legacy ciphers with certificate verification still on. It costs nothing for
+  sources that do not need it and is a trivial revert later if desired. #45 is
+  now fully closed.
 
 **Class 4 - `http_429` (Reddit).** No action - quiet by design (T6).
 
