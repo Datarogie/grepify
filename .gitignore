@@ -20,3 +20,6 @@ public/
 
 # Local secrets - never committed (PRD §5). Real values live in CI masked vars.
 .env
+
+# Claude Code agent worktrees (harness-managed, never committed)
+.claude/worktrees/

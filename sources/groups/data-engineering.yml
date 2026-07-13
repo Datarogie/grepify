@@ -16,8 +16,8 @@ sources:
     kind: rss
     name: benn.substack.com (Benn Stancil)
     url: https://benn.substack.com/feed
-    # #45 2026-07-12: re-enabled to retry - was HTTP 403 (WAF/UA block, 16/16). RSS fetcher now sends a
-    #                 browser User-Agent + feed Accept header. Verify on next pipeline doctor summary.
+    enabled: false  # #45 2026-07-13: browser User-Agent + feed Accept header (run 20260713T003917Z) did not
+                    # recover - still HTTP 403 (server-side WAF/IP block, not a UA issue). Disabled with evidence.
     added_at: "2026-07-08"
   - id: getdbt-roundup
     kind: rss
