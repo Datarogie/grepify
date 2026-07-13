@@ -176,14 +176,11 @@ def test_digest_index_is_all_topics_newest_first(tmp_path: Path) -> None:
 
 
 def test_digest_index_has_last_visit_delta_hooks(tmp_path: Path) -> None:
-    # Each row carries data-created-at (when the digest was generated,
-    # not the period it covers) so digests.js can mark rows newer than the
-    # reader's stored last-visit timestamp without a server round trip. The
-    # optional "N new digests since" summary line ships hidden, like the other
-    # Following-only controls - digests.js reveals it there, and only
-    # when there is something new to report. Both the marking itself and the
-    # summary's text are client-only behavior, not exercised in this
-    # server-rendered baseline (see module docstring).
+    # Each row carries data-created-at (when the digest was generated, not the
+    # period it covers) so digests.js can mark rows newer than the reader's
+    # stored last-visit timestamp. The "N new digests since" summary ships
+    # hidden, like the other Following-only controls. The marking and summary
+    # text are client-only, not exercised in this baseline (see module docstring).
     out = _build(tmp_path)
     html = (out / "digest" / "index.html").read_text(encoding="utf-8")
     assert 'data-created-at="2026-07-08T13:05:00+00:00"' in html  # daily-ai

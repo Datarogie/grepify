@@ -57,7 +57,7 @@ def test_respects_max_keywords() -> None:
     assert len(result["a"]) <= 2
 
 
-# --- "must not raise" safety net (mirrors the F-EXT-02 sanity bar) -----------
+# --- "must not raise" safety net ---------------------------------------------
 
 
 def test_empty_title_and_summary_yields_no_keywords() -> None:
@@ -105,15 +105,12 @@ def test_empty_items_list_returns_empty_mapping() -> None:
     assert extractor.extract([]) == {}
 
 
-# --- HTML-markup regression (phone test: div/class/span/href surfaced as
-# top home-cloud keywords because unstripped HTML from feed summaries reached
-# the extractor) ---------------------------------------------------------
+# --- HTML-markup stripping ---------------------------------------------------
 
 
 def test_script_body_in_summary_does_not_surface_as_keywords() -> None:
-    # A generic tag-strip alone would remove the <script> tags but leave the
-    # JS body text behind, reproducing the exact reported symptom (div/class/
-    # span/href surfacing as top keywords) from a different source.
+    # A generic tag-strip alone removes the <script> tags but leaves the JS body
+    # text behind, so div/class/span/href could still surface as keywords.
     source = make_source("s1")
     raw = RawItem(
         url="https://example.com/post",

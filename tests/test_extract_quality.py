@@ -18,7 +18,7 @@ def test_every_item_with_a_keyword_row_is_not_flagged() -> None:
 
 def test_item_with_no_keyword_rows_is_flagged_not_raised() -> None:
     items = [make_item("a"), make_item("b")]
-    keywords = [make_keyword("a", "genai")]  # "b" got nothing (F-EXT-02: valid)
+    keywords = [make_keyword("a", "genai")]  # "b" got nothing, which is valid
     report = assert_data_quality(items, keywords)
     assert report.no_keywords_item_ids == ["b"]
 

@@ -165,10 +165,9 @@ def test_llm_empty_result_is_flagged_no_keywords_not_raised() -> None:
 
 
 def test_alias_mapping_to_an_over_length_keyword_raises_data_quality_error() -> None:
-    # Alias substitution can lengthen a keyword (unlike normalize_keyword,
-    # which only ever shrinks it) - a misconfigured alias mapping to a
-    # >60-char canonical string must still fail the run loudly (PRD §10.7),
-    # not slip through as if the length gate only guarded a regression.
+    # Alias substitution can lengthen a keyword (unlike normalize_keyword, which
+    # only ever shrinks it), so a misconfigured alias mapping to a >60-char
+    # canonical string must still fail the run loudly (PRD §10.7).
     items = [make_item("a")]
     client = _client([_kw_text({"a": ["gen ai"]})])
     rules = KeywordRules.from_config(KeywordsConfig(aliases={"gen ai": "x" * 61}))

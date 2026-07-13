@@ -35,8 +35,8 @@ def test_add_items_is_idempotent(tmp_path: Path) -> None:
     items = [make_item(f"i{n}") for n in range(3)]
 
     assert repo.add_items(items) == 3
-    assert repo.add_items(items) == 0  # second run writes nothing
-    assert repo.add_items([make_item("i0"), make_item("i9")]) == 1  # only the new one
+    assert repo.add_items(items) == 0
+    assert repo.add_items([make_item("i0"), make_item("i9")]) == 1  # only i9 is new
 
     repo.rebuild_cache()
     assert repo.count_items() == 4
@@ -95,8 +95,6 @@ def test_keyword_key_includes_method_llm_and_fallback_rows_coexist(tmp_path: Pat
 
 
 def test_rewrite_items_overwrites_in_place(tmp_path: Path) -> None:
-    # rewrite_items overwrites an existing record by
-    # item_id, keeping it in its date partition and leaving siblings untouched.
     repo = JsonlSqliteRepository(tmp_path)
     a = make_item("a", published_at="2026-07-07T10:00:00+00:00")
     b = make_item("b", published_at="2026-07-07T11:00:00+00:00")  # same day file

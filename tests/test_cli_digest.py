@@ -291,7 +291,7 @@ def test_digest_paused_when_disabled_generates_nothing(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     # digest.enabled=false freezes generation: no LLM calls, no digest files,
-    # exit 0, and a manifest note recording the pause (T1 pause switch).
+    # exit 0, and a manifest note recording the pause.
     monkeypatch.setenv("LLM_BASE_URL", "https://x/v1")
 
     def _explode(*_a: object, **_k: object) -> object:
