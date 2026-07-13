@@ -8,7 +8,7 @@ UV ?= uv
 
 .PHONY: help install install-pipeline fmt lint typecheck test check audit \
         ingest extract trends digest digest-daily digest-weekly build validate health doctor backfill \
-        digest-gate data-branch commit-data site eval
+        digest-gate data-branch datasize commit-data site eval
 
 help: ## List available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -90,6 +90,9 @@ digest-gate: ## Print daily=/weekly= flags: are digest steps due now? (GRP-45, A
 
 data-branch: ## Check out the dedicated `data` branch as a worktree at ./data (bootstraps it on first run)
 	bash scripts/ensure-data-branch.sh
+
+datasize: ## Data-branch size guardrail: warn >=100MB / fail >=200MB over items+keywords+transcripts (GRP-63)
+	$(UV) run grepify datasize
 
 commit-data: ## Commit + push data/ changes to the `data` branch worktree with rebase-retry ([skip ci] loop guard)
 	$(UV) run python scripts/commit_pipeline_data.py --repo-dir data --branch data
