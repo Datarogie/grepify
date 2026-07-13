@@ -1,13 +1,14 @@
-"""'Your digest' page tests (GRP-38): server-rendered all-topics baseline.
+"""Digests page tests (GRP-38/47): server-rendered All-view baseline.
 
 Builds a canned site with digests across two categories (``ai`` with a daily and
 a later weekly, plus ``data-eng``) and snapshots the server-rendered
-``digest/yours/index.html`` against a golden. The client-side topic-follow
-filter (``digests.js``, localStorage + ``?topics=``) is NOT exercised here - it
-only hides rows in the browser, exactly as the daily/weekly kind filter is left
-to the client. The tested surface is the progressive-enhancement baseline: every
-digest, newest-first by period, degrading gracefully with JS off. A determinism
-check (build twice -> identical bytes) guards the S8 rule for the new page.
+``digest/index.html`` against a golden. The client-side All/Following tab and
+topic-follow filter (``digests.js``, localStorage + ``?view=``/``?topics=``) are
+NOT exercised here - they only hide rows / switch views in the browser, exactly
+as the daily/weekly kind filter is left to the client. The tested surface is the
+progressive-enhancement baseline: every digest, newest-first by period, which is
+the full ``All`` archive the page degrades to with JS off. A determinism check
+(build twice -> identical bytes) guards the S8 rule for the page.
 """
 
 from __future__ import annotations
@@ -24,7 +25,7 @@ from grepify.paths import DataLayout
 from grepify.repository.jsonl_sqlite import JsonlSqliteRepository
 from grepify.site.build import build_site
 
-GOLDEN = Path(__file__).parent / "fixtures" / "site" / "pages" / "digest_yours_index.html"
+GOLDEN = Path(__file__).parent / "fixtures" / "site" / "pages" / "digest_index.html"
 _CLOCK = FixedClock(datetime(2026, 7, 8, tzinfo=UTC))
 _RUN_ID = "20260709T120000Z-testrun"
 
@@ -138,30 +139,32 @@ def _build(tmp_path: Path) -> Path:
     return tmp_path / "public"
 
 
-def test_your_digest_matches_golden(tmp_path: Path) -> None:
+def test_digest_index_matches_golden(tmp_path: Path) -> None:
     out = _build(tmp_path)
-    html = (out / "digest" / "yours" / "index.html").read_text(encoding="utf-8")
+    html = (out / "digest" / "index.html").read_text(encoding="utf-8")
     assert html == GOLDEN.read_text(encoding="utf-8")
 
 
-def test_your_digest_is_all_topics_newest_first(tmp_path: Path) -> None:
+def test_digest_index_is_all_topics_newest_first(tmp_path: Path) -> None:
     out = _build(tmp_path)
-    html = (out / "digest" / "yours" / "index.html").read_text(encoding="utf-8")
-    # every category is present server-side (baseline shows all, no follows yet)
+    html = (out / "digest" / "index.html").read_text(encoding="utf-8")
+    # every category is present server-side (All baseline shows all, unfiltered)
     assert 'data-category="ai"' in html
     assert 'data-category="data-eng"' in html
     # newest period first: the 2026-07-07 dailies precede the 2026-06-29 weekly
     assert html.index("AI moved fast today") < html.index("AI weekly roundup")
     assert html.index("Data pipelines roundup") < html.index("AI weekly roundup")
-    # progressive-enhancement hooks are present
+    # progressive-enhancement hooks are present (All/Following tab + chips + share)
+    assert 'id="digest-views"' in html
+    assert 'data-view="following"' in html
     assert 'id="topic-chips"' in html
     assert 'id="share-topics"' in html
     assert "static/digests.js" in html
 
 
-def test_your_digest_is_deterministic(tmp_path: Path) -> None:
+def test_digest_index_is_deterministic(tmp_path: Path) -> None:
     first = _build(tmp_path / "a")
     second = _build(tmp_path / "b")
-    a = (first / "digest" / "yours" / "index.html").read_bytes()
-    b = (second / "digest" / "yours" / "index.html").read_bytes()
+    a = (first / "digest" / "index.html").read_bytes()
+    b = (second / "digest" / "index.html").read_bytes()
     assert a == b

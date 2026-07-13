@@ -1,8 +1,8 @@
 {#
-  Shared digest-row markup (GRP-38). One definition, rendered identically by
-  the Digests index (digest_index.html) and the "Your digest" page
-  (digest_yours.html). ``data-kind`` drives the daily/weekly filter and
-  ``data-category`` drives the topic-follow filter (both in digests.js).
+  Shared digest-row macro (GRP-38, GRP-47). One definition, rendered by the
+  Digests index (digest_index.html) for both the All and Following tabs.
+  ``data-kind`` drives the daily/weekly filter and ``data-category`` drives the
+  Following-view topic filter (both in digests.js).
 #}
 {% macro digest_row(d, base_path) -%}
 <li class="digest" data-kind="{{ d.kind }}" data-category="{{ d.category }}">

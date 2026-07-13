@@ -163,7 +163,6 @@ def build_site(  # noqa: PLR0913 - distinct collaborators, all required
             + _write_sources(env, meta, output_dir, config)
             + _write_health(env, meta, output_dir, layout, digests=digests, now=now)
             + _write_digests(env, meta, output_dir, digests)
-            + _write_your_digest(env, meta, output_dir, digests)
             + _write_keyword_pages(env, meta, output_dir, keyword_details)
         )
     finally:
@@ -286,7 +285,18 @@ def _write_health(  # noqa: PLR0913 - collaborators of one page render, all requ
 def _write_digests(
     env: jinja2.Environment, meta: SiteMeta, output_dir: Path, digests: list[DigestDetail]
 ) -> int:
-    """Digest index (always, a nav destination) + one detail page per digest."""
+    """Digest index (always, a nav destination) + one detail page per digest.
+
+    The index is server-rendered with *all* digests in newest-first-by-period
+    order (GRP-37) and then progressively enhanced client-side (``digests.js``,
+    GRP-47) with an ``All`` / ``Following`` tab that folds in the former "Your
+    digest" page: ``All`` (the default) shows the whole archive and is NEVER
+    follow-filtered - only the daily/weekly kind filter narrows it - while
+    ``Following`` hides rows whose category is not in the reader's followed set.
+    Both the tab and the follow filter are client-only, so with JS off the page
+    degrades to the full ``All`` list; the tested (server-rendered) surface is
+    that all-digests baseline.
+    """
     index_html = render_page(
         env,
         "digest_index.html",
@@ -305,28 +315,6 @@ def _write_digests(
         slug = digest_slug(digest.digest_id, digest.kind)
         _write(output_dir / "digest" / digest.kind / slug / "index.html", detail_html)
     return 1 + len(digests)
-
-
-def _write_your_digest(
-    env: jinja2.Environment, meta: SiteMeta, output_dir: Path, digests: list[DigestDetail]
-) -> int:
-    """The "Your digest" page (GRP-38): a first-class nav destination.
-
-    Server-rendered with *all* digests in the same newest-first-by-period order
-    (GRP-37) and the same row markup as the index (shared ``_digest_row.html``
-    macro), then progressively enhanced client-side (``digests.js``) to hide
-    rows outside the reader's followed topics. With JS off it degrades to the
-    full "all digests, newest first" list - so the tested (server-rendered)
-    surface is the all-topics baseline; the follow-set filter is client-only.
-    """
-    html = render_page(
-        env,
-        "digest_yours.html",
-        PageContext(meta=meta, active="your-digest"),
-        digests=digests,
-    )
-    _write(output_dir / "digest" / "yours" / "index.html", html)
-    return 1
 
 
 def _write_keyword_pages(

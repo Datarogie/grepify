@@ -4,6 +4,17 @@
 {% block content %}
 <h1>Digests</h1>
 {% if digests %}
+{#
+  All / Following tab (GRP-47). The page is server-rendered as the full archive
+  (= the All view); the tablist below is progressively enhanced - digests.js
+  reveals it and drives the active view. With JS off the tablist stays hidden
+  and the page degrades to the full list. The follow-set only ever hides rows
+  in the Following view; the All archive is never follow-filtered.
+#}
+<div class="tabs" id="digest-views" role="tablist" aria-label="Digest view" hidden>
+<button type="button" class="tab" role="tab" data-view="all" aria-selected="true">All</button>
+<button type="button" class="tab" role="tab" data-view="following" aria-selected="false">Following</button>
+</div>
 <form class="filters" aria-label="Filter digests">
 <label>Show
 <select id="filter-digest-kind">
@@ -15,6 +26,7 @@
 </form>
 <div class="topic-follow">
 <div class="topic-chips" id="topic-chips" hidden></div>
+<button type="button" class="topic-share" id="share-topics" hidden>Share</button>
 </div>
 <ul class="feed" id="digest-list">
 {% for d in digests %}

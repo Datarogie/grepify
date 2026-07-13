@@ -1,11 +1,21 @@
-// grepify digest filters (GRP-43 kind filter + GRP-38 topic follow).
-// Vanilla, no framework (PRD §5: no Node toolchain, interactivity stays small).
-// Shared by the Digests index and the "Your digest" page. Two filters combine
-// (logical AND) and only ever HIDE rows, never reorder them - so the server's
-// newest-first-by-period order (GRP-37) always holds:
-//   - kind: daily/weekly, via the optional <select id="filter-digest-kind">;
-//   - topics: digest category, via follow chips backed by localStorage.
-// With JS off both pages degrade to the full server-rendered list.
+// grepify digest filters (GRP-43 kind filter + GRP-38 topic follow +
+// GRP-47 All/Following tabs). Vanilla, no framework (PRD §5: no Node
+// toolchain, interactivity stays small). Drives the single Digests page.
+//
+// Two views, selected by a progressively-enhanced tablist:
+//   - All (default): the full archive. The daily/weekly kind filter still
+//     narrows it, but the follow-set NEVER hides rows here.
+//   - Following: hides digests whose category is not in the followed set;
+//     the kind filter still applies on top.
+// The follow chips are always visible and always update the follow-set (so
+// Following reflects them), but toggling a chip only hides rows under
+// Following. Filters only ever HIDE rows, never reorder them - so the
+// server's newest-first-by-period order (GRP-37) always holds.
+//
+// The active view is per-visit + URL-seeded (?view=following), never
+// persisted to localStorage (persisting it would re-create cross-visit
+// stickiness). An incoming ?topics= still seeds the follow-set. With JS off
+// the tablist stays hidden and the page degrades to the full All list.
 (function () {
   "use strict";
 
@@ -62,7 +72,7 @@
   // A topics query param wins for this visit and is saved, so a shared link
   // seeds the same selection on another device. Only categories that actually
   // exist on the page are kept.
-  (function seedFromUrl() {
+  (function seedTopicsFromUrl() {
     var match = /[?&]topics=([^&]*)/.exec(window.location.search);
     if (!match) return;
     var wanted = decodeURIComponent(match[1])
@@ -76,11 +86,27 @@
   var empty = document.getElementById("digest-empty");
   var chipBox = document.getElementById("topic-chips");
   var shareBtn = document.getElementById("share-topics");
+  var tablist = document.getElementById("digest-views");
+  var tabs = tablist
+    ? Array.prototype.slice.call(tablist.querySelectorAll("[data-view]"))
+    : [];
+
+  // --- active view: default "all", per-visit, seeded by ?view=following ----
+  // Deliberately NOT persisted (see file header): the tab resets each visit
+  // unless the URL selects it, so the archive is the default landing.
+  var view = "all";
+  (function seedViewFromUrl() {
+    var match = /[?&]view=([^&]*)/.exec(window.location.search);
+    if (match && decodeURIComponent(match[1]) === "following") view = "following";
+  })();
 
   function apply() {
     var kind = kindSel ? kindSel.value : "";
+    var following = view === "following";
     var followed = followStore.get();
-    var followAll = followed.length === 0; // nothing followed -> show all
+    // In All the follow-set never hides anything (only the kind filter runs).
+    // In Following an empty follow-set still shows everything (no dead end).
+    var followAll = !following || followed.length === 0;
     var visible = 0;
     rows.forEach(function (row) {
       var kindOk = !kind || row.getAttribute("data-kind") === kind;
@@ -91,6 +117,25 @@
     });
     if (empty) empty.hidden = visible !== 0;
     syncChips();
+  }
+
+  // --- All / Following tab --------------------------------------------------
+  function setView(next) {
+    view = next === "following" ? "following" : "all";
+    tabs.forEach(function (t) {
+      var on = t.getAttribute("data-view") === view;
+      t.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    apply();
+  }
+
+  if (tablist) {
+    tablist.hidden = false; // reveal only when JS can drive the views
+    tabs.forEach(function (t) {
+      t.addEventListener("click", function () {
+        setView(t.getAttribute("data-view"));
+      });
+    });
   }
 
   // --- topic follow chips ---------------------------------------------------
@@ -121,12 +166,13 @@
     chipBox.hidden = false;
   }
 
-  // --- Share: a ?topics= link for the current follow-set -------------------
+  // --- Share: a Following deep-link carrying the current follow-set --------
   function shareUrl() {
     var followed = followStore.get();
     var base = window.location.origin + window.location.pathname;
-    if (followed.length === 0) return base;
-    return base + "?topics=" + encodeURIComponent(followed.join(","));
+    var params = ["view=following"];
+    if (followed.length > 0) params.push("topics=" + encodeURIComponent(followed.join(",")));
+    return base + "?" + params.join("&");
   }
 
   if (shareBtn) {
@@ -151,5 +197,5 @@
 
   if (kindSel) kindSel.addEventListener("change", apply);
   renderChips();
-  apply();
+  setView(view); // seed tab aria-selected + run the initial filter pass
 })();
