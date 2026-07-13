@@ -71,55 +71,72 @@ Doctor over the data branch: 128 sources.
 ## Current resolution (evidence, as of #45)
 
 #45 works the remaining non-Reddit source-fetch errors one error class per PR.
+This section is the closeout: it records what the shipped fixes actually did,
+verified against a completed pipeline run.
 
-**Class 1 - `http_4xx` 403 + `unparseable` (this PR).**
+**Class 1 - `http_4xx` 403 + `unparseable` (fix shipped in #46, verified this PR).**
 
 - **Root cause.** The RSS fetcher sent a bot User-Agent
   (`grepify-ingest/0.1 ...`) and no `Accept` header. Cloudflare / Substack WAFs
   answer that with an HTTP 403, or serve an HTML challenge page - which is not
   feed XML, so feed parsing fails and the source surfaces as `unparseable`. Same
   root cause, two error classes.
-- **Fix.** `grepify/ingest/rss.py` now sends a realistic browser User-Agent plus
-  a feed `Accept` header (`application/rss+xml` / `application/atom+xml` / xml)
-  on every request, so WAF-fronted hosts return the feed XML. Conditional-GET
+- **Fix.** `grepify/ingest/rss.py` sends a realistic browser User-Agent plus a
+  feed `Accept` header (`application/rss+xml` / `application/atom+xml` / xml) on
+  every request, so WAF-fronted hosts return the feed XML. Conditional-GET
   headers are unchanged.
-- **Re-enabled to retry (7).** 403: `aimodels`, `copyleaks-blog`, `ai-techpark`,
-  `benn-substack`. unparseable: `aim-ai`, `shaip-blog`,
-  `theodo-data-and-ai-blog`. Each carries an inline `#45` evidence note in
-  `sources/groups/*.yml`.
-- **Kept disabled.** `clarifai-blog` was an HTTP 404 (moved/dead URL), not a WAF
-  block, so a fetch-header change cannot recover it - it needs a corrected URL.
-- **Verification is pending.** Egress to feed hosts is blocked in CI/build, so
-  this fix cannot be verified live in the PR's validate run. It lands blind and
-  is verified on the next scheduled pipeline run's doctor job summary: the 7
-  re-enabled sources should fetch/parse instead of 403/unparseable.
+- **Verified on run `20260713T003917Z`** (sha cf649e2, #46 live; read from the
+  data branch fetch log): only **`copyleaks-blog` recovered** (status ok) - 1 of
+  the 7 sources re-enabled to retry. It stays enabled with an updated evidence
+  note in `sources/groups/ai-tooling-dev.yml`.
+- **Re-disabled with evidence (this PR).** The other 6 stayed dead under the new
+  headers, so they are back to `enabled: false` with an inline `#45` note in
+  `sources/groups/*.yml`:
+  - `aimodels`, `ai-techpark`, `benn-substack` - persistent HTTP 403
+    (server-side WAF/IP block; a browser UA is not enough).
+  - `aim-ai`, `shaip-blog`, `theodo-data-and-ai-blog` - persistent unparseable
+    HTML challenge page, not feed XML.
+- `clarifai-blog` remains disabled (HTTP 404, unrelated to headers - unchanged).
 
-**Class 3 - `tls` sslv3 handshake failure (this PR).**
+**Class 2 - `http_4xx` 415 flappers (no code change; clean in this window).**
+
+- `artificial-lawyer`, `bdan-ai`, `la-biblia-de-la-ia` are status ok across the
+  last 4 runs, including under Class 1's Accept header. Kept enabled and
+  watched; no action taken.
+
+**Class 3 - `tls` sslv3 handshake failure (fix shipped in #49, verification pending).**
 
 - **Root cause.** `inside-ai-news` and `knowtechie-ai` fail with an "sslv3 alert
   handshake failure". On modern Python/OpenSSL 3 this means the SERVER offers
   legacy TLS ciphers/keys that OpenSSL now rejects at its default security level
   2 - not that our client is outdated.
 - **Fix.** The shared HTTP transport (`grepify/ingest/http.py`,
-  `HttpxTransport`) now fetches through an `ssl.SSLContext` pinned to security
-  level 1 (`DEFAULT@SECLEVEL=1`), which accepts those weaker server ciphers while
+  `HttpxTransport`) fetches through an `ssl.SSLContext` pinned to security level
+  1 (`DEFAULT@SECLEVEL=1`), which accepts those weaker server ciphers while
   keeping certificate verification fully ON (`check_hostname` and `verify_mode`
   at their secure defaults) and the protocol floor at TLS 1.2. The context only
-  PERMITS weaker crypto, it never forces it, so strong servers still negotiate
+  permits weaker crypto, it never forces it, so strong servers still negotiate
   strong crypto. Public feeds carry no secrets/auth, so this is the standard
   feed-reader posture. Kyle approved permitting legacy TLS for public-feed
-  fetches (2026-07-13).
-- **Re-enabled to retry (2).** `inside-ai-news`, `knowtechie-ai`. Each carries an
-  inline `#45` evidence note in `sources/groups/ai-business.yml`.
-- **Verification is pending.** Egress to feed hosts is blocked in CI/build, so
-  this fix cannot be verified live in the PR's validate run. It lands blind and
-  is verified on the next scheduled pipeline run's doctor job summary: both
-  sources should complete their TLS handshake and fetch/parse instead of failing.
-  Disable again with evidence if either is still dead.
+  fetches (2026-07-13). `inside-ai-news` and `knowtechie-ai` were re-enabled
+  with an inline `#45` evidence note in `sources/groups/ai-business.yml`.
+- **Verification is pending.** The only completed run with #45's fixes live
+  (`20260713T003917Z`, sha cf649e2) predated #49, so both sources were still
+  disabled at that point and this fix has not been observed live yet. Confirm on
+  the next pipeline run that includes #49 (read from the data branch fetch
+  log), and disable again with evidence if either is still dead.
 
-**Remaining classes (follow-up PRs).** Class 2 - `http_4xx` 415 flappers
-(`artificial-lawyer`, `bdan-ai`, `la-biblia-de-la-ia`); the class 1 Accept
-header may already stop the intermittent 415s, so re-check on the next doctor
-summary first.
-</content>
-</invoke>
+**Class 4 - `http_429` (Reddit).** No action - quiet by design (T6).
+
+**Note on verification method.** The doctor report is emitted only to the
+Actions job summary (`make doctor >> $GITHUB_STEP_SUMMARY`), which is not
+something this tooling can fetch after the fact. Closeout verification instead
+reads the data branch fetch log directly (`logs/fetch/YYYY/MM/DD.jsonl`) via a
+detached worktree:
+
+```
+git fetch origin data
+git worktree add --detach ./_data origin/data
+grep <source-id> ./_data/logs/fetch/2026/07/13.jsonl
+git worktree remove ./_data
+```

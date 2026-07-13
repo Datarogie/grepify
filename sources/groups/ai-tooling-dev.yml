@@ -32,8 +32,8 @@ sources:
     kind: rss
     name: AIModels
     url: https://aimodels.substack.com/feed
-    # #45 2026-07-12: re-enabled to retry - was HTTP 403 (WAF/UA block, 16/16). RSS fetcher now sends a
-    #                 browser User-Agent + feed Accept header. Verify on next pipeline doctor summary.
+    enabled: false  # #45 2026-07-13: browser User-Agent + feed Accept header (run 20260713T003917Z) did not
+                    # recover - still HTTP 403 (server-side WAF/IP block, not a UA issue). Disabled with evidence.
     added_at: "2026-07-08"
   - id: analytics-vidhya
     kind: rss
@@ -62,8 +62,8 @@ sources:
     kind: rss
     name: Copyleaks Blog
     url: https://copyleaks.com/blog/feed
-    # #45 2026-07-12: re-enabled to retry - was HTTP 403 (WAF/UA block, 16/16). RSS fetcher now sends a
-    #                 browser User-Agent + feed Accept header. Verify on next pipeline doctor summary.
+    # #45 2026-07-13: recovered - fetches ok under the browser User-Agent + feed Accept header
+    #                 (run 20260713T003917Z, status ok). Kept enabled.
     added_at: "2026-07-08"
   - id: datarobot-blog
     kind: rss
@@ -169,9 +169,8 @@ sources:
     kind: rss
     name: Shaip Blog
     url: https://www.shaip.com/feed/
-    # #45 2026-07-12: re-enabled to retry - was unparseable (HTML/challenge page, not feed XML, 16/16).
-    #                 RSS fetcher now sends a browser User-Agent + feed Accept header. Verify on next
-    #                 pipeline doctor summary.
+    enabled: false  # #45 2026-07-13: browser User-Agent + feed Accept header (run 20260713T003917Z) did not
+                    # recover - still serves an unparseable HTML challenge page, not feed XML. Disabled with evidence.
     added_at: "2026-07-08"
   - id: spritle-blog
     kind: rss
@@ -182,9 +181,8 @@ sources:
     kind: rss
     name: Theodo Data & AI Blog
     url: https://data-ai.theodo.com/en/technical-blog/rss.xml
-    # #45 2026-07-12: re-enabled to retry - was unparseable (HTML/challenge page, not feed XML, 16/16).
-    #                 RSS fetcher now sends a browser User-Agent + feed Accept header. Verify on next
-    #                 pipeline doctor summary.
+    enabled: false  # #45 2026-07-13: browser User-Agent + feed Accept header (run 20260713T003917Z) did not
+                    # recover - still serves an unparseable HTML challenge page, not feed XML. Disabled with evidence.
     added_at: "2026-07-08"
   - id: towards-data-science
     kind: rss
