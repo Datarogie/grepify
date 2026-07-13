@@ -45,6 +45,7 @@ permissions:
   contents: write
   pages: write
   id-token: write
+  issues: write
 
 jobs:
   run:
@@ -172,3 +173,36 @@ jobs:
       - name: Deploy to Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      # GRP-74: a scheduled run's failure email otherwise goes to whoever last
+      # touched the `cron:` line above, which silently drifts with every edit
+      # to that line and depends on that person's own notification settings.
+      # This step gives systemic failure a stable, repo-visible landing spot
+      # instead: one pinned issue, found by title via GITHUB_TOKEN (no new
+      # secret), commented on for repeat failures rather than duplicated.
+      - name: Notify on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = "pipeline failing";
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const { data: found } = await github.rest.search.issuesAndPullRequests({
+              q: `repo:${context.repo.owner}/${context.repo.repo} type:issue state:open in:title "${title}"`,
+            });
+            const existing = found.items.find((issue) => issue.title === title);
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body: `Failed again: ${runUrl}`,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body: `Scheduled pipeline run failed: ${runUrl}`,
+              });
+            }
