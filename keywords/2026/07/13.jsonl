@@ -177,3 +177,23 @@
 {"item_id":"cdd1c2ed0e865f016a4219be0d8e0c6c9ca639f8f0907fa5acb5cd231f1e0e40","keyword":"robotics","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T02:09:46+00:00"}
 {"item_id":"cdd1c2ed0e865f016a4219be0d8e0c6c9ca639f8f0907fa5acb5cd231f1e0e40","keyword":"drones","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T02:09:46+00:00"}
 {"item_id":"cdd1c2ed0e865f016a4219be0d8e0c6c9ca639f8f0907fa5acb5cd231f1e0e40","keyword":"medical avatars","rank":7,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T02:09:46+00:00"}
+{"item_id":"badd3bdf416ce6e88658a214b19d10fa07530539c6c4cf535f4c41a98087b8a0","keyword":"generative ai","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T04:32:30+00:00"}
+{"item_id":"badd3bdf416ce6e88658a214b19d10fa07530539c6c4cf535f4c41a98087b8a0","keyword":"ai safety","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T04:32:30+00:00"}
+{"item_id":"badd3bdf416ce6e88658a214b19d10fa07530539c6c4cf535f4c41a98087b8a0","keyword":"auditing technique","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T04:32:30+00:00"}
+{"item_id":"badd3bdf416ce6e88658a214b19d10fa07530539c6c4cf535f4c41a98087b8a0","keyword":"child safety","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T04:32:30+00:00"}
+{"item_id":"badd3bdf416ce6e88658a214b19d10fa07530539c6c4cf535f4c41a98087b8a0","keyword":"ai models","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T04:32:30+00:00"}
+{"item_id":"188ffd4f364600d14cdb1931fd050a004cdd71dc9ae45ab7327d3e69f68ded06","keyword":"chatbots","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T04:32:30+00:00"}
+{"item_id":"188ffd4f364600d14cdb1931fd050a004cdd71dc9ae45ab7327d3e69f68ded06","keyword":"artificial intelligence","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T04:32:30+00:00"}
+{"item_id":"188ffd4f364600d14cdb1931fd050a004cdd71dc9ae45ab7327d3e69f68ded06","keyword":"human-ai relationships","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T04:32:30+00:00"}
+{"item_id":"188ffd4f364600d14cdb1931fd050a004cdd71dc9ae45ab7327d3e69f68ded06","keyword":"lauren oyler","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T04:32:30+00:00"}
+{"item_id":"18ca15af2beae7fef526aa1388f9f1fb28d5d97896e88277154c243a0547b5ec","keyword":"generative ai","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T04:32:30+00:00"}
+{"item_id":"18ca15af2beae7fef526aa1388f9f1fb28d5d97896e88277154c243a0547b5ec","keyword":"music industry","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T04:32:30+00:00"}
+{"item_id":"18ca15af2beae7fef526aa1388f9f1fb28d5d97896e88277154c243a0547b5ec","keyword":"josh fawaz","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T04:32:30+00:00"}
+{"item_id":"18ca15af2beae7fef526aa1388f9f1fb28d5d97896e88277154c243a0547b5ec","keyword":"ai music","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T04:32:30+00:00"}
+{"item_id":"18ca15af2beae7fef526aa1388f9f1fb28d5d97896e88277154c243a0547b5ec","keyword":"madonna","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T04:32:30+00:00"}
+{"item_id":"18ca15af2beae7fef526aa1388f9f1fb28d5d97896e88277154c243a0547b5ec","keyword":"radio airplay","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T04:32:30+00:00"}
+{"item_id":"6adcf915ff33fb324ab9d3792b2feb27da26916ca25a0e78df65d50718e4c9da","keyword":"ai security","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T04:32:30+00:00"}
+{"item_id":"6adcf915ff33fb324ab9d3792b2feb27da26916ca25a0e78df65d50718e4c9da","keyword":"red teaming","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T04:32:30+00:00"}
+{"item_id":"6adcf915ff33fb324ab9d3792b2feb27da26916ca25a0e78df65d50718e4c9da","keyword":"ai monitoring","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T04:32:30+00:00"}
+{"item_id":"6adcf915ff33fb324ab9d3792b2feb27da26916ca25a0e78df65d50718e4c9da","keyword":"model evaluation","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T04:32:30+00:00"}
+{"item_id":"6adcf915ff33fb324ab9d3792b2feb27da26916ca25a0e78df65d50718e4c9da","keyword":"artificial intelligence","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T04:32:30+00:00"}
