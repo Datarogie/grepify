@@ -2,6 +2,16 @@
 {% block title %}grepify - home{% endblock %}
 {% block content %}
 <h1 class="visually-hidden">grepify home</h1>
+{% if rising %}
+
+<h2 class="rising-heading">Rising this week</h2>
+<div class="rising-strip">
+{% for kw in rising %}
+{% if kw.keyword in keyword_pages %}{% set href = meta.base_path ~ "keyword/" ~ keyword_slug(kw.keyword) ~ "/" %}{% else %}{% set href = meta.base_path ~ "items/#keyword=" ~ (kw.keyword | urlencode) %}{% endif %}
+<a href="{{ href }}" class="rising-chip" title="{{ kw.count }} mentions in {{ cloud.window.days }}d">{{ kw.keyword }}{% if kw.delta > 0 %} <span class="delta-up">+{{ kw.delta }}</span>{% elif kw.delta < 0 %} <span class="delta-down">{{ kw.delta }}</span>{% endif %}</a>
+{% endfor %}
+</div>
+{% endif %}
 
 <section aria-label="Statistics">
 <ul class="stats">

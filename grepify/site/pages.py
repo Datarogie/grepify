@@ -29,10 +29,11 @@ from dataclasses import dataclass
 from typing import Any
 
 from grepify.ingest.dedup import hamming_distance
-from grepify.site.trends import DigestDetail, ItemSummary
+from grepify.site.trends import CloudDataset, DigestDetail, ItemSummary, KeywordCount
 
 ITEMS_PER_PAGE = 20  # F-SIT-03
 NEAR_DUP_MAX_DISTANCE = 3  # simhash Hamming bits (matches ingest default)
+RISING_STRIP_LIMIT = 8  # cap on the home "Rising this week" strip (GRP-68)
 
 
 @dataclass(frozen=True)
@@ -193,6 +194,19 @@ def page_facets(page: Page, item_tags: dict[str, list[str]]) -> dict[str, list[A
         "sources": [{"id": sid, "name": sources[sid]} for sid in sorted(sources)],
         "keywords": sorted(keywords),
     }
+
+
+def rising_strip(cloud: CloudDataset, *, limit: int = RISING_STRIP_LIMIT) -> list[KeywordCount]:
+    """The count-ranked, capped subset of ``cloud.keywords`` flagged rising (GRP-68).
+
+    A pure re-slice of the cloud dataset the home page already computed for
+    the keyword cloud - no new query, no rising-math change. ``cloud.keywords``
+    is already sorted ``(-count, keyword)`` (F-TRD-01/F-TRD-03), so filtering to
+    the rising ones keeps that same count-ranked, byte-stable order; this only
+    truncates it to ``limit`` for a compact home-page strip. Empty when nothing
+    in the window is rising, so the caller can hide the strip entirely.
+    """
+    return [kw for kw in cloud.keywords if kw.rising][:limit]
 
 
 def latest_digest_per_category(digests: Sequence[DigestDetail]) -> list[DigestDetail]:

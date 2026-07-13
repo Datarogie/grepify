@@ -74,6 +74,7 @@ from grepify.site.pages import (
     item_json,
     latest_digest_per_category,
     page_facets,
+    rising_strip,
 )
 from grepify.site.render import (
     PageContext,
@@ -198,15 +199,17 @@ def _write_home(  # noqa: PLR0913 - collaborators of one page render, all requir
     settings: SettingsConfig,
 ) -> int:
     latest_items = queries.latest_items()
+    cloud = queries.cloud(
+        cloud_window,
+        rising_min_count=settings.digest.rising_min_count,
+        rising_ratio=settings.digest.rising_ratio,
+    )
     html = render_page(
         env,
         "home.html",
         PageContext(meta=meta, active="home"),
-        cloud=queries.cloud(
-            cloud_window,
-            rising_min_count=settings.digest.rising_min_count,
-            rising_ratio=settings.digest.rising_ratio,
-        ),
+        cloud=cloud,
+        rising=rising_strip(cloud),
         stats=queries.stats(cloud_window),
         top_sources=queries.top_sources(cloud_window),
         latest_items=latest_items,
