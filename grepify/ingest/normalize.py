@@ -29,40 +29,37 @@ Summary cleaning
 ``RawItem.summary`` is raw source text (RSS/Atom ``<description>`` HTML,
 reddit ``selftext``) - fetchers deliberately don't clean it (E1 brief: fetchers
 own title text via ``feedutil.clean_title``, everything else funnels through
-here). :func:`normalize` drops ``<script>``/``<style>`` element bodies, strips
-remaining tags, and unescapes entities the same way before truncating to
-:data:`_SUMMARY_MAX_CHARS`, so ``item.summary`` never carries markup into
-downstream consumers (the YAKE fallback extractor treats it as plain text,
-PRD §7).
+here). :func:`clean_summary` hands it to a tolerant HTML parser (selectolax),
+drops ``<script>``/``<style>`` element bodies, and keeps the parser's decoded
+text before truncating to :data:`_SUMMARY_MAX_CHARS`, so ``item.summary`` never
+carries markup into downstream consumers (the YAKE fallback extractor treats it
+as plain text, PRD §7). A real parser reads the shapes a two-pass regex stripper
+got wrong, so the formerly-documented failure modes - a dangling/unclosed tag, a
+``>`` inside an attribute value, a ``<script>`` body that itself contains
+``</script>`` - now strip the way a browser reads them.
 
-Known limitation, shared with ``feedutil.clean_title``: this is a regex
-stripper, not a real HTML parser. A dangling/unclosed tag, or a tag whose
-attribute value itself contains a literal ``>``, is not stripped correctly.
-Likewise, a ``<script>`` body that itself contains the literal string
-``</script>`` (some legacy tracking snippets escape the slash to avoid this
-exact problem) can make the non-greedy body match end early and leak the
-remainder of the script as text - the same regex-vs-parser tradeoff as the
-rest of this list.
-
-Entity-encoded tags
--------------------
+Entity-encoded and double-encoded markup
+----------------------------------------
 A source that HTML-escapes a whole element in its ``<description>`` (e.g.
-``&lt;div class=&quot;alert&quot;&gt;Breaking news&lt;/div&gt;``) only becomes
-literal markup after ``html.unescape``, past the first tag-strip pass. So
-:func:`_strip_html` runs a second, conservative pass after unescaping: it treats
-only a **matched open/close pair of the same tag name** as markup (the shape a
-genuinely encoded element takes), stripping the tags but keeping the inner text.
-A bare, unpaired tag-shaped fragment - e.g. the ``<b>`` in
-``"a &lt;b&gt; c and c &gt; a"``, a comparison operator - has no close tag and
-stays plain text, so ``&lt;x&gt;``-shaped code snippets are not mistaken for
-tags. Entity-*double*-encoded markup (``&amp;lt;div&amp;gt;``) unwinds only one
-level per :func:`clean_summary` call, for the same reason: a single
-``html.unescape`` cannot see through a second layer without risking that
-plain-text tradeoff.
+``&lt;div class=&quot;alert&quot;&gt;Breaking news&lt;/div&gt;``), or escapes it
+twice (``&amp;lt;div&amp;gt;``), reveals literal markup only as its entities
+decode. :func:`_strip_html` extracts text repeatedly until the result stops
+changing, so each layer's markup is stripped on the following pass and no
+encoding depth leaks through. That fixed point is also what makes
+:func:`clean_summary` idempotent.
+
+The one deliberate trade-off: a token shaped exactly like a tag - ``<b>``,
+``<div>`` - is treated as markup even when it arrived entity-encoded (a
+comparison operator or code fragment written ``&lt;b&gt;``), because once
+decoded it is indistinguishable from a real tag. Spaced comparison operators,
+the common unambiguous case in this aggregator's dev/AI-research feeds
+(``x < y``, ``a > b``), are not tag-shaped and survive as text.
 
 Failure modes
 -------------
-Pure functions, no I/O. They can only raise ``pydantic.ValidationError``, and
+Pure functions, no I/O; :func:`_strip_html` / :func:`clean_summary` are total
+(selectolax parses any input without raising). They can only raise
+``pydantic.ValidationError``, and
 only if a :class:`~grepify.models.Item` field constraint is violated (wrong type
 from a malformed ``RawItem``); the field set produced here always satisfies the
 model. Note the ``Item.title`` / ``Item.canonical_url`` columns are ``not null``
@@ -74,27 +71,16 @@ text. Malformed URLs do not raise: :func:`canonicalize_url` passes non-``http(s)
 from __future__ import annotations
 
 import hashlib
-import html
-import re
 from collections.abc import Sequence
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+
+from selectolax.parser import HTMLParser
 
 from grepify.ingest.base import RawItem
 from grepify.ingest.dedup import compute_content_hash
 from grepify.models import Item, Source, SourceKind
 
 _SUMMARY_MAX_CHARS = 2000  # PRD §6 / F-ING-04: store a truncated excerpt only
-
-# Same tag-strip regex feedutil.clean_title applies to titles, so summary markup
-# never leaks into item.summary (and the YAKE fallback) as spurious keywords.
-_TAG_RE = re.compile(r"<[^>]+>")
-# _TAG_RE strips <script>/<style> tags but not their bodies, so this removes the
-# element whole - otherwise its code/CSS text would read as prose.
-_SCRIPT_STYLE_RE = re.compile(r"<(script|style)\b[^>]*>.*?</\1\s*>", re.IGNORECASE | re.DOTALL)
-# Second-pass, post-unescape only (see module docstring "Entity-encoded tags"):
-# a matched open/close pair of the *same* tag name is treated as a revealed
-# tag; a bare unpaired fragment (comparison operators, code snippets) is not.
-_PAIRED_TAG_RE = re.compile(r"<(\w+)(?:\s[^>]*)?>(.*?)</\1\s*>", re.IGNORECASE | re.DOTALL)
 
 # Tracking/analytics query params dropped during canonicalization: they vary per
 # referral for the *same* article, so keeping them would defeat url-based dedup.
@@ -159,26 +145,29 @@ def compute_item_id(kind: SourceKind, canonical_url: str, external_id: str | Non
     return hashlib.sha256(f"{kind.value}\x00{identity}".encode()).hexdigest()
 
 
-def _strip_revealed_pairs(match: re.Match[str]) -> str:
-    """Replace a matched tag pair with its inner text, space-padded so adjacent
-    words don't glue together; a nested tag is real markup (it sits inside a
-    confirmed pair), so it gets the plain tag-strip too."""
-    return f" {_TAG_RE.sub(' ', match.group(2))} "
+def _extract_text(markup: str) -> str:
+    tree = HTMLParser(markup)
+    for selector in ("script", "style"):
+        for node in tree.css(selector):
+            node.decompose()
+    root = tree.body if tree.body is not None else tree.root
+    return root.text(separator=" ", strip=False) if root is not None else ""
 
 
 def _strip_html(text: str) -> str:
-    """Drop script/style bodies, strip markup, unescape entities, then a second
-    conservative pass for tags an entity-encoded source only reveals after
-    unescaping, collapsing whitespace last. See the module docstring's "Summary
-    cleaning" and "Entity-encoded tags" sections for the regex-vs-parser limits."""
-    without_script_style = _SCRIPT_STYLE_RE.sub(" ", text)
-    without_tags = _TAG_RE.sub(" ", without_script_style)
-    unescaped = html.unescape(without_tags)
-    # Second pass after unescaping: entity-encoded elements only become literal
-    # markup here (see "Entity-encoded tags" above).
-    revealed_script_style = _SCRIPT_STYLE_RE.sub(" ", unescaped)
-    revealed_tags = _PAIRED_TAG_RE.sub(_strip_revealed_pairs, revealed_script_style)
-    return " ".join(revealed_tags.split())
+    """Text content of ``text`` with markup and entities gone, whitespace collapsed.
+
+    Extracts text with a tolerant parser and repeats until the result stops
+    changing, so markup an entity-encoded (or double-encoded) source only reveals
+    once its entities decode is stripped on the following pass. See the module
+    docstring's "Summary cleaning" and "Entity-encoded and double-encoded markup"
+    sections. The fixed point is what makes :func:`clean_summary` idempotent."""
+    previous = " ".join(text.split())
+    while True:
+        extracted = " ".join(_extract_text(previous).split())
+        if extracted == previous:
+            return extracted
+        previous = extracted
 
 
 def clean_summary(text: str) -> str:
@@ -187,10 +176,9 @@ def clean_summary(text: str) -> str:
     The one place summary cleaning is defined; ``renormalize`` re-applies the
     *same* function to stored summaries, so a re-extract never diverges from a
     fresh ingest. Idempotent: cleaning an already-clean summary returns it
-    unchanged (up to the regex-vs-parser fixed point). The trailing ``rstrip``
-    is load-bearing for that: without it, truncating exactly on a whitespace
-    boundary leaves a trailing space a second pass would strip, so
-    ``renormalize`` would rewrite the same long item forever.
+    unchanged. The trailing ``rstrip`` is load-bearing for that: without it,
+    truncating exactly on a whitespace boundary leaves a trailing space a second
+    pass would strip, so ``renormalize`` would rewrite the same long item forever.
     """
     return _strip_html(text)[:_SUMMARY_MAX_CHARS].rstrip()
 
