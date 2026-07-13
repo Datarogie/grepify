@@ -131,6 +131,72 @@ def test_rerun_is_idempotent(tmp_path: Path) -> None:
     assert second.items_new == 0
 
 
+class _ScanCountingRepository(JsonlSqliteRepository):
+    """Instrumented store that counts item-truth scans, so a test can prove the
+    ingest run reads item truth at most once regardless of source count
+    (GRP-59). ``existing_item_ids`` is the sole entry point that rglobs and
+    reads the item JSONL partitions, so counting its calls counts the scans."""
+
+    def __init__(self, data_root: Path) -> None:
+        super().__init__(data_root)
+        self.item_scans = 0
+
+    def existing_item_ids(self) -> set[str]:
+        self.item_scans += 1
+        return super().existing_item_ids()
+
+
+_MULTI_RSS_GROUP = {
+    "g1.yml": """
+        group: g1
+        name: G1
+        category: ai
+        sources:
+          - id: src-a
+            kind: rss
+            url: https://example.com/a/feed
+          - id: src-b
+            kind: rss
+            url: https://example.com/b/feed
+          - id: src-c
+            kind: rss
+            url: https://example.com/c/feed
+    """,
+}
+
+
+def test_ingest_reads_item_truth_once_regardless_of_source_count(tmp_path: Path) -> None:
+    # GRP-59: add_items must not rescan every item JSONL file per source. With
+    # three sources that each write items, the run reads item truth exactly once
+    # (before the fix this was three scans, one per add_items call).
+    # Distinct raw items per source so each normalizes to its own item_id
+    # (item_id derives from the item URL, not the source), giving three real
+    # new-row writes rather than three sources colliding on one id.
+    reg = FetcherRegistry()
+    reg.register(
+        FakeFetcher(
+            SourceKind.RSS,
+            results={"src-a": [_raw(1)], "src-b": [_raw(2)], "src-c": [_raw(3)]},
+        )
+    )
+    repo = _ScanCountingRepository(tmp_path / "data")
+    cfg_root = write_config(tmp_path / "sources", groups=_MULTI_RSS_GROUP)
+    services = IngestServices(
+        config=FilesystemConfigProvider(cfg_root),
+        repository=repo,
+        registry=reg,
+        clock=FixedClock(datetime(2026, 7, 8, 12, 0, tzinfo=UTC)),
+    )
+
+    summary = run_ingest(services, run_id="run-1")
+
+    # All three sources were attempted and wrote items (each source normalizes
+    # the same raw item to a distinct item_id), yet truth was scanned once.
+    assert summary.sources_ok == 3
+    assert summary.items_new == 3
+    assert repo.item_scans == 1
+
+
 def test_per_run_cap_truncates_raw_items(tmp_path: Path) -> None:
     reg = FetcherRegistry()
     reg.register(FakeFetcher(SourceKind.RSS, default=[_raw(n) for n in range(80)]))
