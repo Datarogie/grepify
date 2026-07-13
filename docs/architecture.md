@@ -8,7 +8,7 @@ the onboarding reference; when the two disagree, the PRD wins.
 ```
 sources/*.yml → ingest → normalize+dedup → JSONL truth → rebuild → SQLite cache
                   │                                          │
-                  │ (yt transcripts, x via twscrape)         ├─ extract (LLM keywords, batched, cached)
+                  │ (yt transcripts, ai-voices rss)          ├─ extract (LLM keywords, batched, cached)
                   │                                          ├─ trends (pure SQL/python, deterministic)
                   │                                          ├─ digest (daily/weekly, LLM, per category)
                   └─ fetch_log / health                      └─ build (Jinja SSG → public/) → Pages
