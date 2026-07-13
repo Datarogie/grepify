@@ -13,25 +13,16 @@ No conditional-GET cache here: channel feeds are small (YouTube caps them at
 ~15 recent videos) and this issue's scope didn't call for it - reuses the same
 transport and malformed-feed tolerance as RSS (:mod:`grepify.ingest.feedutil`).
 
-Transient 5xx retry (T5 audit, GRP-30)
----------------------------------------
-The fetch-log audit found channel fetches intermittently returning ``HTTP
-5xx`` that recovered on a later run with no code change - a transient
-YouTube-side hiccup, not a dead channel. :meth:`fetch` now retries a ``5xx``
-*response* with bounded exponential backoff (``_MAX_ATTEMPTS`` attempts total,
-same shape as :class:`~grepify.ingest.reddit.RedditFetcher`'s backoff), before
-raising. A ``4xx`` (e.g. a deleted/renamed channel) is **not** retried -
-retrying a hard client error would only waste attempts on something backoff
-cannot fix, same reasoning as the reddit fetcher's non-retryable-status
-short-circuit. A transport-level failure (DNS, TLS, connection refused,
-timeout - i.e. :func:`~grepify.ingest.http.get_or_raise` raising
-:class:`~grepify.errors.FetchError` before any response exists) is also
-**not** retried here, unlike the reddit fetcher: this issue's audit evidence
-was channel fetches getting an HTTP 5xx *response* that later succeeded, not
-a transport failure, so retrying only what the evidence showed keeps this
-fetcher's scope narrow and its retry semantics easy to reason about; widening
-it to transport failures too is future work if that failure mode shows up
-here (it has not, as of this audit).
+Transient 5xx retry
+-------------------
+:meth:`fetch` retries a ``5xx`` *response* with bounded exponential backoff
+(``_MAX_ATTEMPTS`` attempts, same shape as
+:class:`~grepify.ingest.reddit.RedditFetcher`) before raising - channel fetches
+intermittently 5xx and recover on a later run. A ``4xx`` (deleted/renamed
+channel) is not retried; neither is a transport-level failure (DNS/TLS/timeout,
+where :func:`~grepify.ingest.http.get_or_raise` raises before any response),
+unlike the reddit fetcher - the retry covers only the 5xx-response case the
+audit actually observed.
 
 Transcripts (E5, GRP-52)
 ------------------------
@@ -129,9 +120,8 @@ class YouTubeFetcher(Fetcher):
                 raise FetchError(f"{source.source_id}: HTTP {response.status_code}")
             if attempt < self._max_attempts - 1:
                 self._sleep(_BACKOFF_BASE_SECONDS * (2**attempt))
-        # Reason for the ignore below: type-narrowing invariant, not a runtime input check -
-        # the loop above always runs >= 1 time (_max_attempts >= 1 is enforced
-        # in __init__), so `response` is always assigned by the time we get here.
+        # S101: type-narrowing; the loop runs >= 1 time (_max_attempts >= 1), so
+        # `response` is always assigned here.
         assert response is not None  # noqa: S101
         raise FetchError(
             f"{source.source_id}: HTTP {response.status_code} after {self._max_attempts} attempts"

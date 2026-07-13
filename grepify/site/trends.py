@@ -23,23 +23,19 @@ is its number of **distinct items** in the window (an ``llm`` row and a
 ``fallback`` row for the same keyword on the same item count once - §6's
 method-in-primary-key design).
 
-Pin injection (PRD §7, GRP-57)
--------------------------------
+Pin injection (PRD §7)
+----------------------
 :meth:`TrendQueries.cloud` ranks by in-window count and truncates to ``limit``,
-same as before - but before truncating it now folds back in any pinned
-keyword (:attr:`grepify.keywords.KeywordRules.pin_set`) that has at least one
-mention in the window, even if that mention count would otherwise put it
-below the cutoff. Two invariants, worth restating because they are easy to
-get backwards:
+then folds back in any pinned keyword (:attr:`grepify.keywords.KeywordRules.pin_set`)
+with at least one mention in the window, even if its count falls below the
+cutoff. Two invariants:
 
 - **Pins never invent a mention.** A pinned keyword only surfaces if it is
   already a key in the window's merged count map - a pin with zero mentions
-  in the window stays absent, full stop.
-- **Mute wins over pin.** ``_merged_counts`` already drops muted keywords via
-  ``KeywordRules.apply`` before pin is ever consulted, so a keyword that is
-  both muted and pinned never has a chance to reach the pin check - it is
-  gone before pin injection runs. This is the documented precedence per the
-  issue: mute is treated as the stronger, more deliberate signal.
+  in the window stays absent.
+- **Mute wins over pin.** ``_merged_counts`` drops muted keywords via
+  ``KeywordRules.apply`` before pin is consulted, so a keyword that is both
+  muted and pinned is gone before pin injection runs.
 
 Determinism (F-SIT-08 / S8)
 ---------------------------
@@ -318,35 +314,23 @@ class TrendQueries:
     ) -> CloudDataset:
         """Top ``limit`` keywords by in-window count, with deltas + rising flag
         (F-TRD-01/F-TRD-03), plus any pinned keyword with a mention in the
-        window even if it falls below that cutoff (PRD §7, GRP-57).
-        ``rising_min_count``/``rising_ratio`` are threaded in from
-        ``settings.digest`` by the caller (build orchestrator), never
-        defaulted here, so the cloud and the digest prompt always agree on the
-        same config-driven thresholds.
-
-        Pin never invents a mention (a pin with 0 mentions in the window
-        stays absent) and mute always wins over pin (a muted-and-pinned
-        keyword was already dropped by ``_merged_counts`` before this method
-        ever sees it) - see the module docstring's "Pin injection" section.
-
-        The import of :func:`~grepify.digest.rising.is_rising` is deferred to
-        call time: ``grepify.digest`` (the package) imports
-        :mod:`grepify.digest.assemble`, which imports this module, so a
-        module-level import here would be circular.
+        window even if it falls below that cutoff (see module docstring's "Pin
+        injection"). ``rising_min_count``/``rising_ratio`` are threaded in from
+        ``settings.digest`` by the caller, never defaulted here, so the cloud
+        and the digest prompt agree on the same config-driven thresholds.
         """
-        from grepify.digest.rising import is_rising  # noqa: PLC0415 - deferred, see above
+        # Deferred: grepify.digest imports grepify.digest.assemble, which imports
+        # this module, so a module-level import would be circular.
+        from grepify.digest.rising import is_rising  # noqa: PLC0415
 
         current = {kw: len(items) for kw, items in self._merged_counts(window).items()}
         prev_window = previous if previous is not None else previous_window(window)
         prior = {kw: len(items) for kw, items in self._merged_counts(prev_window).items()}
 
-        # rank by count desc, then keyword asc - total order, byte-stable
+        # (-count, keyword) is a total order, so ranking is byte-stable.
         ranked = sorted(current.items(), key=lambda kv: (-kv[1], kv[0]))
         top = ranked[:limit]
-        # pin injection: fold back any pinned keyword truncated out above -
-        # it already has >=1 mention (it is a key in `current`), so this
-        # cannot add a keyword with zero mentions. Re-sorting the union keeps
-        # the same total order/tie-break as the unpinned path, so output stays
+        # Re-sorting the union with the same key keeps the pinned path
         # byte-stable regardless of how many pins fire.
         pinned_below_cutoff = [kv for kv in ranked[limit:] if self._rules.is_pinned(kv[0])]
         selected = sorted(top + pinned_below_cutoff, key=lambda kv: (-kv[1], kv[0]))
@@ -431,8 +415,7 @@ class TrendQueries:
         the trailing-emission window (GRP-35's 90d rule passes it here)."""
         where = "where i.published_at >= ? " if since is not None else ""
         params: tuple[object, ...] = (since, limit) if since is not None else (limit,)
-        # Reason for the ignore below: `where` is one of two fixed literals chosen above, never
-        # user input - all actual values are bound through `params`/`?`.
+        # S608: `where` is one of two fixed literals above; all values bind through `?`.
         rows = self._conn.execute(
             "select i.item_id, i.source_id, coalesce(s.name, i.source_id) as name, "  # noqa: S608
             "i.kind, i.title, i.canonical_url, i.published_at, i.summary, i.content_hash "
@@ -461,13 +444,10 @@ class TrendQueries:
     def latest_digests(self, *, limit: int = DEFAULT_LATEST_DIGESTS_LIMIT) -> list[DigestSummary]:
         """Most-recent digests by period, newest first (empty until E4 writes any).
 
-        Ordered by ``period_start`` desc first (the date shown on each row),
-        then ``created_at`` desc, then ``digest_id`` desc as a final
-        tie-breaker - a total order. A catch-up run can write several periods'
-        digests with a near-identical ``created_at``, so period comes first to
-        keep the visible period dates reading newest to oldest. Kept in step
-        with :meth:`all_digests` so the home page's list agrees with the
-        digest index page.
+        Ordered ``period_start`` desc, ``created_at`` desc, ``digest_id`` desc -
+        a total order. Period leads (not ``created_at``) because a catch-up run
+        can write several periods with a near-identical ``created_at``; kept in
+        step with :meth:`all_digests`.
         """
         rows = self._conn.execute(
             "select digest_id, kind, category, title, period_start, period_end, created_at "
@@ -500,8 +480,7 @@ class TrendQueries:
         if not ids:
             return {}
         placeholders = ",".join("?" for _ in ids)
-        # Reason for the ignore below: `placeholders` is a fixed count of `?` marks (never user
-        # input); the actual ids are bound through `tuple(ids)` below.
+        # S608: `placeholders` is a fixed count of `?` marks; ids bind through the tuple.
         rows = self._conn.execute(
             f"select item_id, keyword from item_keywords where item_id in ({placeholders})",  # noqa: S608
             tuple(ids),
@@ -512,7 +491,7 @@ class TrendQueries:
                 result[item_id].add(canonical)
         return {iid: sorted(kws) for iid, kws in result.items()}
 
-    # --- category-scoped digest queries (GRP-40) -----------------------------
+    # --- category-scoped digest queries -------------------------------------
 
     def keyword_counts(self, window: Window, *, category: str | None = None) -> dict[str, int]:
         """``canonical keyword -> distinct-item count`` in the window (merge+mute)."""
@@ -547,8 +526,7 @@ class TrendQueries:
         if not item_ids:
             return []
         placeholders = ",".join("?" for _ in item_ids)
-        # Reason for the ignore below: `placeholders` is a fixed count of `?` marks (never user
-        # input); the actual ids are bound through `tuple(item_ids)` below.
+        # S608: `placeholders` is a fixed count of `?` marks; ids bind through the tuple.
         rows = self._conn.execute(
             "select i.item_id, i.source_id, coalesce(s.name, i.source_id) as name, "  # noqa: S608
             "i.kind, i.title, i.canonical_url, i.published_at, i.summary, i.content_hash "
@@ -573,18 +551,15 @@ class TrendQueries:
             for iid, sid, name, kind, title, url, pub, summary, chash in rows
         ]
 
-    # --- digest detail (GRP-43) ----------------------------------------------
+    # --- digest detail -------------------------------------------------------
 
     def all_digests(self) -> list[DigestDetail]:
         """Every digest, body included, newest period first.
 
-        Ordered by ``period_start`` desc, then ``created_at`` desc, then
-        ``digest_id`` desc as a final tie-breaker - a total order, so the
-        result stays byte-stable. Period comes first (not ``created_at``)
-        because the digest index shows each row's period date: a catch-up run
-        can write several periods' digests with a near-identical
-        ``created_at``, and sorting on that alone would not read cleanly
-        newest to oldest by the visible date.
+        Ordered ``period_start`` desc, ``created_at`` desc, ``digest_id`` desc -
+        a total order, so the result stays byte-stable. Period leads because a
+        catch-up run can write several periods with a near-identical
+        ``created_at``, which would not read newest-first by the visible date.
         """
         rows = self._conn.execute(
             "select digest_id, kind, category, title, body_md, top_keywords, "
@@ -609,7 +584,7 @@ class TrendQueries:
             )
         return details
 
-    # --- keyword detail pages (GRP-44) ---------------------------------------
+    # --- keyword detail pages ------------------------------------------------
 
     def keyword_details(
         self,
@@ -688,13 +663,12 @@ class TrendQueries:
     ) -> KeywordDetail:
         member_items = [items[iid] for iid in iid_set]
 
-        # daily timeline: one distinct-item count per day across the window
         timeline = [0] * window.days
         for item in member_items:
             index = (date.fromisoformat(item.published_at[:10]) - start_date).days
+            # clamp out-of-window dates into the edge buckets
             timeline[min(max(index, 0), window.days - 1)] += 1
 
-        # co-occurring keywords: distinct items sharing each other keyword
         co_counts: dict[str, int] = {}
         for iid in iid_set:
             for other in item_keywords[iid]:
@@ -705,7 +679,6 @@ class TrendQueries:
             for kw, count in sorted(co_counts.items(), key=lambda kv: (-kv[1], kv[0]))[:co_limit]
         ]
 
-        # latest items grouped by kind (each newest first, capped)
         by_kind: dict[str, list[ItemSummary]] = {}
         for item in member_items:
             by_kind.setdefault(item.kind, []).append(item)

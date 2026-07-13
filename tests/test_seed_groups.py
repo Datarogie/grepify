@@ -21,8 +21,8 @@ from grepify.models import SourceKind
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 _SOURCES = _REPO_ROOT / "sources"
 
-# The five trendcloud-derived AI groups + Kyle's data-engineering group (PRD §7)
-# + the E5 long-form AI-voices group (ai-voices, replaced the dropped X watchlist).
+# The five trendcloud-derived AI groups, the data-engineering group (PRD §7),
+# and the long-form ai-voices group.
 _EXPECTED_GROUPS = {
     "ai-research",
     "ai-business",
@@ -77,8 +77,8 @@ def test_data_engineering_category() -> None:
 
 
 def test_ai_voices_group_is_rss_ai_category() -> None:
-    # E5 (Kyle's call): X watchlist dropped in favour of the same people's
-    # long-form RSS/Atom feeds - richer than tweets and needs no auth.
+    # ai-voices feeds are the long-form RSS/Atom feeds of AI figures (no auth,
+    # richer than tweets).
     by_id = {g.group_id: g for g in _provider().groups()}
     voices = by_id["ai-voices"]
     assert voices.category == "ai"

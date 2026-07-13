@@ -188,9 +188,8 @@ def test_digest_daily_generates_and_stores(tmp_path: Path, monkeypatch: pytest.M
 def test_digest_daily_is_idempotent_across_runs(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # T3 regression: the first run generates + persists yesterday's digest; a
-    # second run with the same clock makes no LLM call (empty script would
-    # IndexError) and generates nothing - the digest is already in truth.
+    # The second run must make no LLM call (an empty script would IndexError)
+    # and generate nothing - the digest is already in truth.
     monkeypatch.setenv("LLM_BASE_URL", "https://x/v1")
     monkeypatch.setenv("LLM_API_KEY", "test-key")
     reply = json.dumps({"title": "AI today", "tldr": ["genai up"], "body_md": "A narrative."})
@@ -292,7 +291,7 @@ def test_digest_paused_when_disabled_generates_nothing(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     # digest.enabled=false freezes generation: no LLM calls, no digest files,
-    # exit 0, and a manifest note recording the pause (T1 pause switch).
+    # exit 0, and a manifest note recording the pause.
     monkeypatch.setenv("LLM_BASE_URL", "https://x/v1")
 
     def _explode(*_a: object, **_k: object) -> object:

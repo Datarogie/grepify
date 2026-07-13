@@ -140,7 +140,7 @@ def test_still_fallback_on_repeated_llm_failure() -> None:
     assert all(kw.method is ExtractionMethod.FALLBACK for kw in result.keywords)
 
 
-# --- GRP-25 regression: exact-text collision no longer blocks convergence ----
+# --- exact-text collision must not block convergence -------------------------
 
 
 def test_exact_text_collision_with_existing_fallback_row_still_converges(

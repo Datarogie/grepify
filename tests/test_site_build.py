@@ -161,9 +161,9 @@ def build_canned(  # noqa: PLR0913 - test fixture builder, each knob is a distin
         )
         for n in range(extra_recent_items)
     ]
-    # GRP-68: N items all tagged "riseterm" and published inside the cloud
-    # window with none in the prior window - is_rising() surges from nothing
-    # (previous_count == 0) as soon as the count clears rising_min_count.
+    # N items all tagged "riseterm" and published inside the cloud window with
+    # none in the prior window: is_rising() surges from nothing (previous_count
+    # == 0) once the count clears rising_min_count.
     items += [
         _item(
             f"r{n}",
@@ -241,16 +241,12 @@ def test_home_matches_golden(tmp_path: Path) -> None:
 
 
 def test_home_pin_fixture_matches_golden(tmp_path: Path) -> None:
-    # GRP-57: end-to-end wiring for a real `keywords.yml` with a `pin:` list,
-    # through the full build (config parse -> KeywordRules -> cloud() -> the
-    # home template). "anthropic" already has a mention within the default
-    # cloud limit, so pinning it is a byte-stable no-op (proves pin doesn't
-    # duplicate an already-shown keyword); "dbt" has zero mentions in the
-    # canned window, so it stays absent (proves pin never invents a mention).
-    # The precise below-the-cutoff injection is exercised more cheaply by the
-    # table-driven `TrendQueries.cloud()` unit tests in test_site_trends.py,
-    # which can force a tiny `limit` directly instead of needing 60+ keywords
-    # in a canned build.
+    # End-to-end pin wiring through a real keywords.yml: config parse ->
+    # KeywordRules -> cloud() -> home template. "anthropic" already shows within
+    # the default cloud limit, so pinning it is a byte-stable no-op; "dbt" has
+    # zero mentions, so it stays absent (pin never invents a mention). The
+    # below-the-cutoff injection is covered by the unit tests in
+    # test_site_trends.py.
     _, out = build_canned(tmp_path, keywords_yaml=_KEYWORDS_WITH_PIN)
     index_html = (out / "index.html").read_text(encoding="utf-8")
     assert index_html == (GOLDEN / "index_pin.html").read_text(encoding="utf-8")
@@ -258,12 +254,8 @@ def test_home_pin_fixture_matches_golden(tmp_path: Path) -> None:
 
 
 def test_home_rising_strip_hidden_when_nothing_rising(tmp_path: Path) -> None:
-    # GRP-68: the canned build's cloud keywords all stay below rising_min_count
-    # (3), so nothing is rising - the strip must render no chrome at all, not
-    # even its own heading. `test_home_matches_golden` above already pins this
-    # byte-for-byte (the golden carries no rising markup); this test names the
-    # behavior explicitly so the AC ("hidden entirely when nothing is rising")
-    # has a test that survives even if the golden's exact bytes ever drift.
+    # The canned cloud keywords all stay below rising_min_count (3), so nothing
+    # is rising: the strip renders no chrome at all, not even its own heading.
     _, out = build_canned(tmp_path)
     index_html = (out / "index.html").read_text(encoding="utf-8")
     assert "Rising this week" not in index_html
@@ -271,16 +263,15 @@ def test_home_rising_strip_hidden_when_nothing_rising(tmp_path: Path) -> None:
 
 
 def test_home_rising_strip_matches_golden_populated(tmp_path: Path) -> None:
-    # GRP-68: 3 items tagged "riseterm" inside the window, none in the prior
-    # window, clears rising_min_count from a standing start (is_rising()
-    # surges from nothing) - exercises the strip's populated state end to end
-    # (query -> rising_strip() -> template) against a committed golden.
+    # 3 items tagged "riseterm" inside the window, none prior, clears
+    # rising_min_count from a standing start: exercises the strip's populated
+    # state end to end against a committed golden.
     _, out = build_canned(tmp_path, rising_items=3)
     index_html = (out / "index.html").read_text(encoding="utf-8")
     assert index_html == (GOLDEN / "index_rising.html").read_text(encoding="utf-8")
     assert "Rising this week" in index_html
     assert 'class="rising-chip"' in index_html
-    assert "/grepify/keyword/riseterm-" in index_html  # links to its detail page
+    assert "/grepify/keyword/riseterm-" in index_html
 
 
 def test_items_matches_golden(tmp_path: Path) -> None:
@@ -315,10 +306,9 @@ def test_page_json_matches_golden(tmp_path: Path) -> None:
 
 
 def test_static_refs_are_content_hashed(tmp_path: Path) -> None:
-    # Every static asset the pages reference must carry a ?v=<hash> whose value
-    # is the short sha256 of the exact bytes that asset ships with. This is what
-    # forces GitHub Pages onto a fresh URL after a deploy, so a fixed digests.js
-    # actually reaches readers instead of a stale cached copy.
+    # Every referenced static asset must carry ?v=<short sha256 of its bytes>,
+    # which forces GitHub Pages onto a fresh URL after a deploy so a fixed asset
+    # reaches readers instead of a stale cached copy.
     _, out = build_canned(tmp_path)
     index_html = (out / "index.html").read_text(encoding="utf-8")
     items_html = (out / "items" / "index.html").read_text(encoding="utf-8")
@@ -336,8 +326,8 @@ def test_static_refs_are_content_hashed(tmp_path: Path) -> None:
 
 
 def test_no_unversioned_static_refs(tmp_path: Path) -> None:
-    # No page may reference a static asset without the cache-buster - an
-    # unversioned URL is exactly the stale-cache hole this closes.
+    # No page may reference a static asset without the cache-buster; an
+    # unversioned URL is the stale-cache hole this closes.
     _, out = build_canned(tmp_path)
     for page in out.rglob("*.html"):
         html = page.read_text(encoding="utf-8")
@@ -356,7 +346,7 @@ def test_asset_version_is_deterministic_and_content_derived(tmp_path: Path) -> N
     assert first_html == second_html
 
 
-# --- determinism (S8) --------------------------------------------------------
+# --- determinism -------------------------------------------------------------
 
 
 def test_build_is_deterministic_twice_in_a_row(tmp_path: Path) -> None:
@@ -386,8 +376,8 @@ def test_near_dup_collapsed_in_output(tmp_path: Path) -> None:
 
 
 def test_data_keywords_attribute_is_valid_json(tmp_path: Path) -> None:
-    # the filters.js contract: data-keywords is a JSON array of whole phrases,
-    # so multi-word keywords survive round-trip (the bug the JSON encoding fixes)
+    # filters.js contract: data-keywords is a JSON array of whole phrases, so
+    # multi-word keywords survive the round-trip.
     _, out = build_canned(tmp_path)
     items_html = (out / "items" / "index.html").read_text(encoding="utf-8")
     attrs = re.findall(r"data-keywords='([^']*)'", items_html)
@@ -397,8 +387,7 @@ def test_data_keywords_attribute_is_valid_json(tmp_path: Path) -> None:
         parsed = json.loads(raw)
         assert isinstance(parsed, list)
         all_tags.extend(parsed)
-    # the multi-word phrase survives as one element (would have been split
-    # into "agentic"/"coding" by the old space-joined attribute)
+    # the multi-word phrase survives as one element, not split on the space
     assert "agentic coding" in all_tags
 
 

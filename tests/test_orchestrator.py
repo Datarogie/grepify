@@ -132,10 +132,9 @@ def test_rerun_is_idempotent(tmp_path: Path) -> None:
 
 
 class _ScanCountingRepository(JsonlSqliteRepository):
-    """Instrumented store that counts item-truth scans, so a test can prove the
-    ingest run reads item truth at most once regardless of source count
-    (GRP-59). ``existing_item_ids`` is the sole entry point that rglobs and
-    reads the item JSONL partitions, so counting its calls counts the scans."""
+    """Instrumented store counting item-truth scans: ``existing_item_ids`` is
+    the sole entry point that reads the item JSONL partitions, so counting its
+    calls counts the scans."""
 
     def __init__(self, data_root: Path) -> None:
         super().__init__(data_root)
@@ -166,12 +165,8 @@ _MULTI_RSS_GROUP = {
 
 
 def test_ingest_reads_item_truth_once_regardless_of_source_count(tmp_path: Path) -> None:
-    # GRP-59: add_items must not rescan every item JSONL file per source. With
-    # three sources that each write items, the run reads item truth exactly once
-    # (before the fix this was three scans, one per add_items call).
-    # Distinct raw items per source so each normalizes to its own item_id
-    # (item_id derives from the item URL, not the source), giving three real
-    # new-row writes rather than three sources colliding on one id.
+    # Distinct raw items per source (item_id derives from the URL, not the
+    # source) so all three write real rows while truth is scanned only once.
     reg = FetcherRegistry()
     reg.register(
         FakeFetcher(
@@ -190,8 +185,6 @@ def test_ingest_reads_item_truth_once_regardless_of_source_count(tmp_path: Path)
 
     summary = run_ingest(services, run_id="run-1")
 
-    # All three sources were attempted and wrote items (each source normalizes
-    # the same raw item to a distinct item_id), yet truth was scanned once.
     assert summary.sources_ok == 3
     assert summary.items_new == 3
     assert repo.item_scans == 1
@@ -237,11 +230,9 @@ def _services_missing_x(tmp_path: Path) -> IngestServices:
 
 
 def test_unregistered_source_kind_is_isolated_as_error(tmp_path: Path) -> None:
-    """GRP-56 defense in depth: a source whose kind has no registered fetcher
-    is isolated exactly like a :class:`FetchError` - logged ``error``, run
-    continues, every other source still ingests. ``grepify validate`` is the
-    primary defense (see test_config.py); this is what happens if one slips
-    past it anyway."""
+    """A source whose kind has no registered fetcher is isolated exactly like a
+    :class:`FetchError` - logged ``error``, run continues. Defense in depth
+    behind ``grepify validate`` (see test_config.py)."""
     services = _services_missing_x(tmp_path)
 
     summary = run_ingest(services, run_id="run-1")  # must not raise
@@ -294,7 +285,7 @@ def test_fetch_log_written_with_expected_fields(tmp_path: Path) -> None:
     assert by_id["empty-src"].status is FetchStatus.EMPTY
 
 
-# --- cadence (T6, GRP-31: Reddit best-effort scheduling) ---------------------
+# --- cadence (Reddit best-effort scheduling) ---------------------------------
 
 
 def _services_at(tmp_path: Path, registry: FetcherRegistry, instant: datetime) -> IngestServices:
@@ -369,6 +360,5 @@ def test_cadence_skip_is_logged_to_fetch_log(tmp_path: Path) -> None:
     assert entries[-1].items_new == 0
     assert entries[-1].error is None
     # A skip has no attempt to time; it is routed through the same _record
-    # helper as a real attempt (T8), so this stays a fixed zero rather than
-    # drifting if the skip and finish paths ever re-diverge.
+    # helper as a real attempt, so duration_ms stays a fixed zero.
     assert entries[-1].duration_ms == 0

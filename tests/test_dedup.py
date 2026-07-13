@@ -120,7 +120,7 @@ def test_all_singletons_when_no_near_dups() -> None:
     assert len(groups) == 4
 
 
-# --- idempotency: normalize -> add_items twice == zero new rows (GRP-14 AC) --
+# --- idempotency: normalize -> add_items twice == zero new rows --------------
 
 
 def _feed() -> list[RawItem]:
@@ -145,7 +145,7 @@ def test_double_run_writes_zero_new_rows(tmp_path: Path) -> None:
     # Re-fetch later: same entries, a fresh fetched_at, tracking param on url A.
     second = normalize_batch(_feed(), source, fetched_at="2026-07-09T08:00:00+00:00")
     assert [i.item_id for i in second] == [i.item_id for i in first]  # stable identity
-    assert repo.add_items(second) == 0  # zero new rows
+    assert repo.add_items(second) == 0
 
     repo.rebuild_cache()
     assert repo.count_items() == 3

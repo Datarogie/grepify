@@ -59,7 +59,7 @@ def test_transport_exception_becomes_fetch_error() -> None:
         YouTubeFetcher(transport).fetch(make_source("s1", kind=SourceKind.YOUTUBE))
 
 
-# --- T5 audit: bounded retry with backoff on transient 5xx -------------------
+# --- bounded retry with backoff on transient 5xx ------------------------------
 
 
 def test_transient_5xx_is_retried_then_succeeds() -> None:
@@ -147,7 +147,7 @@ def test_transcript_ref_attached_when_store_present(tmp_path: Path) -> None:
 
     items = YouTubeFetcher(transport, transcript_store=store).fetch(source)
 
-    # F-ING-03: present transcript attached; absent one leaves transcript_ref null.
+    # present transcript attached; absent one leaves transcript_ref null
     assert items[0].transcript_ref == "transcripts/vid0001AAA.txt.gz"
     assert items[1].transcript_ref is None
 

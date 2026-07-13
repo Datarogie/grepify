@@ -313,10 +313,10 @@ def test_ingest_rerun_is_idempotent(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     run_id = _run_id_from_output(second.stdout)
     manifest_path = DataLayout(data).run_manifest(run_id)
     manifest = RunManifest.model_validate_json(manifest_path.read_text(encoding="utf-8"))
-    assert manifest.counts["items_new"] == 0  # F-ING-07: rerun adds zero new rows
+    assert manifest.counts["items_new"] == 0
 
 
-# --- doctor (T5, GRP-30) ------------------------------------------------------
+# --- doctor ---------------------------------------------------------------------
 
 
 def test_doctor_with_no_config_and_no_history(tmp_path: Path) -> None:
@@ -345,8 +345,8 @@ def test_doctor_reports_status_and_error_class_after_ingest(
 
 
 def test_doctor_is_repeatable_without_a_prior_ingest_run(tmp_path: Path) -> None:
-    # Repeatable per the AC: no health.json, no prior run - still a valid,
-    # deterministic report over whatever config + fetch_log exist (here: none).
+    # No health.json, no prior run - still a valid, deterministic report over
+    # whatever config + fetch_log exist (here: none).
     cfg = write_config(tmp_path / "sources", groups={"g1.yml": _GROUP_INGEST})
     data = tmp_path / "data"
     first = _invoke(cfg, data, "doctor")
@@ -357,7 +357,7 @@ def test_doctor_is_repeatable_without_a_prior_ingest_run(tmp_path: Path) -> None
     assert "never-fetched" in first.stdout
 
 
-# --- T6, GRP-31: Reddit best-effort cadence + quiet health status ------------
+# --- Reddit best-effort cadence + quiet health status ----------------------------
 
 _GROUP_RSS_AND_REDDIT_ALWAYS_ERROR = """
     group: g3
@@ -428,7 +428,7 @@ def test_reddit_consecutive_failures_never_flag_but_rss_does(
     assert by_id["bad-rss-src"]["consecutive_failures"] == 5
     assert by_id["bad-rss-src"]["flagged"] is True
     assert by_id["bad-reddit-src"]["consecutive_failures"] == 5
-    assert by_id["bad-reddit-src"]["flagged"] is False  # T6: Reddit stays quiet
+    assert by_id["bad-reddit-src"]["flagged"] is False  # Reddit stays quiet
 
     doctor_result = _invoke(cfg, data, "doctor")
     # 1 flagged (bad-rss-src only) despite 2 sources currently in error status.

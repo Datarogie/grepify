@@ -1,22 +1,9 @@
 """Single-entrypoint CLI (PRD §8 F-OPS-01): ``grepify <subcommand>``.
 
 Subcommands: ``ingest extract trends digest build validate health doctor
-backfill datasize``, plus ``maintain renormalize`` (GRP-60 data remediation).
-``ingest`` is wired to the E1 orchestrator (GRP-15/16); ``extract`` is wired to
-the E2 pipeline (GRP-25: untagged-item selection, real LLM client, keyword
-normalization, PRD §10.7 data-quality gate); ``validate`` is fully wired to
-the config layer; ``backfill`` re-extracts ``method='fallback'`` rows through
-a real LLM client (GRP-22). ``build`` is wired to the E3 site renderer
-(GRP-35: cache rebuild → Jinja SSG → ``public/``). ``digest`` is wired to the
-E4 digest pipeline (GRP-41/42: rebuild cache → assemble per category → one LLM
-call each → store), with ``digest-gate`` printing the America/Edmonton
-time-of-day gate (GRP-45). ``trends`` remains a stub that records a run
-manifest so the operator tooling (``health``) works end to end.
-(``backfill``'s scope here is GRP-22's fallback-only re-extraction.)
-``maintain renormalize`` (GRP-60) is a one-time data-remediation command:
-re-clean stored summaries, rewrite the changed items to truth, drop their stale
-keyword rows, and force re-extract just those items. Broader maintenance modes
-(reindex, vacuum, prune) are later work behind the same ``maintain`` group.
+backfill datasize``, plus ``maintain renormalize``. Each command's own docstring
+is its contract; ``trends`` is still a stub that records a run manifest so
+``health`` works end to end.
 
 Failure modes
 -------------
@@ -163,9 +150,6 @@ def ingest(ctx: typer.Context) -> None:
     repository = JsonlSqliteRepository(state.data_root)
     try:
         settings = config.settings()
-        # E5 transcripts (GRP-52), best-effort and absence-tolerant (PRD §13):
-        # the store degrades to null refs when youtube-transcript-api is absent
-        # or a transcript can't be fetched, so it is safe to wire unconditionally.
         transcript_store = _transcript_store(layout, settings)
         summary = run_ingest(
             IngestServices(
@@ -260,9 +244,8 @@ def extract(ctx: typer.Context, force: ForceOpt = False) -> None:
         rules = KeywordRules.from_config(config.keywords())
         items = list(repository.iter_items())
         existing_keywords = list(repository.iter_item_keywords())
-        # GRP-53: feed each youtube item's stored transcript excerpt (<=1500
-        # chars) into its extraction prompt. Read-only here (ingest fetches +
-        # stores); a missing/unreadable blob just yields no excerpt (PRD §13).
+        # Read-only here (ingest fetches + stores): supplies each youtube item's
+        # transcript excerpt to its extraction prompt, or none if absent.
         transcript_store = _transcript_store(layout, settings)
         summary, new_keywords = run_extract_pipeline(
             items,
@@ -359,9 +342,6 @@ def digest(ctx: typer.Context, kind: KindOpt = DigestKind.DAILY) -> None:
     config = FilesystemConfigProvider(state.config_root)
     settings = config.settings()
 
-    # T1 pause switch (settings.digest.enabled): freeze generation during data
-    # remediation. When off, no LLM calls and no digest files - just a manifest
-    # note so the paused run is on the record, and exit 0 (not an error).
     if not settings.digest.enabled:
         manifest = RunManifest(
             run_id=run_id,
@@ -404,12 +384,9 @@ def digest(ctx: typer.Context, kind: KindOpt = DigestKind.DAILY) -> None:
         categories = [g.category for g in groups if g.enabled]
 
         repository.load_config(groups, config.sources())
-        # Real (LLM-written) digests already in truth are skipped (no LLM call) so
-        # the catch-up run is idempotent - it only generates the genuinely-missing
-        # periods (T3). Template digests (a degraded fallback written while the LLM
-        # was down/over budget) are deliberately NOT treated as present, so a later
-        # run with a working LLM upgrades them instead of pinning the day to the
-        # template forever.
+        # Template digests (the degraded fallback) are deliberately excluded, so a
+        # later run with a working LLM upgrades them rather than treating the day
+        # as already done.
         existing_digest_ids = {
             d.digest_id for d in repository.iter_digests() if d.model != TEMPLATE_MODEL
         }

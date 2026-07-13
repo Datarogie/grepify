@@ -177,8 +177,8 @@ class LlmClient:
         network I/O when over budget, or :class:`~grepify.errors.LlmError` when
         the call cannot be completed after bounded retries.
         """
-        # Reserve budget BEFORE any network I/O: the call over the cap sends no
-        # request. A refusal raises here and writes no llm_log row (not a call).
+        # Reserve before any network I/O: a refusal raises here, sending no
+        # request and writing no llm_log row.
         self._gate.reserve()
         created_at = to_iso(self._clock.now())
 

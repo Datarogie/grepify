@@ -58,7 +58,7 @@ def test_fetch_error_propagates_for_orchestrator_isolation() -> None:
     reg = FetcherRegistry()
     reg.register(fetcher)
 
-    # A per-source failure surfaces as FetchError (GRP-15 catches + logs + continues)...
+    # A per-source failure surfaces as FetchError (the orchestrator isolates it)...
     with pytest.raises(FetchError, match="timeout"):
         reg.fetch(make_source("dead", kind=SourceKind.RSS))
     # ...and does not poison other sources on the same fetcher.

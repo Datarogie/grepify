@@ -60,7 +60,7 @@ def test_ensure_is_idempotent_no_refetch(tmp_path: Path) -> None:
     second = store.ensure("vid0001AAA")
 
     assert first == second
-    assert client.calls == ["vid0001AAA"]  # F-ING-07: fetched once, not twice
+    assert client.calls == ["vid0001AAA"]  # fetched once, not twice
 
 
 def test_cap_truncates_before_storage(tmp_path: Path) -> None:
@@ -117,7 +117,7 @@ def test_stored_bytes_are_deterministic(tmp_path: Path) -> None:
     assert raw == gzip.compress(b"same text", mtime=0)
 
 
-# --- excerpting (GRP-53) -----------------------------------------------------
+# --- excerpting ----------------------------------------------------------------
 
 
 def test_excerpt_returns_short_text_whole_collapsed() -> None:

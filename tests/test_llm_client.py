@@ -52,7 +52,7 @@ def _call(client: LlmClient) -> object:
     return client.complete(_MESSAGES, run_id="run-1", purpose="extract", input_items=3)
 
 
-# --- budget circuit breaker (the AC) ----------------------------------------
+# --- budget circuit breaker --------------------------------------------------
 
 
 def test_41st_call_at_cap_40_is_refused_without_a_network_call() -> None:

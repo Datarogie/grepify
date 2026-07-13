@@ -160,11 +160,9 @@ class RedditFetcher(Fetcher):
         return [raw_item_from_feed_entry(entry) for entry in parsed.entries]
 
     def _parse_json(self, content: bytes, *, source_id: str) -> list[RawItem]:
-        # The whole shape - top-level listing AND every child - is validated in
-        # one try: a malformed child (missing "data", a non-numeric
-        # created_utc, ...) is exactly the "body isn't the shape expected"
-        # failure mode this fetcher promises to turn into FetchError, same as
-        # a top-level JSON parse failure.
+        # One try validates the whole shape (listing and every child): a
+        # malformed child is the same "body isn't the shape expected" failure
+        # this fetcher turns into FetchError.
         try:
             payload = json.loads(content)
             children = payload["data"]["children"]

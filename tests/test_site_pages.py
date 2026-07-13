@@ -175,7 +175,7 @@ def test_page_facets_sorted_and_deduped() -> None:
     assert facets["keywords"] == ["genai", "llm"]
 
 
-# --- latest digest per category (T4) -----------------------------------------
+# --- latest digest per category ----------------------------------------------
 
 
 def _digest(
@@ -235,7 +235,7 @@ def test_latest_digest_per_category_empty_input() -> None:
     assert latest_digest_per_category([]) == []
 
 
-# --- rising strip (GRP-68) ---------------------------------------------------
+# --- rising strip --------------------------------------------------------------
 
 
 def _cloud(*counts: tuple[str, int, int, bool]) -> CloudDataset:

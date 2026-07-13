@@ -52,13 +52,11 @@ def test_stylesheet_matches_golden() -> None:
 
 
 def test_hidden_attribute_is_authoritative() -> None:
-    # Regression (GRP-50): the HTML `hidden` attribute must beat component
-    # `display:` rules. Several components set `display: flex` on their base
-    # class (the tablist, .filters, .topic-follow, .topic-chips), so without a
-    # global `[hidden] { display: none !important }` an element stays rendered
-    # even while its `hidden` attribute is set - which left the Digests All
-    # view showing its filter controls. Prior tests only checked the `.hidden`
-    # PROPERTY on the elements, never rendered visibility, so they missed this.
+    # The HTML `hidden` attribute must beat component `display:` rules. Several
+    # components set `display: flex` on their base class (the tablist, .filters,
+    # .topic-follow, .topic-chips), so without a global
+    # `[hidden] { display: none !important }` an element stays visible while its
+    # `hidden` attribute is set.
     css = render_stylesheet(create_environment())
     assert "[hidden] { display: none !important; }" in css
 
@@ -75,7 +73,6 @@ def test_render_is_deterministic_twice_in_a_row() -> None:
 def test_active_nav_marks_current_page() -> None:
     env = create_environment()
     html = render_page(env, "base.html", PageContext(meta=_meta(), active="sources"))
-    # exactly one nav link is aria-current, and it's Sources
     assert html.count('aria-current="page"') == 1
     assert '/grepify/sources/" aria-current="page"' in html
 
@@ -110,8 +107,8 @@ def test_asset_url_appends_version_when_known() -> None:
 
 
 def test_no_external_fonts_or_trackers() -> None:
-    # F-SIT-07: no third-party requests. The one display face (League Gothic)
-    # is embedded as an inline data URI, never fetched.
+    # No third-party requests. The one display face (League Gothic) is embedded
+    # as an inline data URI, never fetched.
     css = render_stylesheet(create_environment())
     # scheme-prefixed URLs only: the base64 font payload may legitimately
     # contain the bare substring "http"
@@ -169,8 +166,8 @@ def test_sparkline_flat_series_is_midline() -> None:
 def test_sparkline_scales_min_to_bottom_max_to_top() -> None:
     svg = sparkline_svg([0.0, 10.0], width=100.0, height=20.0, pad=2.0)
     # min → bottom (y = height-pad = 18), max → top (y = pad = 2)
-    assert "2.00,18.00" in svg  # first point (min) at bottom
-    assert "98.00,2.00" in svg  # last point (max) at top
+    assert "2.00,18.00" in svg
+    assert "98.00,2.00" in svg
 
 
 def test_sparkline_rejects_nonpositive_dimensions() -> None:

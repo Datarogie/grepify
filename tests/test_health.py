@@ -39,9 +39,9 @@ def _entry(
 
 def test_is_real_attempt_predicate_treats_only_skipped_as_a_non_attempt() -> None:
     # The single definition both the cadence math and this health rollup filter
-    # on (T8): SKIPPED is the one non-attempt status, everything else counts.
-    # A new non-attempt status must be added to this predicate so cadence and
-    # health can never disagree about what an attempt is.
+    # on: SKIPPED is the one non-attempt status, everything else counts. A new
+    # non-attempt status must be added here so cadence and health can never
+    # disagree about what an attempt is.
     assert FetchStatus.SKIPPED.is_real_attempt is False
     assert all(
         status.is_real_attempt for status in (FetchStatus.OK, FetchStatus.EMPTY, FetchStatus.ERROR)
@@ -95,8 +95,8 @@ def test_empty_status_also_resets_consecutive_count() -> None:
 
 
 def test_flagged_source_is_never_auto_disabled() -> None:
-    # v1 non-goal (PRD §2): no disabled/auto-disable concept exists at all -
-    # flagged is purely informational, still retried every run.
+    # No disabled/auto-disable concept exists: flagged is purely informational,
+    # the source is still retried every run.
     entries = [
         _entry("s1", f"r{n}", f"2026-07-0{n}T00:00:00+00:00", FetchStatus.ERROR)
         for n in range(1, 8)
@@ -106,7 +106,7 @@ def test_flagged_source_is_never_auto_disabled() -> None:
     assert not hasattr(snapshot.sources[0], "disabled")
 
 
-# --- cadence-skip transparency (T6, GRP-31) ---------------------------------
+# --- cadence-skip transparency -------------------------------------------------
 
 
 def test_skipped_entries_do_not_reset_the_failure_streak() -> None:
@@ -173,7 +173,7 @@ def test_non_error_status_has_no_error_class() -> None:
     assert snapshot.sources[0].error_class is None
 
 
-# --- classify_error (T5 audit error-class report) ----------------------------
+# --- classify_error (error-class triage report) --------------------------------
 
 
 @pytest.mark.parametrize(
@@ -217,7 +217,7 @@ def test_empty_history_yields_empty_snapshot() -> None:
     assert snapshot.sources == []
 
 
-# --- quiet_source_ids (T6, GRP-31: Reddit best-effort/quiet) ----------------
+# --- quiet_source_ids (Reddit best-effort/quiet) --------------------------------
 def test_quiet_source_never_flags_despite_consecutive_failures() -> None:
     entries = [
         _entry("reddit-1", f"r{n}", f"2026-07-0{n}T00:00:00+00:00", FetchStatus.ERROR, error="boom")

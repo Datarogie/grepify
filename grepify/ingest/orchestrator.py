@@ -193,14 +193,12 @@ def _record(repository: Repository, entry: FetchLogEntry) -> SourceResult:
     """Persist one ``fetch_log`` row and return the :class:`SourceResult` that
     mirrors it.
 
-    The single place a fetch_log row and its run-summary mirror are paired,
-    shared by both a real attempt (:func:`_finish`) and a cadence skip
-    (:func:`_skip_for_cadence`). The result is *derived from the entry that was
-    written*, so the two can never disagree on the fields they carry - the skip
-    path previously built the pair inline with hardcoded ``duration_ms``/
-    ``error``, exactly the desync this removes. ``entry.duration_ms`` is always
-    set by both callers (``0`` for a skip), so the ``or 0`` only guards the
-    optional-typed column, never actually substitutes.
+    The single place a fetch_log row and its run-summary mirror are paired
+    (a real attempt via :func:`_finish`, a cadence skip via
+    :func:`_skip_for_cadence`). The result is *derived from the entry that was
+    written*, so the two can never disagree. ``entry.duration_ms`` is always set
+    by both callers (``0`` for a skip), so the ``or 0`` only guards the
+    optional-typed column.
     """
     repository.log_fetch(entry)
     return SourceResult(
@@ -265,13 +263,8 @@ def _run_source(
     except FetchError as exc:
         return _finish(attempt, FetchStatus.ERROR, error=str(exc))
     except KeyError as exc:
-        # An unregistered source.kind (FetcherRegistry.get) is a per-source
-        # config/wiring problem, not a systemic one (GRP-56): `grepify
-        # validate` is the primary defense and rejects this before ingest
-        # ever runs, so reaching this branch means a source slipped past that
-        # (config edited after the last validate, or run out-of-band of CI).
-        # Isolating it here - same as FetchError - is defense in depth: one
-        # misconfigured source still cannot take the whole run down.
+        # Unregistered source.kind (FetcherRegistry.get): isolated per-source like
+        # any other failure, defense in depth behind `validate` (see docstring).
         message = str(exc.args[0]) if exc.args else str(exc)
         return _finish(attempt, FetchStatus.ERROR, error=message)
     except Exception as exc:

@@ -137,10 +137,7 @@ class TranscriptStore:
     def _fetch(self, video_id: str) -> str | None:
         try:
             return self._client.fetch(video_id, languages=self._languages)
-        except Exception:  # best-effort: any client fault is
-            # treated as "no transcript" (PRD §13 - transcripts blocked from CI
-            # IPs must be tolerated), leaving transcript_ref null, never failing
-            # the run.
+        except Exception:  # best-effort: any client fault means "no transcript"
             return None
 
     def _blob_path(self, video_id: str) -> Path:
@@ -168,9 +165,7 @@ class YouTubeTranscriptApiClient:
             return None
         try:
             snippets = _fetch_snippets(api_mod, video_id, list(languages))
-        except Exception:  # see class docstring: all outcomes ->
-            # absence (None). The store also guards this; guarding here too keeps
-            # the adapter honest on its own.
+        except Exception:  # all outcomes -> absence (None); see class docstring
             return None
         text = " ".join(part.strip() for part in snippets if part.strip())
         return text or None

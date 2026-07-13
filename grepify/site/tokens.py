@@ -17,7 +17,7 @@ so components never know which theme is active (the viewer toggles the
 ``data-theme`` attribute, ``static/theme.js``).
 
 Contrast: every text-grade token was verified WCAG AA (>= 4.5:1) against its
-ground in both themes - see the site-refresh PR for the measured ratios.
+ground in both themes.
 
 Determinism: :data:`STYLE_TOKENS` and :data:`LIGHT_STYLE_TOKENS` are ordered
 ``dict``s (insertion order is part of the Python language contract), so
@@ -33,9 +33,8 @@ I/O or raises.
 
 from __future__ import annotations
 
-# CSS custom properties, name (without the leading `--`) → value. Authored order
-# is the emitted order; grouped by concern for readability. Dark palette is the
-# default theme.
+# Authored order is the emitted order (F-SIT-08); callers must not reorder. Dark
+# is the default theme; name (without the leading `--`) maps to value.
 STYLE_TOKENS: dict[str, str] = {
     # ground (dark = default)
     "bg": "#131519",
@@ -118,9 +117,7 @@ LIGHT_STYLE_TOKENS: dict[str, str] = {
     "error": "#ad2f24",  # error status (5.94:1 on bg, 5.52:1 on bg-elevated)
 }
 
-# Keyword-cloud sizing (log-scaled, PRD §8 F-SIT-01). The cloud renders each
-# term in one of this many weight buckets (CSS classes w1..wN mapped to the
-# cloud-1..cloud-N size tokens above); the home page assigns buckets by
-# log(count) via render.cloud_weight_bucket. Kept here so the bucket count is
-# a design token, not a magic number buried in a template or query.
+# Keyword-cloud weight buckets (log-scaled, F-SIT-01): CSS classes w1..wN mapped
+# to the cloud-1..cloud-N size tokens; render.cloud_weight_bucket assigns each
+# term by log(count).
 CLOUD_BUCKETS = 5
