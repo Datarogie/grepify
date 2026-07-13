@@ -134,10 +134,9 @@ def run_extract(  # noqa: PLR0913 - items+client+run context+fallback+tuning are
                 client, messages, batch_ids, run_id=run_id, max_keywords=max_keywords
             )
             if parsed is None and retries_used < retry_budget:
-                # One bounded retry with the same prompt (F-EXT-02). Count it only
-                # after the call returns: a retry refused by the budget breaker
-                # raises BudgetExceededError here (no network) and must not inflate
-                # the retry metric.
+                # One bounded retry with the same prompt (F-EXT-02). Increment
+                # after the call so a budget-refused retry (raises here, no
+                # network) does not inflate the retry metric.
                 parsed = _call_and_validate(
                     client, messages, batch_ids, run_id=run_id, max_keywords=max_keywords
                 )

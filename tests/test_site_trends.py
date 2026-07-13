@@ -165,7 +165,7 @@ def test_cloud_llm_and_fallback_rows_count_item_once(tmp_path: Path) -> None:
     q = _queries(tmp_path)
     cloud = q.cloud(window_ending_at(_NOW, days=7), rising_min_count=3, rising_ratio=3.0)
     genai = next(k for k in cloud.keywords if k.keyword == "genai")
-    assert genai.count == 3  # i1 has both an llm and a fallback genai row → still one
+    assert genai.count == 3
 
 
 def test_cloud_limit(tmp_path: Path) -> None:
@@ -174,26 +174,24 @@ def test_cloud_limit(tmp_path: Path) -> None:
     assert [k.keyword for k in cloud.keywords] == ["genai"]
 
 
-# --- pin injection (GRP-57, PRD §7) -------------------------------------------
+# --- pin injection -----------------------------------------------------------
 #
-# Canned window counts (after alias/mute merge): genai=3, agents=1, llm=1,
-# webinar=muted (dropped before pin is ever consulted). At limit=1 only
-# "genai" survives the plain count cutoff, so this is the cutoff a pin has to
-# punch through - the same setup the AC describes ("a pinned keyword with 1
-# mention appears even when limit would exclude it").
+# After alias/mute merge the window counts are genai=3, agents=1, llm=1
+# (webinar muted). At limit=1 only "genai" clears the plain count cutoff, so
+# that cutoff is what a pin must punch through.
 
 _PIN_TABLE = [
     # (pin, extra_mute, expected keywords in the limit=1 cloud)
-    ((), (), {"genai"}),  # baseline: no pin, nothing below the cutoff shows
-    (("agents",), (), {"genai", "agents"}),  # pinned + has a mention -> surfaces
-    (("llm",), (), {"genai", "llm"}),  # a different pinned keyword, same effect
-    (("agents", "llm"), (), {"genai", "agents", "llm"}),  # multiple pins at once
-    (("dbt",), (), {"genai"}),  # pinned but 0 mentions in window -> pin invents nothing
-    (("webinar",), (), {"genai"}),  # pinned but already muted -> mute wins, stays out
-    (("agents",), ("agents",), {"genai"}),  # muted AND pinned -> mute wins (explicit)
-    (("gen ai",), (), {"genai"}),  # pinning the alias surface form, not the canonical
-    #                                 target, is a no-op - matches mute_set's existing
-    #                                 not-alias-resolved behavior (GRP-57 keeps them consistent)
+    ((), (), {"genai"}),
+    (("agents",), (), {"genai", "agents"}),
+    (("llm",), (), {"genai", "llm"}),
+    (("agents", "llm"), (), {"genai", "agents", "llm"}),
+    (("dbt",), (), {"genai"}),  # pinned but 0 mentions in window: pin invents nothing
+    (("webinar",), (), {"genai"}),  # pinned but muted: mute wins
+    (("agents",), ("agents",), {"genai"}),  # muted and pinned: mute wins
+    (("gen ai",), (), {"genai"}),  # pinning the alias surface form, not the
+    #                                canonical target, is a no-op (mute is not
+    #                                alias-resolved either)
 ]
 
 
@@ -226,8 +224,6 @@ def test_cloud_pin_result_stays_sorted_by_count_then_keyword(tmp_path: Path) -> 
 
 
 def test_cloud_pin_is_a_noop_when_already_within_limit(tmp_path: Path) -> None:
-    # Pinning a keyword that would have shown up anyway must not duplicate it
-    # or otherwise change the result.
     q = _queries(tmp_path, pin=("genai",))
     with_pin = q.cloud(
         window_ending_at(_NOW, days=7), limit=1, rising_min_count=3, rising_ratio=3.0
@@ -235,7 +231,7 @@ def test_cloud_pin_is_a_noop_when_already_within_limit(tmp_path: Path) -> None:
     assert [k.keyword for k in with_pin.keywords] == ["genai"]
 
 
-# --- rising flag (GRP-40, F-TRD-03) -------------------------------------------
+# --- rising flag -------------------------------------------------------------
 
 
 def test_cloud_rising_flag_uses_settings_thresholds(tmp_path: Path) -> None:
@@ -382,7 +378,7 @@ def test_distinct_keywords_for_items(tmp_path: Path) -> None:
     assert tags == {"i1": ["genai", "llm"], "i3": ["agents", "genai"]}  # webinar muted
 
 
-# --- determinism (S8) --------------------------------------------------------
+# --- determinism -------------------------------------------------------------
 
 
 def test_queries_are_deterministic(tmp_path: Path) -> None:

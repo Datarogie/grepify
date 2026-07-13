@@ -120,7 +120,7 @@ def test_all_singletons_when_no_near_dups() -> None:
     assert len(groups) == 4
 
 
-# --- idempotency: normalize -> add_items twice == zero new rows (GRP-14 AC) --
+# --- idempotency: normalize -> add_items twice == zero new rows --------------
 
 
 def _feed() -> list[RawItem]:

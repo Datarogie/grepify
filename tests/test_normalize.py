@@ -115,9 +115,8 @@ def test_summary_truncated_to_2000_chars() -> None:
 
 
 def test_summary_html_markup_is_stripped() -> None:
-    # Regression: unstripped HTML in feed <description>/selftext was leaking
-    # tag/attribute fragments (div, class, span, href, ...) into item.summary
-    # and from there into the YAKE fallback's top keywords.
+    # Regression: unstripped feed HTML leaked tag/attribute fragments into
+    # item.summary and from there into the YAKE fallback's keywords.
     source = make_source("s1")
     raw_summary = (
         '<div class="grid grid-cols-2"><section class="body">'
@@ -140,9 +139,8 @@ def test_summary_html_entities_are_unescaped() -> None:
 
 
 def test_summary_script_and_style_bodies_are_dropped() -> None:
-    # A generic tag-strip removes the <script>/<style> tags but leaves their
-    # body text behind; that body (code/CSS) must not leak into the summary
-    # either - same symptom as the reported bug if left unhandled.
+    # A generic tag-strip leaves <script>/<style> body text behind; that
+    # code/CSS must not leak into the summary.
     source = make_source("s1")
     raw_summary = (
         '<script>var gridClass = "div class span href";</script>'
@@ -154,21 +152,16 @@ def test_summary_script_and_style_bodies_are_dropped() -> None:
 
 
 def test_summary_preserves_literal_escaped_angle_brackets_as_text() -> None:
-    # Known, accepted tradeoff (see normalize.py module docstring): a single
-    # unescape pass only unwinds one level of entity-encoding, so genuinely
-    # plain-text "&lt;x&gt;"-shaped content (comparison operators, code
-    # snippets - common in this aggregator's dev/AI feeds) survives as text
-    # rather than being mistaken for a tag and stripped.
+    # Accepted tradeoff (normalize.py docstring): one unescape pass, so plain-text
+    # "&lt;x&gt;" comparison operators survive as text rather than being stripped.
     source = make_source("s1")
     item = normalize(_raw(summary="a &lt;b&gt; c and c &gt; a"), source, fetched_at=_FETCHED)
     assert item.summary == "a <b> c and c > a"
 
 
 def test_summary_entity_encoded_paired_tag_is_stripped() -> None:
-    # T5 audit fix: a source that HTML-escapes a whole element (e.g. a
-    # description field that was itself pasted from rendered HTML) used to
-    # leak the escaped markup verbatim, because the first strip pass runs
-    # before entities are unescaped and there was no second pass after.
+    # A source that HTML-escapes a whole element: the second post-unescape pass
+    # strips the revealed open/close pair.
     source = make_source("s1")
     raw_summary = "Intro &lt;div class=&quot;alert&quot;&gt;Breaking news&lt;/div&gt; outro"
     item = normalize(_raw(summary=raw_summary), source, fetched_at=_FETCHED)
@@ -183,9 +176,8 @@ def test_summary_entity_encoded_script_body_is_dropped() -> None:
 
 
 def test_summary_entity_encoded_unpaired_fragment_still_preserved() -> None:
-    # The conservative second pass requires a matched close tag of the SAME
-    # name; a lone unpaired fragment is still treated as text, same as the
-    # existing (unencoded) comparison-operator case just above.
+    # The second pass needs a matched close tag of the same name; a lone
+    # unpaired fragment stays text.
     source = make_source("s1")
     item = normalize(
         _raw(summary="a &lt;b&gt; c and c &gt; a, still &lt;unclosed&gt; markup"),
@@ -203,9 +195,8 @@ def test_clean_summary_entity_encoded_tag_is_idempotent() -> None:
 
 
 def test_clean_summary_is_idempotent_and_matches_normalize() -> None:
-    # GRP-60 relies on this: the public cleaner must equal what normalize applies
-    # (so a re-clean can't diverge from a fresh ingest) and be a fixed point on
-    # its own output (so `renormalize` converges and a second run is a no-op).
+    # The public cleaner must equal what normalize applies (a re-clean can't
+    # diverge from a fresh ingest) and be a fixed point (renormalize converges).
     source = make_source("s1")
     dirty = '<div class="post">Model &amp; agent notes</div>'
     once = clean_summary(dirty)
@@ -219,9 +210,8 @@ def test_clean_summary_truncates_to_2000_chars() -> None:
 
 
 def test_clean_summary_idempotent_when_truncating_on_whitespace_boundary() -> None:
-    # Regression: collapse-then-truncate can leave a trailing space when the cut
-    # lands on a word boundary; a second pass would strip it and thus rewrite the
-    # item forever. clean_summary must be a fixed point even for that input.
+    # Regression: a word-boundary cut can leave a trailing space that a second
+    # pass would strip, rewriting the item forever; clean_summary must be a fixed point.
     once = clean_summary("word " * 500)  # collapses to 2499 chars, cut lands on a space
     assert not once.endswith(" ")
     assert clean_summary(once) == once

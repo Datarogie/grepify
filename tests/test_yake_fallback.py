@@ -57,7 +57,7 @@ def test_respects_max_keywords() -> None:
     assert len(result["a"]) <= 2
 
 
-# --- "must not raise" safety net (F-EXT-02 sanity bar mirrored from GRP-21) ---
+# --- "must not raise" safety net (mirrors the F-EXT-02 sanity bar) -----------
 
 
 def test_empty_title_and_summary_yields_no_keywords() -> None:

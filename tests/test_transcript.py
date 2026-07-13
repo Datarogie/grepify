@@ -117,7 +117,7 @@ def test_stored_bytes_are_deterministic(tmp_path: Path) -> None:
     assert raw == gzip.compress(b"same text", mtime=0)
 
 
-# --- excerpting (GRP-53) -----------------------------------------------------
+# --- excerpting ----------------------------------------------------------------
 
 
 def test_excerpt_returns_short_text_whole_collapsed() -> None:

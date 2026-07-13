@@ -128,7 +128,7 @@ def test_digest_index_lists_the_digest(tmp_path: Path) -> None:
     assert "AI moved fast today" in index
     assert f"/grepify/digest/daily/{slug}/" in index
     assert 'data-kind="daily"' in index  # kind filter hook
-    assert 'data-category="ai"' in index  # topic filter hook (GRP-38)
+    assert 'data-category="ai"' in index  # topic filter hook
 
 
 def test_digest_detail_renders_body_and_chips(tmp_path: Path) -> None:

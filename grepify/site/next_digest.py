@@ -52,8 +52,7 @@ def next_scheduled_run(instant: datetime) -> NextDigestRun:
     if candidate <= local:
         candidate += timedelta(days=1)
     offset = candidate.utcoffset()
-    # Reason for the ignore below: type-narrowing invariant, not a runtime input check -
-    # zoneinfo always resolves an offset for a real wall-clock instant.
+    # S101: type-narrowing; zoneinfo always resolves an offset for a real instant.
     assert offset is not None  # noqa: S101
     total_minutes = int(offset.total_seconds() // 60)
     sign = "+" if total_minutes >= 0 else "-"

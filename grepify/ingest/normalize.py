@@ -44,26 +44,21 @@ exact problem) can make the non-greedy body match end early and leak the
 remainder of the script as text - the same regex-vs-parser tradeoff as the
 rest of this list.
 
-Entity-encoded tags (T5 audit, GRP-30)
----------------------------------------
+Entity-encoded tags
+-------------------
 A source that HTML-escapes a whole element in its ``<description>`` (e.g.
-``&lt;div class=&quot;alert&quot;&gt;Breaking news&lt;/div&gt;``) used to leak
-that markup verbatim into ``item.summary``: the first tag-strip pass runs
-before entities are unescaped, so an encoded tag is invisible to it, and by
-the time ``html.unescape`` reveals the literal ``<div>...</div>`` there was no
-further stripping pass. :func:`_strip_html` now runs a second, conservative
-pass after unescaping to close that gap - conservative because it only
-treats a **matched open/close pair of the same tag name** as markup (the
-shape a genuinely encoded HTML element takes), stripping the tags but keeping
-the inner text, same as the first pass. A bare, unpaired tag-shaped fragment
-revealed by unescaping - e.g. the ``<b>`` in ``"a &lt;b&gt; c and c &gt; a"``,
-a comparison operator, not markup - has no matching close tag and is left as
-plain text, so genuinely plain-text ``&lt;x&gt;``-shaped content (comparison
-operators, code snippets, common in this aggregator's dev/AI-research feeds)
-still is not mistaken for a tag. Entity-*double*-encoded markup (e.g.
-``&amp;lt;div&amp;gt;``) still only unwinds one level per :func:`clean_summary`
-call, for the same reason: a single ``html.unescape`` pass cannot see through
-a second layer of escaping without also risking that plain-text tradeoff.
+``&lt;div class=&quot;alert&quot;&gt;Breaking news&lt;/div&gt;``) only becomes
+literal markup after ``html.unescape``, past the first tag-strip pass. So
+:func:`_strip_html` runs a second, conservative pass after unescaping: it treats
+only a **matched open/close pair of the same tag name** as markup (the shape a
+genuinely encoded element takes), stripping the tags but keeping the inner text.
+A bare, unpaired tag-shaped fragment - e.g. the ``<b>`` in
+``"a &lt;b&gt; c and c &gt; a"``, a comparison operator - has no close tag and
+stays plain text, so ``&lt;x&gt;``-shaped code snippets are not mistaken for
+tags. Entity-*double*-encoded markup (``&amp;lt;div&amp;gt;``) unwinds only one
+level per :func:`clean_summary` call, for the same reason: a single
+``html.unescape`` cannot see through a second layer without risking that
+plain-text tradeoff.
 
 Failure modes
 -------------
@@ -90,14 +85,11 @@ from grepify.models import Item, Source, SourceKind
 
 _SUMMARY_MAX_CHARS = 2000  # PRD §6 / F-ING-04: store a truncated excerpt only
 
-# Same tag-strip regex feedutil.clean_title applies to titles - summaries never
-# got the same treatment, so raw markup (<div>, class="...", <span>, ...) from
-# feed descriptions/reddit selftext was landing in item.summary and leaking
-# into the YAKE fallback as spurious "keywords".
+# Same tag-strip regex feedutil.clean_title applies to titles, so summary markup
+# never leaks into item.summary (and the YAKE fallback) as spurious keywords.
 _TAG_RE = re.compile(r"<[^>]+>")
-# A generic tag-strip removes <script>/<style> tags but not their bodies, so
-# without this a feed embedding a <script> or <style> element would leak its
-# code/CSS text as if it were prose (same symptom as the reported bug).
+# _TAG_RE strips <script>/<style> tags but not their bodies, so this removes the
+# element whole - otherwise its code/CSS text would read as prose.
 _SCRIPT_STYLE_RE = re.compile(r"<(script|style)\b[^>]*>.*?</\1\s*>", re.IGNORECASE | re.DOTALL)
 # Second-pass, post-unescape only (see module docstring "Entity-encoded tags"):
 # a matched open/close pair of the *same* tag name is treated as a revealed
@@ -168,28 +160,22 @@ def compute_item_id(kind: SourceKind, canonical_url: str, external_id: str | Non
 
 
 def _strip_revealed_pairs(match: re.Match[str]) -> str:
-    """Replace a matched open/close tag pair (post-unescape) with its inner
-    text, padded with spaces so adjacent words don't glue together; any tag
-    nested inside is real markup too (it only exists because it is inside a
-    confirmed pair), so it gets the plain tag-strip as well."""
+    """Replace a matched tag pair with its inner text, space-padded so adjacent
+    words don't glue together; a nested tag is real markup (it sits inside a
+    confirmed pair), so it gets the plain tag-strip too."""
     return f" {_TAG_RE.sub(' ', match.group(2))} "
 
 
 def _strip_html(text: str) -> str:
-    """Drop script/style bodies, strip remaining markup, unescape entities,
-    then run a second conservative strip pass for tags an entity-encoded
-    source only reveals *after* unescaping - collapsing whitespace last. The
-    same treatment ``feedutil.clean_title`` gives titles (plus the
-    script/style + second-pass steps), applied here so every summary
-    (RSS/Atom description, reddit selftext) gets it too regardless of source
-    kind. See the module docstring's "Summary cleaning" and "Entity-encoded
-    tags" sections for the known regex-vs-parser limitations."""
+    """Drop script/style bodies, strip markup, unescape entities, then a second
+    conservative pass for tags an entity-encoded source only reveals after
+    unescaping, collapsing whitespace last. See the module docstring's "Summary
+    cleaning" and "Entity-encoded tags" sections for the regex-vs-parser limits."""
     without_script_style = _SCRIPT_STYLE_RE.sub(" ", text)
     without_tags = _TAG_RE.sub(" ", without_script_style)
     unescaped = html.unescape(without_tags)
-    # Second pass, deliberately after unescaping: a source that entity-encoded
-    # a whole <script>/<style> element, or any other paired tag, only becomes
-    # literal markup at this point (see "Entity-encoded tags" above).
+    # Second pass after unescaping: entity-encoded elements only become literal
+    # markup here (see "Entity-encoded tags" above).
     revealed_script_style = _SCRIPT_STYLE_RE.sub(" ", unescaped)
     revealed_tags = _PAIRED_TAG_RE.sub(_strip_revealed_pairs, revealed_script_style)
     return " ".join(revealed_tags.split())
@@ -198,15 +184,13 @@ def _strip_html(text: str) -> str:
 def clean_summary(text: str) -> str:
     """Strip markup + entities and truncate to the stored-excerpt limit.
 
-    The one place summary cleaning is defined. :func:`normalize` applies it to a
-    fresh :class:`RawItem` summary at ingest; the ``renormalize`` maintenance
-    command (GRP-60) re-applies the *same* function to already-stored summaries,
-    so a re-extract can never diverge from what a fresh ingest would produce.
-    Idempotent: cleaning an already-clean summary returns it unchanged (up to the
-    documented regex-vs-parser fixed point). The trailing ``rstrip`` after the
-    truncation is load-bearing for that: without it, truncating exactly on a
-    whitespace boundary would leave a trailing space that a second pass strips,
-    so ``renormalize`` would rewrite (and re-extract) the same long item forever.
+    The one place summary cleaning is defined; ``renormalize`` re-applies the
+    *same* function to stored summaries, so a re-extract never diverges from a
+    fresh ingest. Idempotent: cleaning an already-clean summary returns it
+    unchanged (up to the regex-vs-parser fixed point). The trailing ``rstrip``
+    is load-bearing for that: without it, truncating exactly on a whitespace
+    boundary leaves a trailing space a second pass would strip, so
+    ``renormalize`` would rewrite the same long item forever.
     """
     return _strip_html(text)[:_SUMMARY_MAX_CHARS].rstrip()
 

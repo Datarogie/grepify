@@ -63,15 +63,15 @@ def test_alias_and_mute_config_are_normalized_at_construction() -> None:
     assert rules.mute_set == frozenset({"webinar"})
 
 
-# --- KeywordRules.is_pinned (GRP-57) -------------------------------------------
+# --- KeywordRules.is_pinned --------------------------------------------------
 
 _PIN_CASES = [
     # (pins, canonical, expected)
-    ([], "anthropic", False),  # not pinned
-    (["anthropic"], "anthropic", True),  # pinned, exact match
+    ([], "anthropic", False),
+    (["anthropic"], "anthropic", True),
     (["Anthropic"], "anthropic", True),  # pin config is normalized too
     (["  DBT  "], "dbt", True),
-    (["anthropic"], "dbt", False),  # a different keyword is never pinned by this
+    (["anthropic"], "dbt", False),
 ]
 
 
@@ -87,24 +87,23 @@ def test_pin_config_is_normalized_at_construction() -> None:
 
 
 def test_is_pinned_not_resolved_through_alias_map() -> None:
-    # pin_set matches mute_set's existing behavior: it is checked verbatim,
-    # not alias-resolved. Pinning the alias's surface form ("gen ai") does not
-    # pin the canonical target ("genai") it maps to.
+    # pin_set is checked verbatim, not alias-resolved (same as mute_set):
+    # pinning the alias's surface form ("gen ai") does not pin the canonical
+    # target ("genai") it maps to.
     rules = KeywordRules.from_config(KeywordsConfig(aliases={"gen ai": "genai"}, pin=["gen ai"]))
     assert rules.is_pinned("genai") is False
     assert rules.is_pinned("gen ai") is True  # the raw pin entry itself still matches
 
 
 def test_muted_and_pinned_keyword_never_reaches_is_pinned() -> None:
-    # GRP-57 precedence: mute wins over pin. `apply` drops a muted keyword
-    # before any caller has a canonical form left to test against `is_pinned`
-    # - that's the whole mechanism, exercised here the way a real caller
+    # Mute wins over pin. `apply` drops a muted keyword before any caller has a
+    # canonical form left to test against `is_pinned`, the way a real caller
     # (TrendQueries._merged_counts) uses it.
     rules = KeywordRules.from_config(KeywordsConfig(mute=["anthropic"], pin=["anthropic"]))
     assert rules.apply("Anthropic") is None
-    assert rules.is_pinned("anthropic") is True  # pinned in isolation...
-    # ...but no caller ever gets "anthropic" back from `apply` to pass here,
-    # so the pin can never resurface it - precedence holds end to end.
+    # pinned in isolation, but apply never returns it, so the pin can never
+    # resurface a muted keyword
+    assert rules.is_pinned("anthropic") is True
 
 
 # --- apply_to_keyword: applies rules to a stored ItemKeyword row --------------

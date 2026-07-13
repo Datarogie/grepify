@@ -166,7 +166,7 @@ def test_digest_index_is_all_topics_newest_first(tmp_path: Path) -> None:
     assert 'id="topic-chips"' in html
     assert 'id="share-topics"' in html
     assert "static/digests.js" in html
-    # GRP-50: the filter controls belong to the Following view - server-rendered
+    # The filter controls belong to the Following view - server-rendered
     # hidden (like the tablist) and revealed by digests.js only under Following,
     # so the All baseline is the fully unfiltered archive with no controls.
     assert '<div class="tabs" id="digest-views" role="tablist"' in html
@@ -176,11 +176,11 @@ def test_digest_index_is_all_topics_newest_first(tmp_path: Path) -> None:
 
 
 def test_digest_index_has_last_visit_delta_hooks(tmp_path: Path) -> None:
-    # GRP-69: each row carries data-created-at (when the digest was generated,
+    # Each row carries data-created-at (when the digest was generated,
     # not the period it covers) so digests.js can mark rows newer than the
     # reader's stored last-visit timestamp without a server round trip. The
     # optional "N new digests since" summary line ships hidden, like the other
-    # Following-only controls (GRP-50) - digests.js reveals it there, and only
+    # Following-only controls - digests.js reveals it there, and only
     # when there is something new to report. Both the marking itself and the
     # summary's text are client-only behavior, not exercised in this
     # server-rendered baseline (see module docstring).

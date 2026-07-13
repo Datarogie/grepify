@@ -59,7 +59,7 @@ def test_transport_exception_becomes_fetch_error() -> None:
         YouTubeFetcher(transport).fetch(make_source("s1", kind=SourceKind.YOUTUBE))
 
 
-# --- T5 audit: bounded retry with backoff on transient 5xx -------------------
+# --- bounded retry with backoff on transient 5xx ------------------------------
 
 
 def test_transient_5xx_is_retried_then_succeeds() -> None:

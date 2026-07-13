@@ -25,7 +25,7 @@ from grepify.paths import DataLayout
 from grepify.repository import JsonlSqliteRepository
 from grepify.site.trends import ItemSummary, TrendQueries, open_cache
 from tests.conftest import ScriptedCompletionTransport, envelope_response
-from tests.test_digest_assemble import _item, _kw, _source  # reuse the canned builders
+from tests.test_digest_assemble import _item, _kw, _source
 
 _CLOCK = FixedClock(datetime(2026, 7, 8, 13, 0, tzinfo=UTC))
 _PERIOD = previous_day(_CLOCK.now())
@@ -88,8 +88,8 @@ def test_llm_success_records_model_and_composed_body() -> None:
         _input(item_count=20), _client([_reply()]), run_id="r1", clock=_CLOCK, min_items=10
     )
     assert digest is not None
-    assert digest.model == "digest-model"  # provenance = the model that wrote it
-    assert digest.prompt_version == "digest-v1"  # prompt provenance recorded (F-DIG-04)
+    assert digest.model == "digest-model"
+    assert digest.prompt_version == "digest-v1"
     assert digest.digest_id == digest_id_for(DigestKind.DAILY, "ai", _PERIOD.key)
     assert digest.title == "AI moved fast"
     # body composes the TL;DR bullets then the narrative
@@ -107,7 +107,7 @@ def test_below_threshold_is_skipped() -> None:
     digest = generate_digest(
         _input(item_count=4), _client([]), run_id="r1", clock=_CLOCK, min_items=10
     )
-    assert digest is None  # F-DIG-03: too few items - skipped, not failed
+    assert digest is None  # too few items: skipped, not failed
 
 
 def test_over_budget_degrades_to_template() -> None:
@@ -239,9 +239,9 @@ def _catchup_settings(lookback: int) -> SettingsConfig:
 
 
 def test_pipeline_skips_periods_whose_digest_already_exists(tmp_path: Path) -> None:
-    # Idempotency (T3): a (category, period) already in truth is skipped with no
-    # LLM call, so a re-run generates nothing. The client script is empty, so any
-    # attempted LLM call would IndexError.
+    # A (category, period) already in truth is skipped with no LLM call, so a
+    # re-run generates nothing. The client script is empty, so any attempted LLM
+    # call would IndexError.
     queries = _pipeline_queries(tmp_path)
     existing = {digest_id_for(DigestKind.DAILY, "ai", _PERIOD.key)}
     summary, digests = run_digest_pipeline(
@@ -260,12 +260,11 @@ def test_pipeline_skips_periods_whose_digest_already_exists(tmp_path: Path) -> N
 
 
 def test_pipeline_catches_up_missing_day_and_skips_present_one(tmp_path: Path) -> None:
-    # Catch-up (T3): with a 2-day window, yesterday's digest already exists but
-    # the day before is missing and has data (seed a second day), so exactly the
-    # missing day is generated.
+    # With a 2-day window, yesterday's digest already exists but the day before
+    # is missing and has data (seed a second day), so exactly the missing day is
+    # generated. 07-07 gets 3 ai items, 07-06 gets its own 3 so it clears
+    # min_items too.
     repo = JsonlSqliteRepository(tmp_path)
-    # yesterday (07-07) already has data via _pipeline_queries-style seeding, plus
-    # the day before (07-06) gets its own 3 ai items so it clears min_items.
     repo.add_items(
         [
             _item("i1", source_id="s1", published_at="2026-07-07T18:00:00+00:00"),

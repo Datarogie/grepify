@@ -121,10 +121,9 @@ def build_site(  # noqa: PLR0913 - distinct collaborators, all required
     base_path: str = "/",
 ) -> BuildResult:
     """Render the whole site into ``output_dir`` from the cache + config."""
-    # Project config-derived sources/groups into the cache before the rebuild
-    # so the `sources` table is populated - otherwise top-sources / latest-items
-    # would fall back to raw source_ids instead of display names. (`ingest`
-    # loads config in its own process; `build` runs standalone and must too.)
+    # Populate the `sources` table before the rebuild so top-sources /
+    # latest-items resolve display names, not raw source_ids. (`build` runs
+    # standalone, so it must load config itself like `ingest` does.)
     repository.load_config(config.groups(), config.sources())
     repository.rebuild_cache()
     settings = config.settings()
@@ -135,12 +134,10 @@ def build_site(  # noqa: PLR0913 - distinct collaborators, all required
         queries = TrendQueries(conn, rules)
         now = clock.now()
         env = create_environment()
-        # Cache-busting: hash the exact bytes each static asset ships with so
-        # every page can reference it as `static/<name>?v=<hash>`. A changed
-        # asset (a redeployed digests.js) gets a new URL, so GitHub Pages cannot
-        # keep serving a stale cached copy after a deploy; identical content
-        # keeps its hash, so the build stays byte-stable. style.css is rendered
-        # (not copied), so it is hashed from that rendered string.
+        # Hash each static asset's bytes so pages reference it as
+        # `static/<name>?v=<hash>`: a changed asset gets a new URL (no stale
+        # Pages cache after deploy), identical bytes keep their hash (byte-stable
+        # build). style.css is hashed from its rendered string, not a file.
         stylesheet = render_stylesheet(env)
         meta = SiteMeta(
             title=SITE_TITLE,
@@ -299,15 +296,11 @@ def _write_digests(
 ) -> int:
     """Digest index (always, a nav destination) + one detail page per digest.
 
-    The index is server-rendered with *all* digests in newest-first-by-period
-    order (GRP-37) and then progressively enhanced client-side (``digests.js``,
-    GRP-47) with an ``All`` / ``Following`` tab that folds in the former "Your
-    digest" page: ``All`` (the default) shows the whole archive and is NEVER
-    follow-filtered - only the daily/weekly kind filter narrows it - while
-    ``Following`` hides rows whose category is not in the reader's followed set.
-    Both the tab and the follow filter are client-only, so with JS off the page
-    degrades to the full ``All`` list; the tested (server-rendered) surface is
-    that all-digests baseline.
+    The index is server-rendered with *all* digests newest-first-by-period, then
+    progressively enhanced by ``digests.js`` with an ``All`` / ``Following`` tab
+    and a daily/weekly filter. Both are client-only, so with JS off the page
+    degrades to the full ``All`` list - that all-digests baseline is the
+    server-rendered surface the goldens cover.
     """
     index_html = render_page(
         env,

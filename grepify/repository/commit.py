@@ -56,9 +56,8 @@ def commit_data(  # noqa: PLR0913 - explicit, keyword-only knobs read clearer th
         return True
 
     for _attempt in range(max_attempts):
-        # Reason for the ignores below: list-form argv, no shell=True, and the `git` on PATH
-        # is the same trusted binary every other step in this module already
-        # shells out to - not untrusted/attacker-controlled input.
+        # S603/S607: list-form argv, no shell=True, trusted `git` on PATH (not
+        # attacker-controlled) - same for every subprocess call in this module.
         result = subprocess.run(  # noqa: S603
             ["git", "push", "origin", branch],  # noqa: S607
             cwd=repo_dir,
@@ -77,8 +76,7 @@ def commit_data(  # noqa: PLR0913 - explicit, keyword-only knobs read clearer th
 def _stage(repo_dir: Path, paths: Sequence[Path]) -> bool:
     """Stage paths; return True if anything is actually staged."""
     _git(repo_dir, "add", "--", *[str(p) for p in paths])
-    # Reason for the ignore below: list-form argv, no shell=True, trusted `git` binary - see
-    # the reason on the push call above.
+    # S607: trusted `git` binary, see the push call above.
     status = subprocess.run(
         ["git", "diff", "--cached", "--quiet"],  # noqa: S607
         cwd=repo_dir,
@@ -88,6 +86,5 @@ def _stage(repo_dir: Path, paths: Sequence[Path]) -> bool:
 
 
 def _git(repo_dir: Path, *args: str) -> None:
-    # Reason for the ignore below: list-form argv, no shell=True, trusted `git` binary - see
-    # the reason on the push call above.
+    # S603/S607: trusted `git` binary, see the push call above.
     subprocess.run(["git", *args], cwd=repo_dir, check=True)  # noqa: S603, S607

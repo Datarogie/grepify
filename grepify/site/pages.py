@@ -33,7 +33,7 @@ from grepify.site.trends import CloudDataset, DigestDetail, ItemSummary, Keyword
 
 ITEMS_PER_PAGE = 20  # F-SIT-03
 NEAR_DUP_MAX_DISTANCE = 3  # simhash Hamming bits (matches ingest default)
-RISING_STRIP_LIMIT = 8  # cap on the home "Rising this week" strip (GRP-68)
+RISING_STRIP_LIMIT = 8  # cap on the home "Rising this week" strip
 
 
 @dataclass(frozen=True)

@@ -155,7 +155,7 @@ def test_keywords_and_settings_parse(tmp_path: Path) -> None:
     assert provider.settings().timezone == "America/Edmonton"
 
 
-# --- kind-coverage check (GRP-56) --------------------------------------------
+# --- kind-coverage check ------------------------------------------------------
 #
 # `kind: x` passes schema validation on its own (schemas.py has a locator rule
 # for it) even though the production registry registers no fetcher for it -

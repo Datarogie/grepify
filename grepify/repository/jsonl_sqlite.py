@@ -17,14 +17,12 @@ Concurrency: the cache is single-writer and rebuilt per run; concurrent CI runs
 are prevented by the Actions concurrency group (GRP-06) and data commits are
 serialized by :func:`grepify.repository.commit.commit_data`.
 
-The item-id dedup set is likewise read from truth once per repository instance
-(GRP-59): :meth:`add_items` scans all item truth on its first call, then keeps
-that set current by folding in each key it writes, so ingesting N sources costs
-one truth scan rather than N. This assumes the same single-writer model as the
-cache - the instance is the only writer of item truth for its lifetime; an
-external append during the instance's life would not be reflected until a new
-instance is constructed. Malformed truth encountered during that one scan
-surfaces as :class:`~grepify.errors.RepositoryError` exactly as before.
+The item-id dedup set is read from truth once per repository instance:
+:meth:`add_items` scans all item truth on its first call, then keeps that set
+current by folding in each key it writes, so ingesting N sources costs one truth
+scan rather than N. This assumes the same single-writer model as the cache - the
+instance is the only writer of item truth for its lifetime, so an external
+append mid-life is not reflected until a new instance is constructed.
 """
 
 from __future__ import annotations
@@ -62,22 +60,13 @@ class JsonlSqliteRepository(Repository):
         self._conn: sqlite3.Connection | None = None
         self._groups: list[SourceGroup] = []
         self._sources: list[Source] = []
-        # Run-scoped dedup cache: populated by the first add_items call from a
-        # single truth scan, then kept in sync as rows are appended (GRP-59).
+        # Run-scoped dedup cache: seeded by the first add_items scan, then kept
+        # current as each written key is folded in (see module docstring).
         self._item_id_cache: set[str] | None = None
 
     # --- truth writes --------------------------------------------------------
 
     def add_items(self, items: Sequence[Item]) -> int:
-        # The orchestrator calls this once per source, so scanning all item
-        # truth on every call was O(sources x total_items) per run (GRP-59).
-        # Instead read truth once per repository instance (one instance == one
-        # ingest run in the pipeline) and keep the key set current: the scan is
-        # lazy (first add_items only) and _append_deduped mutates the cached set
-        # in place with each key it writes, so later calls dedup against a set
-        # that already reflects this run's own appends without re-reading truth.
-        # Staleness is a non-issue under the single-writer model the cache
-        # rebuild already assumes (see module docstring).
         if self._item_id_cache is None:
             self._item_id_cache = self.existing_item_ids()
         return self._append_deduped(
@@ -163,9 +152,9 @@ class JsonlSqliteRepository(Repository):
 
     def iter_item_keywords(self) -> Iterator[ItemKeyword]:
         rows = self._read_all(self._layout.keywords_dir, ItemKeyword)
-        # `method` is part of the primary key (an item can carry both an `llm`
-        # and a `fallback` row for the same keyword text), so it must be in the
-        # sort key too for a fully deterministic order.
+        # `method` is part of the primary key (one keyword can have both an
+        # `llm` and a `fallback` row), so it belongs in the sort key for a
+        # fully deterministic order.
         rows.sort(key=lambda k: (k.item_id, k.rank, k.keyword, str(k.method)))
         return iter(rows)
 
@@ -182,14 +171,11 @@ class JsonlSqliteRepository(Repository):
         return self._existing_keys(self._layout.items_dir, lambda d: str(d["item_id"]))
 
     def iter_fetch_log(self) -> Iterator[FetchLogEntry]:
-        # Sort key is `started_at` alone, relying on Python's stable sort to
-        # preserve `_read_all`'s file order (day-partitioned ascending, then
-        # true append order within a day) as the tie-break. `started_at` is
-        # second-precision text and `run_id` ends in random entropy, so
-        # sorting by `(started_at, run_id, ...)` - as the other iter_* methods
-        # do with *stable* identifiers like item_id - would let same-second
-        # entries land in an arbitrary, non-chronological order instead of
-        # the real attempt order health-snapshot consumers rely on (GRP-16).
+        # Sort by `started_at` alone and let Python's stable sort keep
+        # `_read_all`'s append order (day-partitioned, then within-day) as the
+        # tie-break. `run_id` ends in random entropy, so adding it to the key
+        # would scramble same-second entries out of the real attempt order that
+        # health-snapshot consumers depend on.
         rows = self._read_all(self._layout.fetch_log_dir, FetchLogEntry)
         rows.sort(key=lambda e: e.started_at)
         return iter(rows)
@@ -407,10 +393,9 @@ class JsonlSqliteRepository(Repository):
         key_of: Callable[[_R], str],
         existing_keys: set[str],
     ) -> int:
-        # `existing_keys` is updated in place with every key written, so a
-        # caller that retains the set (add_items' run-scoped cache) sees its own
-        # appends on the next call without re-reading truth. Callers that pass a
-        # throwaway set (add_item_keywords) are unaffected by the mutation.
+        # `existing_keys` is mutated in place, so a caller that retains the set
+        # (add_items' run-scoped cache) sees its own appends on the next call
+        # without re-reading truth.
         written = 0
         for record in records:
             key = key_of(record)
