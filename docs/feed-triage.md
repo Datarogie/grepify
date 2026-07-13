@@ -94,10 +94,32 @@ Doctor over the data branch: 128 sources.
   is verified on the next scheduled pipeline run's doctor job summary: the 7
   re-enabled sources should fetch/parse instead of 403/unparseable.
 
+**Class 3 - `tls` sslv3 handshake failure (this PR).**
+
+- **Root cause.** `inside-ai-news` and `knowtechie-ai` fail with an "sslv3 alert
+  handshake failure". On modern Python/OpenSSL 3 this means the SERVER offers
+  legacy TLS ciphers/keys that OpenSSL now rejects at its default security level
+  2 - not that our client is outdated.
+- **Fix.** The shared HTTP transport (`grepify/ingest/http.py`,
+  `HttpxTransport`) now fetches through an `ssl.SSLContext` pinned to security
+  level 1 (`DEFAULT@SECLEVEL=1`), which accepts those weaker server ciphers while
+  keeping certificate verification fully ON (`check_hostname` and `verify_mode`
+  at their secure defaults) and the protocol floor at TLS 1.2. The context only
+  PERMITS weaker crypto, it never forces it, so strong servers still negotiate
+  strong crypto. Public feeds carry no secrets/auth, so this is the standard
+  feed-reader posture. Kyle approved permitting legacy TLS for public-feed
+  fetches (2026-07-13).
+- **Re-enabled to retry (2).** `inside-ai-news`, `knowtechie-ai`. Each carries an
+  inline `#45` evidence note in `sources/groups/ai-business.yml`.
+- **Verification is pending.** Egress to feed hosts is blocked in CI/build, so
+  this fix cannot be verified live in the PR's validate run. It lands blind and
+  is verified on the next scheduled pipeline run's doctor job summary: both
+  sources should complete their TLS handshake and fetch/parse instead of failing.
+  Disable again with evidence if either is still dead.
+
 **Remaining classes (follow-up PRs).** Class 2 - `http_4xx` 415 flappers
 (`artificial-lawyer`, `bdan-ai`, `la-biblia-de-la-ia`); the class 1 Accept
 header may already stop the intermittent 415s, so re-check on the next doctor
-summary first. Class 3 - `tls` handshake failures (`inside-ai-news`,
-`knowtechie-ai`).
+summary first.
 </content>
 </invoke>
