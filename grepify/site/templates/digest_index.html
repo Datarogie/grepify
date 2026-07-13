@@ -5,17 +5,21 @@
 <h1>Digests</h1>
 {% if digests %}
 {#
-  All / Following tab (GRP-47). The page is server-rendered as the full archive
-  (= the All view); the tablist below is progressively enhanced - digests.js
-  reveals it and drives the active view. With JS off the tablist stays hidden
-  and the page degrades to the full list. The follow-set only ever hides rows
-  in the Following view; the All archive is never follow-filtered.
+  All / Following tab (GRP-47, GRP-50). The page is server-rendered as the full
+  archive (= the All view); the tablist below is progressively enhanced -
+  digests.js reveals it and drives the active view. The filter controls (the
+  daily/weekly kind form, the topic chips, and Share) belong to the Following
+  view only: they ship server-rendered `hidden` and digests.js reveals them
+  when Following is active, hiding them again in All. So All is the unfiltered
+  archive (no kind filter, no follow filter, no inert controls); Following runs
+  both the kind filter and the topic-follow filter. With JS off the tablist and
+  controls stay hidden and the page degrades to the full All list.
 #}
 <div class="tabs" id="digest-views" role="tablist" aria-label="Digest view" hidden>
 <button type="button" class="tab" role="tab" data-view="all" aria-selected="true">All</button>
 <button type="button" class="tab" role="tab" data-view="following" aria-selected="false">Following</button>
 </div>
-<form class="filters" aria-label="Filter digests">
+<form class="filters" id="digest-filters" aria-label="Filter digests" hidden>
 <label>Show
 <select id="filter-digest-kind">
 <option value="">all</option>
@@ -24,7 +28,7 @@
 </select>
 </label>
 </form>
-<div class="topic-follow">
+<div class="topic-follow" id="topic-follow" hidden>
 <div class="topic-chips" id="topic-chips" hidden></div>
 <button type="button" class="topic-share" id="share-topics" hidden>Share</button>
 </div>

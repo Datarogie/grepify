@@ -1,21 +1,24 @@
 // grepify digest filters (GRP-43 kind filter + GRP-38 topic follow +
-// GRP-47 All/Following tabs). Vanilla, no framework (PRD §5: no Node
-// toolchain, interactivity stays small). Drives the single Digests page.
+// GRP-47 All/Following tabs + GRP-50 unfiltered All archive). Vanilla, no
+// framework (PRD §5: no Node toolchain, interactivity stays small). Drives
+// the single Digests page.
 //
 // Two views, selected by a progressively-enhanced tablist:
-//   - All (default): the full archive. The daily/weekly kind filter still
-//     narrows it, but the follow-set NEVER hides rows here.
-//   - Following: hides digests whose category is not in the followed set;
-//     the kind filter still applies on top.
-// The follow chips are always visible and always update the follow-set (so
-// Following reflects them), but toggling a chip only hides rows under
-// Following. Filters only ever HIDE rows, never reorder them - so the
-// server's newest-first-by-period order (GRP-37) always holds.
+//   - All (default): the COMPLETE archive, nothing hidden. Neither the
+//     daily/weekly kind filter nor the follow-set hides any row, and the
+//     filter controls (kind form, topic chips, Share) are hidden.
+//   - Following: the filter controls are shown; BOTH the daily/weekly kind
+//     filter and the topic-follow filter apply. Selections are preserved
+//     when toggling back from All (follows persist in localStorage; the kind
+//     <select> keeps its value across tab switches within a visit).
+// Filters only ever HIDE rows, never reorder them - so the server's
+// newest-first-by-period order (GRP-37) always holds.
 //
 // The active view is per-visit + URL-seeded (?view=following), never
 // persisted to localStorage (persisting it would re-create cross-visit
 // stickiness). An incoming ?topics= still seeds the follow-set. With JS off
-// the tablist stays hidden and the page degrades to the full All list.
+// the tablist and controls stay hidden and the page degrades to the full All
+// list (the unfiltered archive).
 (function () {
   "use strict";
 
@@ -83,6 +86,8 @@
   })();
 
   var kindSel = document.getElementById("filter-digest-kind");
+  var kindForm = document.getElementById("digest-filters");
+  var topicFollow = document.getElementById("topic-follow");
   var empty = document.getElementById("digest-empty");
   var chipBox = document.getElementById("topic-chips");
   var shareBtn = document.getElementById("share-topics");
@@ -101,11 +106,12 @@
   })();
 
   function apply() {
-    var kind = kindSel ? kindSel.value : "";
     var following = view === "following";
     var followed = followStore.get();
-    // In All the follow-set never hides anything (only the kind filter runs).
-    // In Following an empty follow-set still shows everything (no dead end).
+    // In All nothing is filtered: no kind filter and no follow filter (the
+    // controls are hidden too). Both only apply under Following. An empty
+    // follow-set under Following still shows everything (no dead end).
+    var kind = following && kindSel ? kindSel.value : "";
     var followAll = !following || followed.length === 0;
     var visible = 0;
     rows.forEach(function (row) {
@@ -120,12 +126,25 @@
   }
 
   // --- All / Following tab --------------------------------------------------
+  // The filter controls belong to Following: reveal the kind form, the topic
+  // chips, and Share there, and hide all three in All (so All is the fully
+  // unfiltered archive with no controls). The chip box only shows when there
+  // are chips to show. Selections survive a hide/show: follows persist in
+  // localStorage and the kind <select> keeps its value.
+  function syncControls(following) {
+    if (kindForm) kindForm.hidden = !following;
+    if (topicFollow) topicFollow.hidden = !following;
+    if (chipBox) chipBox.hidden = !following || categories.length === 0;
+    if (shareBtn) shareBtn.hidden = !following;
+  }
+
   function setView(next) {
     view = next === "following" ? "following" : "all";
     tabs.forEach(function (t) {
       var on = t.getAttribute("data-view") === view;
       t.setAttribute("aria-selected", on ? "true" : "false");
     });
+    syncControls(view === "following");
     apply();
   }
 
@@ -163,7 +182,8 @@
       });
       chipBox.appendChild(b);
     });
-    chipBox.hidden = false;
+    // Visibility is owned by setView/syncControls (chips show under Following
+    // only); renderChips just builds the buttons.
   }
 
   // --- Share: a Following deep-link carrying the current follow-set --------
@@ -176,7 +196,8 @@
   }
 
   if (shareBtn) {
-    shareBtn.hidden = false; // reveal only when JS can build the link
+    // Visibility is owned by setView/syncControls (Share shows under Following
+    // only); here we just wire up the click.
     shareBtn.addEventListener("click", function () {
       var url = shareUrl();
       var label = shareBtn.textContent;

@@ -127,6 +127,22 @@ archive from ever being follow-filtered. This supersedes the IA-1 shape above.
 - The `followStore` accessor contract is unchanged, so a future profile layer
   still supersedes it without touching callers.
 
+### Follow-up 2026-07-13 (GRP-50, #50)
+
+GRP-47 left the daily/weekly kind filter applying on BOTH tabs, so it leaked
+into the `All` archive. GRP-50 finishes the split:
+
+- **`All` is a fully unfiltered archive with no filter controls.** Neither the
+  daily/weekly kind filter nor the topic-follow filter runs, and the controls
+  (the `Show` kind form, the topic chips, and Share) are hidden.
+- **Both filters live on and apply only to the `Following` tab,** where the
+  controls are shown. Selections are preserved when toggling back from `All`:
+  follows persist in localStorage and the kind `<select>` keeps its value
+  across tab switches within a visit.
+- The controls ship server-rendered `hidden` (progressive enhancement); JS
+  reveals them only under `Following`. With JS off the page is the full `All`
+  archive with no inert controls.
+
 ## Open questions for Kyle (RESOLVED above)
 Q1. Persistence: localStorage-primary + URL-share override (recommended), or a
     different split (e.g. URL-only, or also remember on the index)?

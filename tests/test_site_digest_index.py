@@ -1,4 +1,4 @@
-"""Digests page tests (GRP-38/47): server-rendered All-view baseline.
+"""Digests page tests (GRP-38/47/50): server-rendered All-view baseline.
 
 Builds a canned site with digests across two categories (``ai`` with a daily and
 a later weekly, plus ``data-eng``) and snapshots the server-rendered
@@ -7,8 +7,11 @@ topic-follow filter (``digests.js``, localStorage + ``?view=``/``?topics=``) are
 NOT exercised here - they only hide rows / switch views in the browser, exactly
 as the daily/weekly kind filter is left to the client. The tested surface is the
 progressive-enhancement baseline: every digest, newest-first by period, which is
-the full ``All`` archive the page degrades to with JS off. A determinism check
-(build twice -> identical bytes) guards the S8 rule for the page.
+the full ``All`` archive the page degrades to with JS off. Per GRP-50 the filter
+controls (kind form, topic chips, Share) ship server-rendered ``hidden`` - they
+belong to the Following view and digests.js reveals them there - so the baseline
+carries no visible controls. A determinism check (build twice -> identical
+bytes) guards the S8 rule for the page.
 """
 
 from __future__ import annotations
@@ -160,6 +163,13 @@ def test_digest_index_is_all_topics_newest_first(tmp_path: Path) -> None:
     assert 'id="topic-chips"' in html
     assert 'id="share-topics"' in html
     assert "static/digests.js" in html
+    # GRP-50: the filter controls belong to the Following view - server-rendered
+    # hidden (like the tablist) and revealed by digests.js only under Following,
+    # so the All baseline is the fully unfiltered archive with no controls.
+    assert '<div class="tabs" id="digest-views" role="tablist"' in html
+    assert 'aria-label="Digest view" hidden>' in html
+    assert '<form class="filters" id="digest-filters" aria-label="Filter digests" hidden>' in html
+    assert '<div class="topic-follow" id="topic-follow" hidden>' in html
 
 
 def test_digest_index_is_deterministic(tmp_path: Path) -> None:
