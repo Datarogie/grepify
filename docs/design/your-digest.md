@@ -143,6 +143,42 @@ into the `All` archive. GRP-50 finishes the split:
   reveals them only under `Following`. With JS off the page is the full `All`
   archive with no inert controls.
 
+### Follow-up 2026-07-13 (GRP-69, #69)
+
+Adds a since-your-last-visit delta on top of the GRP-47/GRP-50 All/Following
+split (layered addition, no rewrite of the decisions above):
+
+- **Persistence:** a second small localStorage accessor next to `followStore`
+  (`grepify.last_visit`, an ISO 8601 timestamp), same accessor-behind-one-object
+  contract so a future profile layer can still supersede both without touching
+  callers.
+- **On every visit:** digests.js reads whatever was previously stored (or
+  `null` on a first visit, or if storage is unavailable), marks each digest row
+  whose `created_at` is newer than that stored value, then immediately
+  overwrites the stored value with the current visit's timestamp. "Newer" is
+  judged by `created_at` (when the digest was generated), not `period_start`
+  (the period it covers) - this is "since you last opened", not "for a period
+  you have not seen yet".
+- **First visit shows no delta chrome:** with nothing stored yet there is no
+  baseline to compare against, so no rows are marked and the summary line stays
+  hidden - matching the "no dead end" principle used elsewhere in this doc.
+- **The mark is a badge digests.js injects into the row**, never a
+  server-rendered static element - so JS-off ships nothing extra (the `[hidden]`
+  CSS lesson from #54 applies: only ship inert chrome that is actually needed,
+  and prefer JS-created markup over hidden-by-default markup where the two are
+  equivalent). The optional "N new digests since `<date>`" summary line is the
+  one static element added (`#digest-new-since`), and it follows the GRP-50
+  pattern exactly: server-rendered `hidden`, revealed by digests.js only under
+  Following, and only when there is something new to report.
+- **Scope:** the mark is shown on both All and Following (issue #69 explicitly
+  allows badges on All, only hiding rows is not allowed there); the summary line
+  is Following-only per the issue text ("at the top of Following"). No per-item
+  (article) delta, no cross-device sync, no digest-generation changes - all
+  explicitly out of scope for #69.
+- Each row already carried `data-kind`/`data-category` for the existing
+  filters; GRP-69 adds `data-created-at` alongside them for the same reason -
+  the row markup stays the one place that carries filter/delta hooks.
+
 ## Open questions for Kyle (RESOLVED above)
 Q1. Persistence: localStorage-primary + URL-share override (recommended), or a
     different split (e.g. URL-only, or also remember on the index)?

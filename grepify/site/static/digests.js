@@ -1,7 +1,7 @@
 // grepify digest filters (GRP-43 kind filter + GRP-38 topic follow +
-// GRP-47 All/Following tabs + GRP-50 unfiltered All archive). Vanilla, no
-// framework (PRD §5: no Node toolchain, interactivity stays small). Drives
-// the single Digests page.
+// GRP-47 All/Following tabs + GRP-50 unfiltered All archive + GRP-69
+// since-your-last-visit delta). Vanilla, no framework (PRD §5: no Node
+// toolchain, interactivity stays small). Drives the single Digests page.
 //
 // Two views, selected by a progressively-enhanced tablist:
 //   - All (default): the COMPLETE archive, nothing hidden. Neither the
@@ -19,6 +19,17 @@
 // stickiness). An incoming ?topics= still seeds the follow-set. With JS off
 // the tablist and controls stay hidden and the page degrades to the full All
 // list (the unfiltered archive).
+//
+// Since-your-last-visit delta (GRP-69): on every visit the reader's previous
+// visit timestamp is read from localStorage, digests created after it are
+// marked "new" (a badge digests.js injects into the row - never a hidden
+// static element, so JS-off ships nothing extra), and the timestamp is then
+// overwritten with now. A first visit (nothing stored yet) has no baseline
+// to compare against, so it shows no delta chrome at all. The mark is
+// unconditional across both tabs (issue #69: badges on All are acceptable,
+// same as any other badge - only hiding rows is not); the optional "N new
+// digests since <date>" summary line is Following-only, like the other
+// Following controls.
 (function () {
   "use strict";
 
@@ -63,6 +74,66 @@
       return topics;
     },
   };
+
+  // --- lastVisitStore: the ONE accessor over the last-visit timestamp -----
+  // Same contract as followStore above (behind one accessor, so a future
+  // profile layer can replace localStorage without touching callers). The
+  // value is an ISO 8601 timestamp string of the reader's last visit.
+  var VISIT_KEY = "grepify.last_visit";
+  var lastVisitStore = {
+    get: function () {
+      try {
+        var raw = window.localStorage.getItem(VISIT_KEY);
+        return raw && !isNaN(Date.parse(raw)) ? raw : null;
+      } catch (e) {
+        return null; // private mode / disabled storage -> treat as first visit
+      }
+    },
+    set: function (iso) {
+      try {
+        window.localStorage.setItem(VISIT_KEY, iso);
+      } catch (e) {
+        // storage unavailable: this visit will not stick, so the next visit
+        // is treated as a first visit too - no delta, never wrong data.
+      }
+    },
+  };
+
+  // Read the PREVIOUS visit before overwriting it with this one, so the mark
+  // below always compares against the visit before this one, and the stored
+  // timestamp updates on every view (both requirements from #69).
+  var previousVisit = lastVisitStore.get();
+  lastVisitStore.set(new Date().toISOString());
+
+  // --- since-your-last-visit delta: mark rows created after previousVisit --
+  var newSinceEl = document.getElementById("digest-new-since");
+  var newSinceCount = 0;
+  if (previousVisit !== null) {
+    var sinceMs = Date.parse(previousVisit);
+    rows.forEach(function (row) {
+      // created_at (when the digest was generated), not period_start (what
+      // period it covers) - "since you last opened", not "for a period you
+      // have not seen yet".
+      var createdAt = row.getAttribute("data-created-at");
+      var createdMs = createdAt ? Date.parse(createdAt) : NaN;
+      if (isNaN(createdMs) || createdMs <= sinceMs) return;
+      row.classList.add("digest-new");
+      var badge = document.createElement("span");
+      badge.className = "badge-new";
+      badge.textContent = "new";
+      var link = row.querySelector("a");
+      if (link) link.insertAdjacentElement("afterend", badge);
+      else row.appendChild(badge);
+      newSinceCount++;
+    });
+    if (newSinceEl && newSinceCount > 0) {
+      newSinceEl.textContent =
+        newSinceCount +
+        (newSinceCount === 1 ? " new digest since " : " new digests since ") +
+        previousVisit.slice(0, 10) +
+        ".";
+    }
+  }
 
   // distinct categories present on this page, in first-seen (newest-first) order
   var categories = [];
@@ -130,12 +201,15 @@
   // chips, and Share there, and hide all three in All (so All is the fully
   // unfiltered archive with no controls). The chip box only shows when there
   // are chips to show. Selections survive a hide/show: follows persist in
-  // localStorage and the kind <select> keeps its value.
+  // localStorage and the kind <select> keeps its value. The "N new digests
+  // since <date>" summary (GRP-69) is Following-only too, and only when there
+  // is something new to report.
   function syncControls(following) {
     if (kindForm) kindForm.hidden = !following;
     if (topicFollow) topicFollow.hidden = !following;
     if (chipBox) chipBox.hidden = !following || categories.length === 0;
     if (shareBtn) shareBtn.hidden = !following;
+    if (newSinceEl) newSinceEl.hidden = !following || newSinceCount === 0;
   }
 
   function setView(next) {

@@ -1,17 +1,20 @@
-"""Digests page tests (GRP-38/47/50): server-rendered All-view baseline.
+"""Digests page tests (GRP-38/47/50/69): server-rendered All-view baseline.
 
 Builds a canned site with digests across two categories (``ai`` with a daily and
 a later weekly, plus ``data-eng``) and snapshots the server-rendered
-``digest/index.html`` against a golden. The client-side All/Following tab and
-topic-follow filter (``digests.js``, localStorage + ``?view=``/``?topics=``) are
-NOT exercised here - they only hide rows / switch views in the browser, exactly
-as the daily/weekly kind filter is left to the client. The tested surface is the
-progressive-enhancement baseline: every digest, newest-first by period, which is
-the full ``All`` archive the page degrades to with JS off. Per GRP-50 the filter
-controls (kind form, topic chips, Share) ship server-rendered ``hidden`` - they
-belong to the Following view and digests.js reveals them there - so the baseline
-carries no visible controls. A determinism check (build twice -> identical
-bytes) guards the S8 rule for the page.
+``digest/index.html`` against a golden. The client-side All/Following tab,
+topic-follow filter, and since-your-last-visit delta (``digests.js``,
+localStorage + ``?view=``/``?topics=``) are NOT exercised here - they only hide
+rows / switch views / mark rows in the browser, exactly as the daily/weekly kind
+filter is left to the client. The tested surface is the progressive-enhancement
+baseline: every digest, newest-first by period, which is the full ``All``
+archive the page degrades to with JS off. Per GRP-50 the filter controls (kind
+form, topic chips, Share) ship server-rendered ``hidden`` - they belong to the
+Following view and digests.js reveals them there - so the baseline carries no
+visible controls. Per GRP-69 the same holds for the "N new digests since"
+summary line, plus each row now carries ``data-created-at`` so digests.js can
+compute the delta client-side without a server round trip. A determinism check
+(build twice -> identical bytes) guards the S8 rule for the page.
 """
 
 from __future__ import annotations
@@ -170,6 +173,23 @@ def test_digest_index_is_all_topics_newest_first(tmp_path: Path) -> None:
     assert 'aria-label="Digest view" hidden>' in html
     assert '<form class="filters" id="digest-filters" aria-label="Filter digests" hidden>' in html
     assert '<div class="topic-follow" id="topic-follow" hidden>' in html
+
+
+def test_digest_index_has_last_visit_delta_hooks(tmp_path: Path) -> None:
+    # GRP-69: each row carries data-created-at (when the digest was generated,
+    # not the period it covers) so digests.js can mark rows newer than the
+    # reader's stored last-visit timestamp without a server round trip. The
+    # optional "N new digests since" summary line ships hidden, like the other
+    # Following-only controls (GRP-50) - digests.js reveals it there, and only
+    # when there is something new to report. Both the marking itself and the
+    # summary's text are client-only behavior, not exercised in this
+    # server-rendered baseline (see module docstring).
+    out = _build(tmp_path)
+    html = (out / "digest" / "index.html").read_text(encoding="utf-8")
+    assert 'data-created-at="2026-07-08T13:05:00+00:00"' in html  # daily-ai
+    assert 'data-created-at="2026-07-08T13:00:00+00:00"' in html  # daily-data-eng
+    assert 'data-created-at="2026-07-08T13:10:00+00:00"' in html  # weekly-ai
+    assert '<p class="muted" id="digest-new-since" hidden></p>' in html
 
 
 def test_digest_index_is_deterministic(tmp_path: Path) -> None:
