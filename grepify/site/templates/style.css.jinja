@@ -222,6 +222,36 @@ h2 {
 /* the keyword page has exactly two stats (mentions / sources) */
 .keyword-detail .stats { grid-template-columns: repeat(2, 1fr); }
 
+/* ---- rising strip (home hero, GRP-68) -------------------------- */
+/* first visible heading on the page (h1 above it is visually-hidden and
+   takes no flow space), so it carries no extra top margin of its own. */
+.rising-heading { margin-top: 0; }
+.rising-strip {
+  display: flex; flex-wrap: nowrap;
+  gap: var(--sp-2);
+  overflow-x: auto;
+  padding-bottom: var(--sp-2);
+  margin: 0 0 var(--sp-5);
+}
+/* rising = a grep match, same amber wash as the cloud's .rising badge */
+.rising-chip {
+  display: inline-flex; align-items: baseline; gap: 0.35em;
+  flex: 0 0 auto;
+  font-family: var(--font-mono); font-size: var(--fs-s);
+  color: var(--match);
+  background: var(--match-wash);
+  border-radius: var(--r-s);
+  padding: var(--sp-1) var(--sp-2);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 120ms, color 120ms;
+}
+.rising-chip:hover { background: var(--match); color: var(--match-ink); }
+.rising-chip .delta-up, .rising-chip .delta-down {
+  color: inherit;
+  vertical-align: baseline;
+}
+
 /* ---- the keyword cloud (hero) --------------------------------- */
 .cloud {
   display: flex; flex-wrap: wrap;

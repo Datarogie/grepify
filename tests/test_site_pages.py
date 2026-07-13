@@ -11,8 +11,9 @@ from grepify.site.pages import (
     latest_digest_per_category,
     page_facets,
     paginate,
+    rising_strip,
 )
-from grepify.site.trends import DigestDetail, ItemSummary
+from grepify.site.trends import CloudDataset, DigestDetail, ItemSummary, KeywordCount, Window
 
 
 def _summary(
@@ -232,3 +233,55 @@ def test_latest_digest_per_category_keeps_newest_first_seen() -> None:
 
 def test_latest_digest_per_category_empty_input() -> None:
     assert latest_digest_per_category([]) == []
+
+
+# --- rising strip (GRP-68) ---------------------------------------------------
+
+
+def _cloud(*counts: tuple[str, int, int, bool]) -> CloudDataset:
+    # counts: (keyword, count, delta, rising) - already in the cloud's
+    # count-ranked (-count, keyword) order, as TrendQueries.cloud() produces it.
+    window = Window(start="2026-07-01T00:00:00+00:00", end="2026-07-08T00:00:00+00:00", days=7)
+    return CloudDataset(
+        window=window,
+        keywords=[
+            KeywordCount(keyword=kw, count=count, delta=delta, rising=rising)
+            for kw, count, delta, rising in counts
+        ],
+    )
+
+
+def test_rising_strip_filters_out_non_rising_keywords() -> None:
+    cloud = _cloud(
+        ("genai", 10, 4, True),
+        ("webinar", 8, 1, False),
+        ("agents", 5, 5, True),
+    )
+    assert [kw.keyword for kw in rising_strip(cloud)] == ["genai", "agents"]
+
+
+def test_rising_strip_empty_when_nothing_rising() -> None:
+    cloud = _cloud(("genai", 10, 4, False), ("webinar", 8, 1, False))
+    assert rising_strip(cloud) == []
+
+
+def test_rising_strip_preserves_cloud_count_rank_order() -> None:
+    # rising_strip must not re-sort - it inherits the cloud's already-total
+    # order (-count, keyword); ties here are already broken by keyword asc.
+    cloud = _cloud(
+        ("zeta", 9, 9, True),
+        ("alpha", 9, 9, True),  # tie on count with "zeta", but sorted after it
+        ("beta", 3, 3, True),
+    )
+    assert [kw.keyword for kw in rising_strip(cloud)] == ["zeta", "alpha", "beta"]
+
+
+def test_rising_strip_caps_at_limit() -> None:
+    cloud = _cloud(*[(f"kw{n}", 10 - n, 10 - n, True) for n in range(10)])
+    capped = rising_strip(cloud, limit=3)
+    assert [kw.keyword for kw in capped] == ["kw0", "kw1", "kw2"]
+
+
+def test_rising_strip_default_limit_caps_at_eight() -> None:
+    cloud = _cloud(*[(f"kw{n}", 20 - n, 20 - n, True) for n in range(10)])
+    assert len(rising_strip(cloud)) == 8

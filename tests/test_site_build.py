@@ -103,10 +103,11 @@ def _kw(
     )
 
 
-def build_canned(
+def build_canned(  # noqa: PLR0913 - test fixture builder, each knob is a distinct scenario
     tmp_path: Path,
     *,
     extra_recent_items: int = 0,
+    rising_items: int = 0,
     with_health: bool = True,
     base_path: str = "/grepify/",
     keywords_yaml: str = _KEYWORDS,
@@ -160,6 +161,19 @@ def build_canned(
         )
         for n in range(extra_recent_items)
     ]
+    # GRP-68: N items all tagged "riseterm" and published inside the cloud
+    # window with none in the prior window - is_rising() surges from nothing
+    # (previous_count == 0) as soon as the count clears rising_min_count.
+    items += [
+        _item(
+            f"r{n}",
+            source_id="s1",
+            published_at="2026-07-06T10:00:00+00:00",
+            title=f"Rising story {n}",
+            content_hash=hashlib.blake2b(f"r{n}".encode(), digest_size=8).hexdigest(),
+        )
+        for n in range(rising_items)
+    ]
     repo.add_items(items)
     repo.add_item_keywords(
         [
@@ -170,6 +184,7 @@ def build_canned(
             _kw("i3", "anthropic", 2),
             _kw("i3", "agentic coding", 3),  # multi-word phrase (filters.js round-trip)
             _kw("old", "genai"),
+            *[_kw(f"r{n}", "riseterm") for n in range(rising_items)],
         ]
     )
     repo.close()
@@ -240,6 +255,32 @@ def test_home_pin_fixture_matches_golden(tmp_path: Path) -> None:
     index_html = (out / "index.html").read_text(encoding="utf-8")
     assert index_html == (GOLDEN / "index_pin.html").read_text(encoding="utf-8")
     assert "dbt" not in index_html
+
+
+def test_home_rising_strip_hidden_when_nothing_rising(tmp_path: Path) -> None:
+    # GRP-68: the canned build's cloud keywords all stay below rising_min_count
+    # (3), so nothing is rising - the strip must render no chrome at all, not
+    # even its own heading. `test_home_matches_golden` above already pins this
+    # byte-for-byte (the golden carries no rising markup); this test names the
+    # behavior explicitly so the AC ("hidden entirely when nothing is rising")
+    # has a test that survives even if the golden's exact bytes ever drift.
+    _, out = build_canned(tmp_path)
+    index_html = (out / "index.html").read_text(encoding="utf-8")
+    assert "Rising this week" not in index_html
+    assert "rising-strip" not in index_html
+
+
+def test_home_rising_strip_matches_golden_populated(tmp_path: Path) -> None:
+    # GRP-68: 3 items tagged "riseterm" inside the window, none in the prior
+    # window, clears rising_min_count from a standing start (is_rising()
+    # surges from nothing) - exercises the strip's populated state end to end
+    # (query -> rising_strip() -> template) against a committed golden.
+    _, out = build_canned(tmp_path, rising_items=3)
+    index_html = (out / "index.html").read_text(encoding="utf-8")
+    assert index_html == (GOLDEN / "index_rising.html").read_text(encoding="utf-8")
+    assert "Rising this week" in index_html
+    assert 'class="rising-chip"' in index_html
+    assert "/grepify/keyword/riseterm-" in index_html  # links to its detail page
 
 
 def test_items_matches_golden(tmp_path: Path) -> None:
