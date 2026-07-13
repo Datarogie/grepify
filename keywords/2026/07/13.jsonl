@@ -164,3 +164,9 @@
 {"item_id":"e75f96d250c30fe2fa0ebf39787f511d07a71cc54c024eaf5550912252c360aa","keyword":"mri","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T00:42:37+00:00"}
 {"item_id":"e75f96d250c30fe2fa0ebf39787f511d07a71cc54c024eaf5550912252c360aa","keyword":"ct scan","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T00:42:37+00:00"}
 {"item_id":"e75f96d250c30fe2fa0ebf39787f511d07a71cc54c024eaf5550912252c360aa","keyword":"ai","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T00:42:37+00:00"}
+{"item_id":"c9b59be83a8fda32c20e4c4620f1d8d0a1e7a6892af8f51bf72107bf191281c6","keyword":"christopher nolan","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T01:12:49+00:00"}
+{"item_id":"c9b59be83a8fda32c20e4c4620f1d8d0a1e7a6892af8f51bf72107bf191281c6","keyword":"artificial intelligence","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T01:12:49+00:00"}
+{"item_id":"c9b59be83a8fda32c20e4c4620f1d8d0a1e7a6892af8f51bf72107bf191281c6","keyword":"film industry","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T01:12:49+00:00"}
+{"item_id":"c9b59be83a8fda32c20e4c4620f1d8d0a1e7a6892af8f51bf72107bf191281c6","keyword":"cinema","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T01:12:49+00:00"}
+{"item_id":"c9b59be83a8fda32c20e4c4620f1d8d0a1e7a6892af8f51bf72107bf191281c6","keyword":"technology","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T01:12:49+00:00"}
+{"item_id":"c9b59be83a8fda32c20e4c4620f1d8d0a1e7a6892af8f51bf72107bf191281c6","keyword":"oppenheimer","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-13T01:12:49+00:00"}
