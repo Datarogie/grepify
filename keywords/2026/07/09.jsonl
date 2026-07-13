@@ -2595,14 +2595,6 @@
 {"item_id":"ae49ea9baf274ab4d2ef7523280ce1d38309227e2711c2adf19d633f2a08ae64","keyword":"homes and factories","rank":6,"method":"fallback","model":null,"extracted_at":"2026-07-09T03:25:00+00:00"}
 {"item_id":"ae49ea9baf274ab4d2ef7523280ce1d38309227e2711c2adf19d633f2a08ae64","keyword":"irrelevant info","rank":7,"method":"fallback","model":null,"extracted_at":"2026-07-09T03:25:00+00:00"}
 {"item_id":"ae49ea9baf274ab4d2ef7523280ce1d38309227e2711c2adf19d633f2a08ae64","keyword":"llms help robots","rank":8,"method":"fallback","model":null,"extracted_at":"2026-07-09T03:25:00+00:00"}
-{"item_id":"bba4e8a1fec91ebbf8f04efbfca861a98ef141b4ef3da4829b3b780f5839d8cd","keyword":"tech stack explained","rank":1,"method":"fallback","model":null,"extracted_at":"2026-07-09T03:25:00+00:00"}
-{"item_id":"bba4e8a1fec91ebbf8f04efbfca861a98ef141b4ef3da4829b3b780f5839d8cd","keyword":"agent tech stack","rank":2,"method":"fallback","model":null,"extracted_at":"2026-07-09T03:25:00+00:00"}
-{"item_id":"bba4e8a1fec91ebbf8f04efbfca861a98ef141b4ef3da4829b3b780f5839d8cd","keyword":"stack explained","rank":3,"method":"fallback","model":null,"extracted_at":"2026-07-09T03:25:00+00:00"}
-{"item_id":"bba4e8a1fec91ebbf8f04efbfca861a98ef141b4ef3da4829b3b780f5839d8cd","keyword":"agent tech","rank":4,"method":"fallback","model":null,"extracted_at":"2026-07-09T03:25:00+00:00"}
-{"item_id":"bba4e8a1fec91ebbf8f04efbfca861a98ef141b4ef3da4829b3b780f5839d8cd","keyword":"tech stack","rank":5,"method":"fallback","model":null,"extracted_at":"2026-07-09T03:25:00+00:00"}
-{"item_id":"bba4e8a1fec91ebbf8f04efbfca861a98ef141b4ef3da4829b3b780f5839d8cd","keyword":"https","rank":6,"method":"fallback","model":null,"extracted_at":"2026-07-09T03:25:00+00:00"}
-{"item_id":"bba4e8a1fec91ebbf8f04efbfca861a98ef141b4ef3da4829b3b780f5839d8cd","keyword":"www","rank":7,"method":"fallback","model":null,"extracted_at":"2026-07-09T03:25:00+00:00"}
-{"item_id":"bba4e8a1fec91ebbf8f04efbfca861a98ef141b4ef3da4829b3b780f5839d8cd","keyword":"explained","rank":8,"method":"fallback","model":null,"extracted_at":"2026-07-09T03:25:00+00:00"}
 {"item_id":"e7d0ad1719781182e3d76d762f82221f35dfe9a44f0c12aec18d80f09d52dbcd","keyword":"commercialization phase investment","rank":1,"method":"fallback","model":null,"extracted_at":"2026-07-09T03:25:00+00:00"}
 {"item_id":"e7d0ad1719781182e3d76d762f82221f35dfe9a44f0c12aec18d80f09d52dbcd","keyword":"phase investment","rank":2,"method":"fallback","model":null,"extracted_at":"2026-07-09T03:25:00+00:00"}
 {"item_id":"e7d0ad1719781182e3d76d762f82221f35dfe9a44f0c12aec18d80f09d52dbcd","keyword":"entering its commercialization","rank":3,"method":"fallback","model":null,"extracted_at":"2026-07-09T03:25:00+00:00"}

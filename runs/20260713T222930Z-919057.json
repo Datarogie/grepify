@@ -1,0 +1,16 @@
+{
+  "run_id": "20260713T222930Z-919057",
+  "command": "maintain-renormalize",
+  "started_at": "2026-07-13T22:29:30+00:00",
+  "finished_at": "2026-07-13T22:29:34+00:00",
+  "ok": true,
+  "counts": {
+    "items_scanned": 2449,
+    "items_rewritten": 17,
+    "keyword_rows_deleted": 83,
+    "items_reextracted": 17,
+    "keywords_written": 63
+  },
+  "durations_ms": {},
+  "notes": []
+}

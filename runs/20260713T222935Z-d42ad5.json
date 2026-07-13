@@ -1,0 +1,28 @@
+{
+  "run_id": "20260713T222935Z-d42ad5",
+  "command": "ingest",
+  "started_at": "2026-07-13T22:29:35+00:00",
+  "finished_at": "2026-07-13T22:32:25+00:00",
+  "ok": true,
+  "counts": {
+    "sources_attempted": 90,
+    "sources_ok": 81,
+    "sources_empty": 1,
+    "sources_error": 8,
+    "sources_skipped": 27,
+    "items_new": 4
+  },
+  "durations_ms": {
+    "total_ms": 169886
+  },
+  "notes": [
+    "ai-news: ai-news: unparseable feed: SAXParseException('not well-formed (invalid token)')",
+    "artificial-lawyer: artificial-lawyer: HTTP 415",
+    "bdan-ai: bdan-ai: HTTP 415",
+    "just-ai-news: just-ai-news: unparseable feed: SAXParseException('not well-formed (invalid token)')",
+    "la-biblia-de-la-ia: la-biblia-de-la-ia: HTTP 415",
+    "cogito-tech-blog: cogito-tech-blog: unparseable feed: SAXParseException('not well-formed (invalid token)')",
+    "kavita-ganesans-blog: kavita-ganesans-blog: unparseable feed: SAXParseException('not well-formed (invalid token)')",
+    "marktechpost: marktechpost: unparseable feed: SAXParseException('not well-formed (invalid token)')"
+  ]
+}
