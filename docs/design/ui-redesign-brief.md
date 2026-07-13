@@ -9,7 +9,7 @@ drops straight into the existing Jinja templates.
 ## 1. Product, audience, job
 
 - **Grepify** is a personal, self-hosted news/trend aggregator (AI + data-eng
-  categories). It ingests RSS / YouTube / Reddit / X, extracts keywords with a
+  categories). It ingests RSS / YouTube / Reddit, extracts keywords with a
   cheap LLM, computes trends, and writes daily/weekly digests. Inspired by
   trendcloud.io.
 - **Audience: one person (Kyle), primarily on a phone.** The site is a morning
