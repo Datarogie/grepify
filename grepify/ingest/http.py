@@ -16,16 +16,42 @@ failure, TLS error, or the request exceeding its timeout. :func:`get_or_raise`
 is the one place that translates such a transport exception into a
 per-source-scoped :class:`~grepify.errors.FetchError`, so all three fetchers
 isolate failures identically (PRD §9 - one dead source never fails the run).
+
+TLS posture
+-----------
+:class:`HttpxTransport` fetches through an :class:`ssl.SSLContext` pinned to
+security level 1 (``DEFAULT@SECLEVEL=1``) so feeds hosted on older or
+misconfigured servers - the ones whose legacy ciphers/keys OpenSSL 3 rejects at
+its default security level 2, surfacing as an "sslv3 alert handshake failure" -
+can still complete their handshake. Certificate verification stays fully ON
+(``check_hostname`` and ``verify_mode`` keep their secure defaults) and the
+protocol floor stays at TLS 1.2; only weaker ciphers/keys are permitted, never
+weaker protocol versions. The context only PERMITS weaker crypto, it never
+forces it, so strong servers still negotiate strong crypto. Public feeds carry
+no secrets or auth, so accepting legacy ciphers is the standard feed-reader
+posture.
 """
 
 from __future__ import annotations
 
+import ssl
 from dataclasses import dataclass
 from typing import Protocol
 
 import httpx
 
 from grepify.errors import FetchError
+
+
+def _build_ssl_context() -> ssl.SSLContext:
+    """Build an SSL context that permits legacy-server ciphers (security level
+    1) while keeping certificate verification ON. See the module docstring's
+    "TLS posture" note for why. The protocol floor stays at TLS 1.2.
+    """
+    ctx = ssl.create_default_context()
+    ctx.set_ciphers("DEFAULT@SECLEVEL=1")
+    ctx.minimum_version = ssl.TLSVersion.TLSv1_2
+    return ctx
 
 
 @dataclass(frozen=True)
@@ -44,11 +70,25 @@ class Transport(Protocol):
 
 
 class HttpxTransport:
-    """Production :class:`Transport`, backed by ``httpx``."""
+    """Production :class:`Transport`, backed by ``httpx``.
+
+    Uses a security-level-1 SSL context (see module "TLS posture") so legacy
+    feed servers negotiate; cert verification stays on. The context can be
+    injected for testing.
+    """
+
+    def __init__(self, *, ssl_context: ssl.SSLContext | None = None) -> None:
+        self._ssl_context = ssl_context or _build_ssl_context()
 
     def get(self, url: str, *, headers: dict[str, str], timeout: float) -> HttpResponse:
         try:
-            response = httpx.get(url, headers=headers, timeout=timeout, follow_redirects=True)
+            response = httpx.get(
+                url,
+                headers=headers,
+                timeout=timeout,
+                follow_redirects=True,
+                verify=self._ssl_context,
+            )
         except httpx.HTTPError as exc:
             raise FetchError(f"GET {url} failed: {exc}") from exc
         return HttpResponse(

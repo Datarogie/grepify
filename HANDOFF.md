@@ -1,37 +1,39 @@
 # HANDOFF - #45 source-fetch error sweep
 
-Updated: 2026-07-12T22:46:59Z
+Updated: 2026-07-13T00:43:34Z
 Issue: #45 (source-fetch error sweep, worked by error class). The issue is the
 source of truth for scope. Runbook: docs/feed-triage.md. Background (historical):
 docs/prev1-hardening.md.
-Branch base: main @ 84b2301 (post-v1 tranche #39/#37/#38 merged via #42/#43/#44).
+Branch base: main @ cf649e2 (post-v1 tranche + #45 C1 (#46) + GRP-47 (#48) merged).
 
 ## State
-The pre-v1 hardening work and the post-v1 follow-up tranche (#39, #37, #38) are
-DONE and merged to main. This handoff supersedes the old pre-v1 hardening
-checkpoint that used to live here (all of it merged; see git history if needed).
-
-Now in progress: #45 - working the remaining non-Reddit source-fetch errors by
-error class, one class per PR, each off latest main, merged one at a time.
+Pre-v1 hardening and the post-v1 follow-up tranche (#39/#37/#38) are merged. This
+session's #45 sweep is in progress. Also merged this session (NOT part of #45):
+GRP-47 (#48) - the "Your digest" view was folded into a Digests All/Following tab
+and the follow-filter no longer leaks into the archive (a GRP-38 follow-up from
+Kyle feedback).
 
 ## Error classes and status
-  C1 http_4xx 403 + unparseable  [PR open - this branch]
-       403: aimodels, copyleaks-blog, ai-techpark, benn-substack.
-       unparseable: aim-ai, shaip-blog, theodo-data-and-ai-blog.
-       Fix: browser User-Agent + feed Accept header in the RSS fetcher
-       (grepify/ingest/rss.py). Those 7 re-enabled to retry. clarifai-blog stays
-       disabled (404, not a WAF block - a header change cannot fix a dead URL).
-  C2 http_4xx 415 flappers        [todo, low priority]
-       artificial-lawyer, bdan-ai, la-biblia-de-la-ia. Enabled and mostly
-       working. The C1 Accept header may already stop the intermittent 415s;
-       re-check on the next doctor summary before doing more.
-  C3 tls sslv3 handshake          [todo]
-       inside-ai-news, knowtechie-ai. Try a modern-TLS/cipher setting in the
-       transport, else confirm genuinely dead and keep disabled with evidence.
+  C1 http_4xx 403 + unparseable  [MERGED #46]
+       browser User-Agent + feed Accept header in grepify/ingest/rss.py; 7 sources
+       re-enabled (aimodels, copyleaks-blog, ai-techpark, benn-substack, aim-ai,
+       shaip-blog, theodo-data-and-ai-blog); clarifai-blog kept disabled (404).
+       Recovery not yet confirmed - verify on the next pipeline doctor summary.
+  C2 http_4xx 415 flappers        [pending doctor re-check]
+       artificial-lawyer, bdan-ai, la-biblia-de-la-ia. C1's feed Accept header is
+       now live on main and may already stop the intermittent 415s. Re-check the
+       NEXT doctor summary before touching them; they are enabled + mostly working
+       (low priority). If still flapping, an Accept tweak is the lever.
+  C3 tls sslv3 handshake          [PR open - this branch]
+       inside-ai-news, knowtechie-ai. Fix: HttpxTransport uses an SSL context at
+       security level 1 (permits legacy server ciphers OpenSSL 3 rejects; cert
+       verification stays ON). Both re-enabled to retry. Kyle approved permitting
+       legacy TLS for public-feed fetches (2026-07-13). Verify next doctor summary;
+       disable again with evidence if still dead.
   C4 http_429                     [no action - Reddit, quiet by design (T6)]
 
-Scope is FETCH errors only. Extract/digest/build-stage error triage is a
-deferred separate issue - do NOT touch it here.
+Scope is FETCH errors only. Extract/digest/build-stage error triage is a deferred
+separate issue - do NOT touch it here.
 
 ## Hard constraint
 CI/build egress to feed hosts is BLOCKED (agent proxy returns 403 CONNECT for
@@ -52,17 +54,16 @@ confirm. Never push to main. make check must be green.
 
 ## Gotchas
   - Ignore the stale scratch branches (claude/grepify-post-v1-tranche-w3i62x and
-    the -37/-38/-39 ones). Do NOT base work on them or open PRs for them; the
-    post-v1 one is behind main and would revert the merged tranche.
+    the -37/-38/-39 ones). Do NOT base work on them or open PRs for them.
   - The data branch holds truth at the REPO ROOT (logs/fetch, items/, digests/,
     runs/), NOT under data/. Inspect via a detached worktree (see
     docs/feed-triage.md).
   - Auto-merge is OFF (enable_pr_auto_merge fails - expected); Kyle merges PRs
     manually. The git token can push but CANNOT delete remote branches (403) -
     leave branch cleanup to Kyle.
-  - No em/en dashes and no AI-authorship attribution anywhere (code, docs,
-    commits, PR titles/bodies, commit author identity).
+  - No em/en dashes and no AI-authorship attribution anywhere.
 
 ## Next concrete step
-Land C1 (this PR). Then start C3 (tls) off latest main; re-check C2 (415) on the
-next doctor summary to see if the C1 Accept header already fixed it.
+Land C3 (this PR). After the next scheduled pipeline doctor summary: confirm C1's
+7 sources and C3's 2 sources recovered (record outcomes in docs/feed-triage.md),
+and re-check C2's 415 flappers. Disable-with-evidence anything still dead.

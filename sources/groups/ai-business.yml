@@ -137,7 +137,9 @@ sources:
     kind: rss
     name: Inside AI News
     url: https://insideainews.com/feed/
-    enabled: false  # T5 (#30) audit 2026-07-11: dead - TLS handshake failure on every fetch_log attempt (16/16)
+    # #45 2026-07-13: re-enabled to retry - was TLS sslv3 handshake failure (16/16). The HTTP transport
+    #                 now uses a security-level-1 SSL context (permits legacy server ciphers; cert
+    #                 verification stays on). Verify on next pipeline doctor summary; disable again if still dead.
     added_at: "2026-07-08"
   - id: just-ai-news
     kind: rss
@@ -148,7 +150,9 @@ sources:
     kind: rss
     name: KnowTechie AI
     url: https://knowtechie.com/category/ai/feed/
-    enabled: false  # T5 (#30) audit 2026-07-11: dead - TLS handshake failure on every fetch_log attempt (16/16)
+    # #45 2026-07-13: re-enabled to retry - was TLS sslv3 handshake failure (16/16). The HTTP transport
+    #                 now uses a security-level-1 SSL context (permits legacy server ciphers; cert
+    #                 verification stays on). Verify on next pipeline doctor summary; disable again if still dead.
     added_at: "2026-07-08"
   - id: la-biblia-de-la-ia
     kind: rss
