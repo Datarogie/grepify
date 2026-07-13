@@ -51,6 +51,18 @@ def test_stylesheet_matches_golden() -> None:
     assert css == (GOLDEN / "style.css").read_text(encoding="utf-8")
 
 
+def test_hidden_attribute_is_authoritative() -> None:
+    # Regression (GRP-50): the HTML `hidden` attribute must beat component
+    # `display:` rules. Several components set `display: flex` on their base
+    # class (the tablist, .filters, .topic-follow, .topic-chips), so without a
+    # global `[hidden] { display: none !important }` an element stays rendered
+    # even while its `hidden` attribute is set - which left the Digests All
+    # view showing its filter controls. Prior tests only checked the `.hidden`
+    # PROPERTY on the elements, never rendered visibility, so they missed this.
+    css = render_stylesheet(create_environment())
+    assert "[hidden] { display: none !important; }" in css
+
+
 def test_render_is_deterministic_twice_in_a_row() -> None:
     env = create_environment()
     ctx = PageContext(meta=_meta(), active="items")
