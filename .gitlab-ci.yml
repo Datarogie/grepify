@@ -15,6 +15,15 @@
 # GitLab CI/CD variables (masked), never in the repo (PRD §5). The scheduled
 # `pages` job is the only one that consumes them - merge-request pipelines never
 # reference a secret, mirroring the GitHub split.
+#
+# GRP-74: on GitHub, a failed `pipeline` run opens/updates a pinned issue via
+# GITHUB_TOKEN. GitLab's CI_JOB_TOKEN has no Issues API access, and adding one
+# would mean a new secret, so this side can't mirror that step. GitLab already
+# routes scheduled-pipeline failure emails to the schedule's owner (a fixed
+# field set in Settings > CI/CD > Schedules, not silently reassigned by the
+# next person to edit this file) - keep the `pages` schedule owned by Kyle's
+# account with failed-pipeline email notifications on, and that closes the
+# same gap without new code.
 
 stages:
   - validate
