@@ -63,10 +63,15 @@ mobile-driven, agent-built project from drifting. Read them before touching code
   first-time/outside contributors require maintainer approval) - do not
   relax them for convenience.
 
-## Work-in-progress cap
+## Parallel work
 
-- **Max 2 active work streams** at any time. `[P]`-marked issues are the only
-  safe parallels; everything else is sequential within an epic.
+- No hard cap on active work streams (the old max-2 rule is retired,
+  2026-07-13, Kyle's call). Run as many parallel sessions/agents as the work
+  supports, with one constraint: **two concurrent streams must not touch the
+  same files or the same PRD decision.** Check open PRs and claimed issues
+  before starting; if your issue overlaps an in-flight branch, wait or pick
+  another. Issues that share modules stay sequential; blocked-by lines in
+  issue bodies are binding.
 
 ## Agent skills
 

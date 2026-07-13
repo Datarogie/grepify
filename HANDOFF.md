@@ -15,7 +15,9 @@ carried forward below.
 - Tracker cleaned: #29-#33, #37, #38, #39, #47, #50 were all merged but left
   open; each closed with a comment linking its merged PR.
 - New backlog created, #55-#75, each issue self-contained per
-  docs/issue-template.md. Suggested order (WIP cap 2 applies):
+  docs/issue-template.md. WIP cap removed (Kyle, 2026-07-13; see CLAUDE.md
+  Parallel work) - parallelize freely where files don't overlap. Suggested
+  order:
     1. #55 release hygiene (O1 + tag v1.0.0)
     2. #56 x-kind validate gap  [small]
     3. #57 pin no-op            [small]
