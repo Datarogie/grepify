@@ -13,6 +13,12 @@ Failure modes
   the pipeline, which must not run on bad config).
 - :meth:`validate` never raises for config problems - it aggregates every issue
   into a :class:`ValidationReport` so ``grepify validate`` reports them all.
+  When called with ``registered_kinds`` (GRP-56), it also flags any *enabled*
+  source whose :class:`~grepify.models.SourceKind` has no entry in that set -
+  the same gap that would otherwise only surface as a ``KeyError`` at ingest
+  time (see :mod:`grepify.ingest.orchestrator`). Passing ``None`` (the
+  default) skips that check, so callers that only care about schema/cross-file
+  validity (most existing tests) are unaffected.
 """
 
 from __future__ import annotations
@@ -22,7 +28,7 @@ from abc import ABC, abstractmethod
 from pydantic import BaseModel, Field
 
 from grepify.config.schemas import KeywordsConfig, SettingsConfig
-from grepify.models import Source, SourceGroup
+from grepify.models import Source, SourceGroup, SourceKind
 
 
 class ValidationReport(BaseModel):
@@ -63,5 +69,12 @@ class ConfigProvider(ABC):
         """Return the settings config."""
 
     @abstractmethod
-    def validate(self) -> ValidationReport:
-        """Validate all config and aggregate every problem into a report."""
+    def validate(
+        self, *, registered_kinds: frozenset[SourceKind] | None = None
+    ) -> ValidationReport:
+        """Validate all config and aggregate every problem into a report.
+
+        ``registered_kinds``, when given, is checked against every enabled
+        source's ``kind`` (see the module docstring); omit it to validate
+        shape/cross-file rules only.
+        """

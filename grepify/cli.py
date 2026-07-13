@@ -20,15 +20,23 @@ keyword rows, and force re-extract just those items. Broader maintenance modes
 
 Failure modes
 -------------
-- ``validate`` exits non-zero when config is invalid (CI gate on every MR).
+- ``validate`` exits non-zero when config is invalid (CI gate on every MR),
+  including an *enabled* source whose ``kind`` has no fetcher registered in
+  the production registry (GRP-56: ``kind`` passes schema validation - it is
+  a real :class:`~grepify.models.SourceKind` - but nothing dispatches it, so
+  this is checked explicitly rather than left to surface at ingest time).
 - ``ingest`` never fails the process for a single dead source (isolated in the
   orchestrator, PRD §9); it only propagates systemic failures (bad config,
-  unreadable truth). A source whose kind is cadence-reduced (T6, GRP-31 -
-  Reddit by default) is simply not dispatched on runs it is not due, logged
-  ``skipped`` instead - never an error, never something that can fail the run.
-  The health snapshot it writes never flags a ``settings.ingest.quiet_kinds``
-  source (Reddit by default) on consecutive failures either, though the
-  failure count is still computed and shown (:mod:`grepify.health`).
+  unreadable truth). An enabled source whose kind has no registered fetcher
+  is the same per-source isolation, defense in depth against the case above
+  slipping past ``validate`` (config edited after the last validate run): it
+  is logged as an ``error`` fetch_log row, not a systemic failure. A source
+  whose kind is cadence-reduced (T6, GRP-31 - Reddit by default) is simply not
+  dispatched on runs it is not due, logged ``skipped`` instead - never an
+  error, never something that can fail the run. The health snapshot it writes
+  never flags a ``settings.ingest.quiet_kinds`` source (Reddit by default) on
+  consecutive failures either, though the failure count is still computed and
+  shown (:mod:`grepify.health`).
 - ``extract`` exits non-zero if ``LLM_BASE_URL`` is unset (nothing to call) -
   same convention as ``backfill``, below. A :class:`~grepify.errors.DataQualityError`
   (PRD §10.7 gate failed) propagates and fails the run loudly, writing no
@@ -705,10 +713,16 @@ def maintain_renormalize(ctx: typer.Context) -> None:
 
 @app.command()
 def validate(ctx: typer.Context) -> None:
-    """Schema-validate config; exit non-zero if invalid (CI gate on every MR)."""
+    """Schema-validate config; exit non-zero if invalid (CI gate on every MR).
+
+    Also rejects any enabled source whose ``kind`` has no fetcher in the
+    production registry (GRP-56) - the same registry ``ingest`` builds, so
+    this reports exactly what ``ingest`` would otherwise only discover
+    per-source at run time.
+    """
     state: AppState = ctx.obj
     provider = FilesystemConfigProvider(state.config_root)
-    report = provider.validate()
+    report = provider.validate(registered_kinds=build_registry().registered_kinds())
     typer.echo(report.summary())
     for warning in report.warnings:
         typer.echo(f"  warning: {warning}")

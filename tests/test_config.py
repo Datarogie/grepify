@@ -153,3 +153,63 @@ def test_keywords_and_settings_parse(tmp_path: Path) -> None:
     assert provider.keywords().aliases == {"gen ai": "genai"}
     assert provider.settings().llm.active_profile == "gemini-free"
     assert provider.settings().timezone == "America/Edmonton"
+
+
+# --- kind-coverage check (GRP-56) --------------------------------------------
+#
+# `kind: x` passes schema validation on its own (schemas.py has a locator rule
+# for it) even though the production registry registers no fetcher for it -
+# that gap is exactly what these tests guard. Without `registered_kinds`,
+# `validate()` does not look at fetcher coverage at all (test_valid_config_passes,
+# above, relies on that: `_GROUP_OK` includes an `x` source and still passes).
+
+_RSS_ONLY = frozenset({SourceKind.RSS, SourceKind.YOUTUBE, SourceKind.REDDIT})
+
+
+def test_enabled_source_with_unregistered_kind_is_rejected(tmp_path: Path) -> None:
+    report = _provider(tmp_path, {"ai-research.yml": _GROUP_OK}).validate(
+        registered_kinds=_RSS_ONLY
+    )
+    assert not report.ok
+    matches = [e for e in report.errors if "x-karpathy" in e]
+    assert len(matches) == 1
+    assert "kind 'x'" in matches[0]
+    assert "no registered fetcher" in matches[0]
+
+
+def test_source_with_registered_kind_is_not_rejected(tmp_path: Path) -> None:
+    all_kinds = frozenset(SourceKind)
+    report = _provider(tmp_path, {"ai-research.yml": _GROUP_OK}).validate(
+        registered_kinds=all_kinds
+    )
+    assert report.ok, report.errors
+
+
+def test_disabled_source_with_unregistered_kind_is_not_rejected(tmp_path: Path) -> None:
+    group = """
+        group: g
+        name: G
+        category: ai
+        sources:
+          - id: x-off
+            kind: x
+            handle: someone
+            enabled: false
+    """
+    report = _provider(tmp_path, {"g.yml": group}).validate(registered_kinds=_RSS_ONLY)
+    assert report.ok, report.errors
+
+
+def test_unregistered_kind_in_disabled_group_is_not_rejected(tmp_path: Path) -> None:
+    group = """
+        group: g
+        name: G
+        category: ai
+        enabled: false
+        sources:
+          - id: x-off
+            kind: x
+            handle: someone
+    """
+    report = _provider(tmp_path, {"g.yml": group}).validate(registered_kinds=_RSS_ONLY)
+    assert report.ok, report.errors

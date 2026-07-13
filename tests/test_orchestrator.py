@@ -5,8 +5,6 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-import pytest
-
 from grepify.clock import FixedClock
 from grepify.config.filesystem import FilesystemConfigProvider
 from grepify.errors import FetchError
@@ -144,27 +142,67 @@ def test_per_run_cap_truncates_raw_items(tmp_path: Path) -> None:
     assert by_id["good-src"].items_new == 10
 
 
-def test_unregistered_source_kind_raises_and_stops_the_run(tmp_path: Path) -> None:
-    groups = {
-        "g.yml": """
-            group: g
-            name: G
-            category: ai
-            sources:
-              - id: x-src
-                kind: x
-                handle: someone
-        """
-    }
-    cfg_root = write_config(tmp_path / "sources", groups=groups)
-    services = IngestServices(
+_GROUPS_UNREGISTERED_KIND = {
+    "g.yml": """
+        group: g
+        name: G
+        category: ai
+        sources:
+          - id: x-src
+            kind: x
+            handle: someone
+          - id: good-src
+            kind: rss
+            url: https://example.com/good/feed
+    """
+}
+
+
+def _services_missing_x(tmp_path: Path) -> IngestServices:
+    cfg_root = write_config(tmp_path / "sources", groups=_GROUPS_UNREGISTERED_KIND)
+    reg = FetcherRegistry()
+    reg.register(FakeFetcher(SourceKind.RSS, default=[_raw(1)]))  # nothing registered for `x`
+    return IngestServices(
         config=FilesystemConfigProvider(cfg_root),
         repository=JsonlSqliteRepository(tmp_path / "data"),
-        registry=FetcherRegistry(),  # nothing registered for `x` - systemic, not a FetchError
+        registry=reg,
         clock=FixedClock(datetime(2026, 7, 8, 12, 0, tzinfo=UTC)),
     )
-    with pytest.raises(KeyError):
-        run_ingest(services, run_id="run-1")
+
+
+def test_unregistered_source_kind_is_isolated_as_error(tmp_path: Path) -> None:
+    """GRP-56 defense in depth: a source whose kind has no registered fetcher
+    is isolated exactly like a :class:`FetchError` - logged ``error``, run
+    continues, every other source still ingests. ``grepify validate`` is the
+    primary defense (see test_config.py); this is what happens if one slips
+    past it anyway."""
+    services = _services_missing_x(tmp_path)
+
+    summary = run_ingest(services, run_id="run-1")  # must not raise
+
+    by_id = {r.source_id: r for r in summary.results}
+    assert by_id["x-src"].status is FetchStatus.ERROR
+    assert by_id["x-src"].error is not None
+    assert "no fetcher registered" in by_id["x-src"].error
+    assert by_id["good-src"].status is FetchStatus.OK
+    assert by_id["good-src"].items_new == 1
+    assert summary.sources_error == 1
+    assert summary.sources_ok == 1
+
+
+def test_unregistered_source_kind_rerun_is_idempotent(tmp_path: Path) -> None:
+    """The double-run idempotency guarantee (F-ING-07) holds even with an
+    unregistered-kind source in the mix: the error source keeps erroring
+    (not "fixed" by a rerun) and the good source writes zero new rows."""
+    services = _services_missing_x(tmp_path)
+    run_ingest(services, run_id="run-1")
+    second = run_ingest(services, run_id="run-2")
+
+    by_id = {r.source_id: r for r in second.results}
+    assert by_id["x-src"].status is FetchStatus.ERROR
+    assert by_id["good-src"].status is FetchStatus.OK
+    assert by_id["good-src"].items_new == 0
+    assert second.items_new == 0
 
 
 def test_item_cap_matches_reddit_fetchers_client_side_cap() -> None:
