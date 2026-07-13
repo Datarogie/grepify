@@ -63,6 +63,7 @@ These five facts explain most confusing symptoms. Read them before triaging.
 | Build step failed / site did not regenerate | [Build failure](#build-failure) |
 | `Commit pipeline data` step failed | [Data-branch commit conflicts](#data-branch-commit-conflicts) |
 | Site did not update though the run was green | [Pages deploy failure](#pages-deploy-failure) |
+| Site is stale and there are NO recent pipeline runs at all | [Pages deploy failure](#pages-deploy-failure) (cron auto-disabled) |
 | Site shows old HTML-junk keywords (`div`, `span`) | [O1: HTML-contaminated keywords](#o1-html-contaminated-keywords) |
 
 ## Error taxonomy: what stops the run vs what degrades
@@ -401,6 +402,13 @@ is red, or the run is fully green yet the live site did not change.
   Order in the workflow is commit-data -> build -> deploy, so a stale site with
   a green run points at build reading the wrong data root or an empty artifact;
   reproduce the build offline (see [Build failure](#build-failure)).
+- **Stale site and NO recent runs at all (silent death):** GitHub auto-disables
+  cron workflows after about 60 days without repo activity, and a disabled cron
+  produces no failing runs, so the pipeline's failure-notification issue never
+  fires. Check the Actions tab for a "scheduled workflows disabled" banner on
+  the pipeline workflow and re-enable with one tap. This is the one failure
+  mode no in-repo notification can catch; if it ever bites, a free external
+  uptime monitor pinging the health page closes it for good.
 
 ---
 

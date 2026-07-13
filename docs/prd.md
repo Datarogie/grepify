@@ -358,8 +358,9 @@ Layers (all runnable locally and in CI on every MR):
 3. **Pipeline integration**: end-to-end run against fixture fakes into a temp SQLite → assert row counts, idempotency (run twice, same counts), fallback path (LLM fake returns 500 → items get fallback keywords → build succeeds).
 4. **Golden/snapshot**: `build` from a canned DB fixture → snapshot key pages' HTML/JSON (F-SIT-08). Any rendering change is an explicit snapshot update in the MR diff.
 5. **LLM eval (lightweight, offline)**: 30-item labeled set (titles → expected keyword sets); scored on jaccard overlap; run manually/`make eval` when changing extract prompt or model - not in CI gate, but result pasted in MR description (no silent prompt regressions).
-6. **Smoke (live, scheduled only)**: nightly job hits 3 canary sources for real + 1 real LLM call; failures notify but don't block deploys.
-7. **Data quality checks in-pipeline**: post-extract assertions (every new item has ≥1 keyword or an explicit `no_keywords` flag; no keyword > 60 chars; digest references only existing keywords). Violations fail the run loudly - no silent behavior changes.
+6. **Data quality checks in-pipeline**: post-extract assertions (every new item has ≥1 keyword or an explicit `no_keywords` flag; no keyword > 60 chars; digest references only existing keywords). Violations fail the run loudly - no silent behavior changes.
+
+A separate nightly smoke canary was scoped out (GRP-74, 2026-07-13, Kyle-approved): the 3x/day `pipeline` cron already hits every real source and calls the real LLM on each run that reaches extract, and `doctor`/the health page already surface per-source failure classes - a dedicated canary would duplicate that coverage. What the canary item actually needed was "failures notify", which `pipeline.yml` now does directly (a pinned tracking issue on `if: failure()`) instead of through a fourth workflow.
 
 Definition of done per issue: code + tests + fixtures + docstring failure modes + `make check` green.
 
