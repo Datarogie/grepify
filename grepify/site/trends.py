@@ -398,8 +398,10 @@ class TrendQueries:
         the trailing-emission window (GRP-35's 90d rule passes it here)."""
         where = "where i.published_at >= ? " if since is not None else ""
         params: tuple[object, ...] = (since, limit) if since is not None else (limit,)
+        # Reason for the ignore below: `where` is one of two fixed literals chosen above, never
+        # user input - all actual values are bound through `params`/`?`.
         rows = self._conn.execute(
-            "select i.item_id, i.source_id, coalesce(s.name, i.source_id) as name, "
+            "select i.item_id, i.source_id, coalesce(s.name, i.source_id) as name, "  # noqa: S608
             "i.kind, i.title, i.canonical_url, i.published_at, i.summary, i.content_hash "
             "from items i "
             "left join sources s on s.source_id = i.source_id "
@@ -465,8 +467,10 @@ class TrendQueries:
         if not ids:
             return {}
         placeholders = ",".join("?" for _ in ids)
+        # Reason for the ignore below: `placeholders` is a fixed count of `?` marks (never user
+        # input); the actual ids are bound through `tuple(ids)` below.
         rows = self._conn.execute(
-            f"select item_id, keyword from item_keywords where item_id in ({placeholders})",
+            f"select item_id, keyword from item_keywords where item_id in ({placeholders})",  # noqa: S608
             tuple(ids),
         )
         for item_id, keyword in rows:
@@ -510,8 +514,10 @@ class TrendQueries:
         if not item_ids:
             return []
         placeholders = ",".join("?" for _ in item_ids)
+        # Reason for the ignore below: `placeholders` is a fixed count of `?` marks (never user
+        # input); the actual ids are bound through `tuple(item_ids)` below.
         rows = self._conn.execute(
-            "select i.item_id, i.source_id, coalesce(s.name, i.source_id) as name, "
+            "select i.item_id, i.source_id, coalesce(s.name, i.source_id) as name, "  # noqa: S608
             "i.kind, i.title, i.canonical_url, i.published_at, i.summary, i.content_hash "
             "from items i "
             "left join sources s on s.source_id = i.source_id "

@@ -49,13 +49,24 @@ target-version = "py312"
 [tool.ruff.lint]
 # Core rule set. Explicit and conservative so agents in later sessions inherit a
 # stable lint contract rather than chasing churn from newly-enabled defaults.
-select = ["E", "F", "I", "N", "UP", "B", "SIM", "PL", "RUF"]
+select = ["E", "F", "I", "N", "UP", "B", "SIM", "PL", "RUF", "S"]
 ignore = [
     "PLR2004", # magic-value comparisons are fine in tests / small constants
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["PLR2004", "S101"]
+"tests/**" = [
+    "PLR2004",
+    "S101",
+    # Test fixtures shell out to a real `git` (and, in one script test,
+    # `sys.executable`/`bash`) in throwaway tmp_path repos to exercise the
+    # data-commit / data-branch scripts end to end - always list-form argv,
+    # never shell=True, never untrusted input. Same shape as the annotated
+    # calls in grepify/repository/commit.py; scoped here instead of ~25
+    # identical per-line noqas across these fixture files.
+    "S603",
+    "S607",
+]
 
 [tool.mypy]
 # Strict on core (the shipped package). Tests are excluded from strict typing.

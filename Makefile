@@ -6,7 +6,7 @@
 .DEFAULT_GOAL := help
 UV ?= uv
 
-.PHONY: help install install-pipeline fmt lint typecheck test check \
+.PHONY: help install install-pipeline fmt lint typecheck test check audit \
         ingest extract trends digest digest-daily digest-weekly build validate health doctor backfill \
         digest-gate data-branch commit-data site eval
 
@@ -35,6 +35,12 @@ test: ## Run the test suite
 	$(UV) run pytest
 
 check: lint typecheck test ## Full DoD gate: lint + typecheck + test
+
+audit: ## Dependency vulnerability scan against uv.lock (GRP-58); secret-free, run as its own CI step
+	@tmp=$$(mktemp) && \
+	trap 'rm -f "$$tmp"' EXIT && \
+	$(UV) export --format requirements.txt --no-hashes --no-emit-project -q -o "$$tmp" && \
+	uvx --python 3.12 pip-audit -r "$$tmp"
 
 # --- Pipeline entrypoints (PRD §8 F-OPS-01). Stubbed in E0; filled by later epics. ---
 

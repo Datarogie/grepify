@@ -33,6 +33,11 @@ validate:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "schedule"
   script:
     - make check
+    # GRP-58: dependency vulnerability scan against uv.lock (pip-audit via
+    # uvx, pinned to the project's Python). References zero secrets - only
+    # reads the already-resolved lock file and queries public vulnerability
+    # data (PyPI/OSV), same posture as any other outbound-network lint step.
+    - make audit
     - make validate
 
 # Scheduled pipeline + Pages deploy folded into one job (mirrors pipeline.yml,

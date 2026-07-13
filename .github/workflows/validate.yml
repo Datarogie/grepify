@@ -46,5 +46,12 @@ jobs:
       - name: Lint, typecheck, test
         run: make check
 
+      # GRP-58: dependency vulnerability scan against uv.lock (pip-audit via
+      # uvx, pinned to the project's Python). References zero secrets - only
+      # reads the already-resolved lock file and queries public vulnerability
+      # data (PyPI/OSV), same posture as any other outbound-network lint step.
+      - name: Dependency audit
+        run: make audit
+
       - name: Validate config
         run: make validate
