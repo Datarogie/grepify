@@ -74,7 +74,10 @@ class SourceSpec(_ConfigModel):
     def canonical_url(self) -> str:
         """Canonical feed identity - the same feed always hashes the same way."""
         if self.kind is SourceKind.RSS:
-            assert self.url is not None
+            # Reason for the ignore below: `_check_locator` above already enforces that RSS
+            # sources set `url` (and only `url`); this is a type-narrowing
+            # assertion for mypy, not a runtime input check.
+            assert self.url is not None  # noqa: S101
             return self.url
         if self.kind is SourceKind.YOUTUBE:
             return f"https://www.youtube.com/feeds/videos.xml?channel_id={self.channel_id}"

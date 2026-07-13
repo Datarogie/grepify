@@ -353,7 +353,7 @@ class JsonlSqliteRepository(Repository):
     def _scalar_count(self, table: str) -> int:
         conn = self._require_conn()
         # table is a fixed internal literal, never user input.
-        cursor = conn.execute(f"select count(*) from {table}")
+        cursor = conn.execute(f"select count(*) from {table}")  # noqa: S608
         (count,) = cursor.fetchone()
         return int(count)
 

@@ -1,0 +1,17 @@
+# GRP-58: supply-chain guard - keep pinned floors and Actions SHAs/tags from
+# silently rotting. Version-update PRs land individually and are reviewed one
+# at a time (no auto-merge here); this file only opens them.
+#
+# pip ecosystem reads dependency floors from pyproject.toml / uv.lock (uv is
+# a pip-compatible ecosystem for Dependabot's purposes) at the repo root.
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

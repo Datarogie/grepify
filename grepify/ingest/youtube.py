@@ -129,7 +129,10 @@ class YouTubeFetcher(Fetcher):
                 raise FetchError(f"{source.source_id}: HTTP {response.status_code}")
             if attempt < self._max_attempts - 1:
                 self._sleep(_BACKOFF_BASE_SECONDS * (2**attempt))
-        assert response is not None  # loop always runs >= 1 time (_max_attempts >= 1)
+        # Reason for the ignore below: type-narrowing invariant, not a runtime input check -
+        # the loop above always runs >= 1 time (_max_attempts >= 1 is enforced
+        # in __init__), so `response` is always assigned by the time we get here.
+        assert response is not None  # noqa: S101
         raise FetchError(
             f"{source.source_id}: HTTP {response.status_code} after {self._max_attempts} attempts"
         )
