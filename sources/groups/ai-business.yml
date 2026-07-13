@@ -42,7 +42,8 @@ sources:
     kind: rss
     name: AI TechPark
     url: https://ai-techpark.com/category/ai/feed/
-    enabled: false  # T5 (#30) audit 2026-07-11: dead - HTTP 403 on every fetch_log attempt (16/16)
+    # #45 2026-07-12: re-enabled to retry - was HTTP 403 (WAF/UA block, 16/16). RSS fetcher now sends a
+    #                 browser User-Agent + feed Accept header. Verify on next pipeline doctor summary.
     added_at: "2026-07-08"
   - id: ai-time-journal
     kind: rss
@@ -53,7 +54,9 @@ sources:
     kind: rss
     name: AIM AI
     url: https://analyticsindiamag.com/ai-news-updates/feed/
-    enabled: false  # T5 (#30) audit 2026-07-11: dead - serves an unparseable (HTML/challenge) page, not feed XML, on every fetch_log attempt (16/16)
+    # #45 2026-07-12: re-enabled to retry - was unparseable (HTML/challenge page, not feed XML, 16/16).
+    #                 RSS fetcher now sends a browser User-Agent + feed Accept header. Verify on next
+    #                 pipeline doctor summary.
     added_at: "2026-07-08"
   - id: ars-technica-ai
     kind: rss

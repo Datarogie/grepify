@@ -67,5 +67,37 @@ Doctor over the data branch: 128 sources.
   Revisit if it stays empty long-term or starts erroring.
 - **Reddit** (~26 sources, streak ~17, `http_4xx` 429): quiet by design (T6).
   Not fixed, not disabled.
+
+## Current resolution (evidence, as of #45)
+
+#45 works the remaining non-Reddit source-fetch errors one error class per PR.
+
+**Class 1 - `http_4xx` 403 + `unparseable` (this PR).**
+
+- **Root cause.** The RSS fetcher sent a bot User-Agent
+  (`grepify-ingest/0.1 ...`) and no `Accept` header. Cloudflare / Substack WAFs
+  answer that with an HTTP 403, or serve an HTML challenge page - which is not
+  feed XML, so feed parsing fails and the source surfaces as `unparseable`. Same
+  root cause, two error classes.
+- **Fix.** `grepify/ingest/rss.py` now sends a realistic browser User-Agent plus
+  a feed `Accept` header (`application/rss+xml` / `application/atom+xml` / xml)
+  on every request, so WAF-fronted hosts return the feed XML. Conditional-GET
+  headers are unchanged.
+- **Re-enabled to retry (7).** 403: `aimodels`, `copyleaks-blog`, `ai-techpark`,
+  `benn-substack`. unparseable: `aim-ai`, `shaip-blog`,
+  `theodo-data-and-ai-blog`. Each carries an inline `#45` evidence note in
+  `sources/groups/*.yml`.
+- **Kept disabled.** `clarifai-blog` was an HTTP 404 (moved/dead URL), not a WAF
+  block, so a fetch-header change cannot recover it - it needs a corrected URL.
+- **Verification is pending.** Egress to feed hosts is blocked in CI/build, so
+  this fix cannot be verified live in the PR's validate run. It lands blind and
+  is verified on the next scheduled pipeline run's doctor job summary: the 7
+  re-enabled sources should fetch/parse instead of 403/unparseable.
+
+**Remaining classes (follow-up PRs).** Class 2 - `http_4xx` 415 flappers
+(`artificial-lawyer`, `bdan-ai`, `la-biblia-de-la-ia`); the class 1 Accept
+header may already stop the intermittent 415s, so re-check on the next doctor
+summary first. Class 3 - `tls` handshake failures (`inside-ai-news`,
+`knowtechie-ai`).
 </content>
 </invoke>
