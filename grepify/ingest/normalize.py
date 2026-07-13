@@ -81,6 +81,7 @@ from grepify.ingest.dedup import compute_content_hash
 from grepify.models import Item, Source, SourceKind
 
 _SUMMARY_MAX_CHARS = 2000  # PRD §6 / F-ING-04: store a truncated excerpt only
+_MAX_STRIP_PASSES = 10
 
 # Tracking/analytics query params dropped during canonicalization: they vary per
 # referral for the *same* article, so keeping them would defeat url-based dedup.
@@ -163,11 +164,16 @@ def _strip_html(text: str) -> str:
     docstring's "Summary cleaning" and "Entity-encoded and double-encoded markup"
     sections. The fixed point is what makes :func:`clean_summary` idempotent."""
     previous = " ".join(text.split())
-    while True:
+    # Bounded, not while-True: the input is arbitrary internet content running in
+    # the cron job, so a pathological non-converging input must cost at worst an
+    # under-stripped summary, never a hung run. Real inputs converge in <= 3
+    # passes (one per encoding layer).
+    for _ in range(_MAX_STRIP_PASSES):
         extracted = " ".join(_extract_text(previous).split())
         if extracted == previous:
-            return extracted
+            break
         previous = extracted
+    return previous
 
 
 def clean_summary(text: str) -> str:
