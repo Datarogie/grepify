@@ -13,6 +13,8 @@ import json
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+import pytest
+
 from grepify.clock import from_iso, to_iso
 from grepify.config.schemas import KeywordsConfig
 from grepify.keywords import KeywordRules
@@ -114,14 +116,18 @@ def _canned_repo(tmp_path: Path) -> JsonlSqliteRepository:
     return repo
 
 
-def _rules() -> KeywordRules:
-    return KeywordRules.from_config(KeywordsConfig(aliases={"gen ai": "genai"}, mute=["webinar"]))
+def _rules(*, pin: tuple[str, ...] = (), extra_mute: tuple[str, ...] = ()) -> KeywordRules:
+    return KeywordRules.from_config(
+        KeywordsConfig(aliases={"gen ai": "genai"}, mute=["webinar", *extra_mute], pin=list(pin))
+    )
 
 
-def _queries(tmp_path: Path) -> TrendQueries:
+def _queries(
+    tmp_path: Path, *, pin: tuple[str, ...] = (), extra_mute: tuple[str, ...] = ()
+) -> TrendQueries:
     _canned_repo(tmp_path)
     conn = open_cache(DataLayout(tmp_path))
-    return TrendQueries(conn, _rules())
+    return TrendQueries(conn, _rules(pin=pin, extra_mute=extra_mute))
 
 
 # --- window arithmetic -------------------------------------------------------
@@ -166,6 +172,67 @@ def test_cloud_limit(tmp_path: Path) -> None:
     q = _queries(tmp_path)
     cloud = q.cloud(window_ending_at(_NOW, days=7), limit=1, rising_min_count=3, rising_ratio=3.0)
     assert [k.keyword for k in cloud.keywords] == ["genai"]
+
+
+# --- pin injection (GRP-57, PRD §7) -------------------------------------------
+#
+# Canned window counts (after alias/mute merge): genai=3, agents=1, llm=1,
+# webinar=muted (dropped before pin is ever consulted). At limit=1 only
+# "genai" survives the plain count cutoff, so this is the cutoff a pin has to
+# punch through - the same setup the AC describes ("a pinned keyword with 1
+# mention appears even when limit would exclude it").
+
+_PIN_TABLE = [
+    # (pin, extra_mute, expected keywords in the limit=1 cloud)
+    ((), (), {"genai"}),  # baseline: no pin, nothing below the cutoff shows
+    (("agents",), (), {"genai", "agents"}),  # pinned + has a mention -> surfaces
+    (("llm",), (), {"genai", "llm"}),  # a different pinned keyword, same effect
+    (("agents", "llm"), (), {"genai", "agents", "llm"}),  # multiple pins at once
+    (("dbt",), (), {"genai"}),  # pinned but 0 mentions in window -> pin invents nothing
+    (("webinar",), (), {"genai"}),  # pinned but already muted -> mute wins, stays out
+    (("agents",), ("agents",), {"genai"}),  # muted AND pinned -> mute wins (explicit)
+    (("gen ai",), (), {"genai"}),  # pinning the alias surface form, not the canonical
+    #                                 target, is a no-op - matches mute_set's existing
+    #                                 not-alias-resolved behavior (GRP-57 keeps them consistent)
+]
+
+
+@pytest.mark.parametrize(("pin", "extra_mute", "expected"), _PIN_TABLE)
+def test_cloud_pin_mute_alias_precedence_at_limit(
+    tmp_path: Path, pin: tuple[str, ...], extra_mute: tuple[str, ...], expected: set[str]
+) -> None:
+    q = _queries(tmp_path, pin=pin, extra_mute=extra_mute)
+    cloud = q.cloud(window_ending_at(_NOW, days=7), limit=1, rising_min_count=3, rising_ratio=3.0)
+    assert {k.keyword for k in cloud.keywords} == expected
+
+
+def test_cloud_pin_injected_keyword_keeps_real_count_and_delta(tmp_path: Path) -> None:
+    # Pin injection folds the keyword back in with its *actual* count/delta/
+    # rising - it is not a bare placeholder entry.
+    q = _queries(tmp_path, pin=("agents",))
+    cloud = q.cloud(window_ending_at(_NOW, days=7), limit=1, rising_min_count=3, rising_ratio=3.0)
+    agents = next(k for k in cloud.keywords if k.keyword == "agents")
+    assert agents.count == 1  # i3 only
+    assert agents.delta == 1  # 0 in the previous window
+    assert agents.rising is False  # below rising_min_count=3
+
+
+def test_cloud_pin_result_stays_sorted_by_count_then_keyword(tmp_path: Path) -> None:
+    # The re-sort after folding pins back in preserves the same total order
+    # the unpinned path uses - byte-stable regardless of how many pins fire.
+    q = _queries(tmp_path, pin=("agents", "llm"))
+    cloud = q.cloud(window_ending_at(_NOW, days=7), limit=1, rising_min_count=3, rising_ratio=3.0)
+    assert [k.keyword for k in cloud.keywords] == ["genai", "agents", "llm"]
+
+
+def test_cloud_pin_is_a_noop_when_already_within_limit(tmp_path: Path) -> None:
+    # Pinning a keyword that would have shown up anyway must not duplicate it
+    # or otherwise change the result.
+    q = _queries(tmp_path, pin=("genai",))
+    with_pin = q.cloud(
+        window_ending_at(_NOW, days=7), limit=1, rising_min_count=3, rising_ratio=3.0
+    )
+    assert [k.keyword for k in with_pin.keywords] == ["genai"]
 
 
 # --- rising flag (GRP-40, F-TRD-03) -------------------------------------------

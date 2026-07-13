@@ -49,6 +49,18 @@ _KEYWORDS = textwrap.dedent(
     """
 ).strip()
 
+_KEYWORDS_WITH_PIN = textwrap.dedent(
+    """
+    aliases:
+      "gen ai": genai
+    mute:
+      - webinar
+    pin:
+      - anthropic
+      - dbt
+    """
+).strip()
+
 _GROUP = textwrap.dedent(
     """
     group: ai-research
@@ -97,12 +109,13 @@ def build_canned(
     extra_recent_items: int = 0,
     with_health: bool = True,
     base_path: str = "/grepify/",
+    keywords_yaml: str = _KEYWORDS,
 ) -> tuple[BuildResult, Path]:
     """Materialize config + truth, build the site, return (result, output_dir)."""
     conf = tmp_path / "sources"
     (conf / "groups").mkdir(parents=True, exist_ok=True)
     (conf / "settings.yml").write_text(_SETTINGS, encoding="utf-8")
-    (conf / "keywords.yml").write_text(_KEYWORDS, encoding="utf-8")
+    (conf / "keywords.yml").write_text(keywords_yaml, encoding="utf-8")
     (conf / "groups" / "ai-research.yml").write_text(_GROUP, encoding="utf-8")
 
     data = tmp_path / "data"
@@ -210,6 +223,23 @@ def test_home_matches_golden(tmp_path: Path) -> None:
     assert (out / "index.html").read_text(encoding="utf-8") == (GOLDEN / "index.html").read_text(
         encoding="utf-8"
     )
+
+
+def test_home_pin_fixture_matches_golden(tmp_path: Path) -> None:
+    # GRP-57: end-to-end wiring for a real `keywords.yml` with a `pin:` list,
+    # through the full build (config parse -> KeywordRules -> cloud() -> the
+    # home template). "anthropic" already has a mention within the default
+    # cloud limit, so pinning it is a byte-stable no-op (proves pin doesn't
+    # duplicate an already-shown keyword); "dbt" has zero mentions in the
+    # canned window, so it stays absent (proves pin never invents a mention).
+    # The precise below-the-cutoff injection is exercised more cheaply by the
+    # table-driven `TrendQueries.cloud()` unit tests in test_site_trends.py,
+    # which can force a tiny `limit` directly instead of needing 60+ keywords
+    # in a canned build.
+    _, out = build_canned(tmp_path, keywords_yaml=_KEYWORDS_WITH_PIN)
+    index_html = (out / "index.html").read_text(encoding="utf-8")
+    assert index_html == (GOLDEN / "index_pin.html").read_text(encoding="utf-8")
+    assert "dbt" not in index_html
 
 
 def test_items_matches_golden(tmp_path: Path) -> None:
