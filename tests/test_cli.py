@@ -153,8 +153,8 @@ def test_build_writes_site_and_manifest(tmp_path: Path) -> None:
     manifest = latest_manifest(DataLayout(data))
     assert manifest is not None
     assert manifest.command == "build"
-    # home + digest index + your-digest + items + sources + health
-    assert manifest.counts["pages_written"] == 6
+    # home + digest index + items + sources + health
+    assert manifest.counts["pages_written"] == 5
 
 
 def _fake_registry(**_kwargs: object) -> FetcherRegistry:

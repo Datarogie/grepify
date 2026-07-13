@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
 <meta name="robots" content="noindex">
-<title>grepify - your digest</title>
+<title>grepify - digests</title>
 <link rel="stylesheet" href="/grepify/static/style.css">
 <script src="/grepify/static/theme.js"></script>
 </head>
@@ -18,17 +18,19 @@
 </div>
 <nav class="site-nav" aria-label="Primary">
 <a href="/grepify/">Home</a>
-<a href="/grepify/digest/">Digests</a>
-<a href="/grepify/digest/yours/" aria-current="page">Your digest</a>
+<a href="/grepify/digest/" aria-current="page">Digests</a>
 <a href="/grepify/items/">Items</a>
 <a href="/grepify/sources/">Sources</a>
 <a href="/grepify/health/">Health</a>
 </nav>
 </header>
 <main id="main" class="site-main">
-<h1>Your digest</h1>
-<p class="muted">Follow the topics you care about. Follows are saved on this device; use Share to carry them elsewhere.</p>
-<form class="filters" aria-label="Filter your digest">
+<h1>Digests</h1>
+<div class="tabs" id="digest-views" role="tablist" aria-label="Digest view" hidden>
+<button type="button" class="tab" role="tab" data-view="all" aria-selected="true">All</button>
+<button type="button" class="tab" role="tab" data-view="following" aria-selected="false">Following</button>
+</div>
+<form class="filters" aria-label="Filter digests">
 <label>Show
 <select id="filter-digest-kind">
 <option value="">all</option>
@@ -56,7 +58,7 @@
 <div class="meta">weekly · ai · week of 2026-06-29</div>
 </li>
 </ul>
-<p class="muted" id="digest-empty" hidden>No digests in your topics yet. <a href="/grepify/digest/">Browse all digests</a>.</p>
+<p class="muted" id="digest-empty" hidden>No digests match this filter.</p>
 <script src="/grepify/static/digests.js" defer></script>
 </main>
 <footer class="site-footer">

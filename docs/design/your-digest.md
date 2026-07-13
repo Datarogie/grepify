@@ -91,6 +91,41 @@ flight), build #38 on top.
   out of scope for #38, likely a future epic).
 - IA: **dedicated "Your digest" page + add the topic filter to the main Digests
   index too** (IA-1, recommended). Build both surfaces.
+  **SUPERSEDED by REVISION 2026-07-13 (see below):** the dedicated page and the
+  separate nav item are gone; the personalized view is now the `Following` tab
+  on the single Digests page, and the topic filter is scoped to that tab so the
+  `All` archive is never follow-filtered.
+
+## REVISION 2026-07-13 (Kyle)
+
+GRP-47 (#47) folds the personalized view into the Digests page and stops the
+archive from ever being follow-filtered. This supersedes the IA-1 shape above.
+
+- The separate **"Your digest" nav item and `digest/yours/` page are removed.**
+  Their content now lives on the single Digests page (`digest/index.html`).
+- The Digests page gains an **`All` / `Following` tab** (a client-side tablist,
+  progressively enhanced; default view is `All`).
+  - **`All` shows every digest and is NEVER follow-filtered.** The daily/weekly
+    kind filter still narrows it, but the follow-set never hides rows here.
+  - **`Following` hides digests whose category is not in the followed set;** the
+    topic chips + Share operate here.
+- The **topic-follow chips stay visible** on the Digests page. Toggling a chip
+  always updates the follow-set (so `Following` reflects it), but in `All` it
+  never hides anything.
+- **Why:** the old design leaked the follow filter into the archive - the index
+  and the "Your digest" page shared one localStorage key and one `digests.js`,
+  so following a topic hid rows on BOTH pages. Scoping the filter to the
+  `Following` tab keeps `All` a true, unfiltered archive.
+- **Share** now deep-links to the `Following` tab carrying the topic set, e.g.
+  `.../digest/?view=following&topics=ai,data-eng`. An incoming `?topics=` still
+  seeds the follow-set; an incoming `?view=following` selects the Following tab
+  on load. The active tab is per-visit + URL-seeded and is deliberately NOT
+  persisted to localStorage (persisting it would re-create the cross-visit
+  stickiness this revision removes).
+- With JS off the tablist is not revealed and the page degrades to the full
+  server-rendered list (= `All`); no dead end.
+- The `followStore` accessor contract is unchanged, so a future profile layer
+  still supersedes it without touching callers.
 
 ## Open questions for Kyle (RESOLVED above)
 Q1. Persistence: localStorage-primary + URL-share override (recommended), or a
