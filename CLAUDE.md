@@ -90,5 +90,13 @@ Single-context layout: a root `CONTEXT.md` (created lazily by `/domain-modeling`
 - SQL is lowercase; never `select *`. Interfaces stay Postgres-swappable - no
   SQLite-specific types in `Repository` / `ConfigProvider` signatures.
 - Every module documents its **failure modes** in its docstring.
+- **Minimal, self-documenting code; comments are the exception** (Kyle,
+  2026-07-13). Prefer clear names, small functions, and obvious control flow
+  over explanatory comments. A comment earns its place only by stating a
+  constraint the code cannot express (a protocol quirk, a deliberate
+  trade-off, a non-obvious invariant). Never narrate what the next line does,
+  restate the issue/PR, or explain why a change is correct - that belongs in
+  the MR description. Module docstrings (including the failure-modes rule
+  above) stay; inline comment noise goes.
 - Definition of done per issue: code + tests + fixtures + docstring failure
   modes + `make check` green.
