@@ -31,7 +31,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -73,12 +73,33 @@ class SiteMeta:
     site, ``/`` for a user/root deploy); it prefixes every internal link so the
     same build works under either. ``generated_at``/``run_id`` come from the
     injected clock + run manifest (provenance in the footer).
+
+    ``asset_versions`` maps a ``static/`` asset filename (``digests.js``,
+    ``style.css``, ...) to a short content hash. Templates route every static
+    reference through :meth:`asset`, which appends ``?v=<hash>`` so a redeploy
+    of changed JS/CSS lands on a fresh URL and GitHub Pages cannot keep serving
+    a stale cached copy. The hash is a pure function of the asset bytes, so
+    identical content yields an identical URL and byte-stable output; only a
+    real content change moves the query string. It defaults to empty so pure
+    ``render_page`` snapshots (which do not build the static tree) fall back to
+    the bare, unversioned URL.
     """
 
     title: str
     base_path: str
     generated_at: str
     run_id: str
+    asset_versions: Mapping[str, str] = field(default_factory=dict)
+
+    def asset(self, name: str) -> str:
+        """Base-path-prefixed ``static/`` URL for ``name``, cache-busted if known.
+
+        Appends ``?v=<hash>`` when a version is registered for the asset,
+        otherwise returns the bare ``{base_path}static/{name}`` URL.
+        """
+        version = self.asset_versions.get(name)
+        suffix = f"?v={version}" if version else ""
+        return f"{self.base_path}static/{name}{suffix}"
 
 
 @dataclass(frozen=True)

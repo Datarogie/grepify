@@ -38,7 +38,7 @@
 {% endfor %}
 </ul>
 <p class="muted" id="digest-empty" hidden>No digests match this filter.</p>
-<script src="{{ meta.base_path }}static/digests.js" defer></script>
+<script src="{{ meta.asset('digests.js') }}" defer></script>
 {% else %}
 <p class="muted">No digests generated yet.</p>
 {% endif %}

@@ -51,6 +51,18 @@ def test_stylesheet_matches_golden() -> None:
     assert css == (GOLDEN / "style.css").read_text(encoding="utf-8")
 
 
+def test_hidden_attribute_is_authoritative() -> None:
+    # Regression (GRP-50): the HTML `hidden` attribute must beat component
+    # `display:` rules. Several components set `display: flex` on their base
+    # class (the tablist, .filters, .topic-follow, .topic-chips), so without a
+    # global `[hidden] { display: none !important }` an element stays rendered
+    # even while its `hidden` attribute is set - which left the Digests All
+    # view showing its filter controls. Prior tests only checked the `.hidden`
+    # PROPERTY on the elements, never rendered visibility, so they missed this.
+    css = render_stylesheet(create_environment())
+    assert "[hidden] { display: none !important; }" in css
+
+
 def test_render_is_deterministic_twice_in_a_row() -> None:
     env = create_environment()
     ctx = PageContext(meta=_meta(), active="items")
@@ -75,6 +87,26 @@ def test_base_path_prefixes_every_internal_link() -> None:
     assert '<script src="/grepify/static/theme.js"></script>' in html
     brand = '<a class="brand" href="/grepify/">grepify<span class="caret"'
     assert brand in html
+
+
+def test_asset_url_falls_back_to_bare_when_unversioned() -> None:
+    # A SiteMeta with no registered versions (the pure-render path) emits the
+    # plain base-path URL, so render-only snapshots stay unversioned.
+    meta = _meta()
+    assert meta.asset("digests.js") == "/grepify/static/digests.js"
+
+
+def test_asset_url_appends_version_when_known() -> None:
+    meta = SiteMeta(
+        title="grepify",
+        base_path="/grepify/",
+        generated_at="2026-07-09T12:00:00+00:00",
+        run_id="20260709T120000Z-abc123",
+        asset_versions={"digests.js": "deadbeef"},
+    )
+    assert meta.asset("digests.js") == "/grepify/static/digests.js?v=deadbeef"
+    # an asset with no registered version still degrades to the bare URL
+    assert meta.asset("style.css") == "/grepify/static/style.css"
 
 
 def test_no_external_fonts_or_trackers() -> None:

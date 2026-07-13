@@ -93,6 +93,15 @@
 /* ---- base ------------------------------------------------- */
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
+/* The HTML `hidden` attribute must win over component `display:` rules.
+   Several components below set `display: flex` on their base class (the
+   tablist, .filters, .topic-follow, .topic-chips), which would otherwise
+   override the user-agent `[hidden] { display: none }` and leave the
+   element rendered while `hidden` is set. The tablist reveal and the
+   Digests All-view control hiding both toggle `element.hidden`, so this
+   rule is what makes that toggling actually change what renders (and it
+   keeps server-rendered `hidden` elements hidden with JS off). */
+[hidden] { display: none !important; }
 body {
   margin: 0;
   background: var(--bg);
