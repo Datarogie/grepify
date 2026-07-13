@@ -474,6 +474,18 @@ a.tag:hover { color: var(--match); border-color: var(--match); }
 }
 .topic-share { margin-left: auto; }
 
+/* ---- since-your-last-visit delta mark (digests index, GRP-69) -------- */
+.badge-new {
+  display: inline-block;
+  font-family: var(--font-mono); font-size: var(--fs-xs);
+  color: var(--bg); background: var(--match);
+  border-radius: var(--r-s);
+  padding: 1px var(--sp-2);
+  margin-left: var(--sp-2);
+  vertical-align: middle;
+  text-transform: lowercase;
+}
+
 /* ---- items browser: near-dup expander + pager ----------------------- */
 .similar { margin-top: var(--sp-2); }
 .similar summary {

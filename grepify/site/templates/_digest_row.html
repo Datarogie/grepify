@@ -1,11 +1,14 @@
 {#
-  Shared digest-row macro (GRP-38, GRP-47). One definition, rendered by the
-  Digests index (digest_index.html) for both the All and Following tabs.
-  ``data-kind`` drives the daily/weekly filter and ``data-category`` drives the
-  Following-view topic filter (both in digests.js).
+  Shared digest-row macro (GRP-38, GRP-47, GRP-69). One definition, rendered
+  by the Digests index (digest_index.html) for both the All and Following
+  tabs. ``data-kind`` drives the daily/weekly filter, ``data-category`` drives
+  the Following-view topic filter, and ``data-created-at`` drives the
+  since-your-last-visit delta mark (all in digests.js). ``created_at`` is when
+  the digest was generated, not the period it covers - the delta is "since you
+  last opened", not "for a period you have not seen".
 #}
 {% macro digest_row(d, base_path) -%}
-<li class="digest" data-kind="{{ d.kind }}" data-category="{{ d.category }}">
+<li class="digest" data-kind="{{ d.kind }}" data-category="{{ d.category }}" data-created-at="{{ d.created_at }}">
 <a href="{{ base_path }}digest/{{ d.kind }}/{{ digest_slug(d.digest_id, d.kind) }}/">{{ d.title }}</a>
 <div class="meta">{{ d.kind }} · {{ d.category }} · {% if d.kind == "weekly" %}week of {{ d.period_start[:10] }}{% else %}{{ d.period_start[:10] }}{% endif %}</div>
 {% if d.top_keywords %}

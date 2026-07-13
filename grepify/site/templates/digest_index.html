@@ -14,6 +14,14 @@
   archive (no kind filter, no follow filter, no inert controls); Following runs
   both the kind filter and the topic-follow filter. With JS off the tablist and
   controls stay hidden and the page degrades to the full All list.
+
+  GRP-69 adds a since-your-last-visit delta: digests.js remembers the reader's
+  last visit in localStorage (same accessor pattern as the follow set) and
+  marks digest rows created since then. The per-row mark is a badge digests.js
+  injects into the row (no static markup, so JS-off ships nothing extra); the
+  `digest-new-since` line below is the optional Following-only summary and,
+  like the other Following controls, ships server-rendered `hidden` and is
+  only revealed by digests.js under Following.
 #}
 <div class="tabs" id="digest-views" role="tablist" aria-label="Digest view" hidden>
 <button type="button" class="tab" role="tab" data-view="all" aria-selected="true">All</button>
@@ -32,6 +40,7 @@
 <div class="topic-chips" id="topic-chips" hidden></div>
 <button type="button" class="topic-share" id="share-topics" hidden>Share</button>
 </div>
+<p class="muted" id="digest-new-since" hidden></p>
 <ul class="feed" id="digest-list">
 {% for d in digests %}
 {{ rows.digest_row(d, meta.base_path) }}
