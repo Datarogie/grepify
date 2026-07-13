@@ -1,19 +1,32 @@
-"""Keyword normalization + alias/mute application (GRP-23).
+"""Keyword normalization + alias/mute/pin application (GRP-23, GRP-57).
 
 Pure, deterministic transforms applied to already-extracted keyword strings
 (GRP-21/22 already trimmed + sanity-checked them; this is the fuller
 normalization the PRD reserves for downstream consumers, F-EXT-03/F-EXT-05).
-Per PRD §6, alias/mute is "applied at trend-computation time, not extraction
-time, so remaps are retroactive and non-destructive" - this module has no
-Repository/ConfigProvider dependency and does not run inside the extract
-batcher; it is the shared utility the pipeline wiring (GRP-25) and the trend
-queries (E3 GRP-31) call when reading ``item_keywords`` rows back out.
+Per PRD §6, alias/mute/pin is "applied at trend-computation time, not
+extraction time, so remaps are retroactive and non-destructive" - this module
+has no Repository/ConfigProvider dependency and does not run inside the
+extract batcher; it is the shared utility the pipeline wiring (GRP-25) and the
+trend queries (E3 GRP-31, GRP-57) call when reading ``item_keywords`` rows
+back out.
 
 Pipeline: :func:`normalize_keyword` (lowercase, trim, collapse whitespace,
 strip trailing punctuation) → alias substitution → mute drop. Singularization
 is mentioned in the PRD §6 schema comment but not in the F-EXT-03 requirement
 list; omitted here (a stemmer/lemmatizer is non-trivial and false-positive
 prone - flagged as a PRD-diff candidate rather than guessed at).
+
+Pin precedence (PRD §7, GRP-57)
+--------------------------------
+``pin_set`` holds the normalized ``keywords.yml`` ``pin`` entries. Callers
+(:mod:`grepify.site.trends`) check it against a keyword's *canonical* form -
+the same form ``mute_set`` is checked against in :meth:`KeywordRules.apply`.
+**Mute wins over pin**: a keyword that is both muted and pinned is dropped by
+``apply`` before any caller ever gets a canonical form to test against
+``pin_set``, so a muted-and-pinned keyword cannot resurface via pin. Pin also
+never invents a mention: a caller only consults ``pin_set`` for canonical
+keywords that already have at least one counted mention in the window, so a
+pinned keyword with zero mentions there stays absent.
 
 Failure modes
 -------------
@@ -45,16 +58,20 @@ def normalize_keyword(raw: str) -> str:
 
 @dataclass(frozen=True)
 class KeywordRules:
-    """Precomputed, normalized alias map + mute set for one config snapshot.
+    """Precomputed, normalized alias map + mute/pin sets for one config snapshot.
 
-    Both sides of ``keywords.yml``'s ``aliases`` map and every ``mute`` entry
-    are run through :func:`normalize_keyword` once at construction, so lookups
-    against already-normalized keywords are exact-match and case/whitespace
-    insensitive on the raw config text.
+    Both sides of ``keywords.yml``'s ``aliases`` map and every ``mute``/``pin``
+    entry are run through :func:`normalize_keyword` once at construction, so
+    lookups against already-normalized keywords are exact-match and
+    case/whitespace insensitive on the raw config text. ``pin_set`` is not
+    resolved through ``alias_map`` (matching ``mute_set``'s existing
+    behavior): pin a keyword's canonical form, not a surface form that merely
+    aliases to it.
     """
 
     alias_map: dict[str, str]
     mute_set: frozenset[str]
+    pin_set: frozenset[str]
 
     @classmethod
     def from_config(cls, config: KeywordsConfig) -> KeywordRules:
@@ -63,7 +80,8 @@ class KeywordRules:
             for alias, canonical in config.aliases.items()
         }
         mute_set = frozenset(normalize_keyword(m) for m in config.mute)
-        return cls(alias_map=alias_map, mute_set=mute_set)
+        pin_set = frozenset(normalize_keyword(p) for p in config.pin)
+        return cls(alias_map=alias_map, mute_set=mute_set, pin_set=pin_set)
 
     def apply(self, raw: str) -> str | None:
         """Normalize -> alias -> mute. ``None`` if the result is muted (F-EXT-05).
@@ -76,6 +94,17 @@ class KeywordRules:
         if canonical in self.mute_set:
             return None
         return canonical
+
+    def is_pinned(self, canonical: str) -> bool:
+        """Whether ``canonical`` (an already-``apply``-d keyword) is pinned.
+
+        Callers must pass the canonical form ``apply`` returned, not a raw
+        keyword - pin, like mute, matches on the post-alias form. Since
+        ``apply`` already drops muted keywords before a caller ever has a
+        canonical form to pass here, a muted-and-pinned keyword can never
+        reach this check (mute wins over pin, GRP-57).
+        """
+        return canonical in self.pin_set
 
 
 def apply_to_keyword(row: ItemKeyword, rules: KeywordRules) -> ItemKeyword | None:

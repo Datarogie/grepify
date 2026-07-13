@@ -23,6 +23,24 @@ is its number of **distinct items** in the window (an ``llm`` row and a
 ``fallback`` row for the same keyword on the same item count once - §6's
 method-in-primary-key design).
 
+Pin injection (PRD §7, GRP-57)
+-------------------------------
+:meth:`TrendQueries.cloud` ranks by in-window count and truncates to ``limit``,
+same as before - but before truncating it now folds back in any pinned
+keyword (:attr:`grepify.keywords.KeywordRules.pin_set`) that has at least one
+mention in the window, even if that mention count would otherwise put it
+below the cutoff. Two invariants, worth restating because they are easy to
+get backwards:
+
+- **Pins never invent a mention.** A pinned keyword only surfaces if it is
+  already a key in the window's merged count map - a pin with zero mentions
+  in the window stays absent, full stop.
+- **Mute wins over pin.** ``_merged_counts`` already drops muted keywords via
+  ``KeywordRules.apply`` before pin is ever consulted, so a keyword that is
+  both muted and pinned never has a chance to reach the pin check - it is
+  gone before pin injection runs. This is the documented precedence per the
+  issue: mute is treated as the stronger, more deliberate signal.
+
 Determinism (F-SIT-08 / S8)
 ---------------------------
 - Window bounds are computed from an **injected** instant, never a clock read
@@ -299,10 +317,17 @@ class TrendQueries:
         rising_ratio: float,
     ) -> CloudDataset:
         """Top ``limit`` keywords by in-window count, with deltas + rising flag
-        (F-TRD-01/F-TRD-03). ``rising_min_count``/``rising_ratio`` are threaded
-        in from ``settings.digest`` by the caller (build orchestrator), never
+        (F-TRD-01/F-TRD-03), plus any pinned keyword with a mention in the
+        window even if it falls below that cutoff (PRD §7, GRP-57).
+        ``rising_min_count``/``rising_ratio`` are threaded in from
+        ``settings.digest`` by the caller (build orchestrator), never
         defaulted here, so the cloud and the digest prompt always agree on the
         same config-driven thresholds.
+
+        Pin never invents a mention (a pin with 0 mentions in the window
+        stays absent) and mute always wins over pin (a muted-and-pinned
+        keyword was already dropped by ``_merged_counts`` before this method
+        ever sees it) - see the module docstring's "Pin injection" section.
 
         The import of :func:`~grepify.digest.rising.is_rising` is deferred to
         call time: ``grepify.digest`` (the package) imports
@@ -316,7 +341,15 @@ class TrendQueries:
         prior = {kw: len(items) for kw, items in self._merged_counts(prev_window).items()}
 
         # rank by count desc, then keyword asc - total order, byte-stable
-        ranked = sorted(current.items(), key=lambda kv: (-kv[1], kv[0]))[:limit]
+        ranked = sorted(current.items(), key=lambda kv: (-kv[1], kv[0]))
+        top = ranked[:limit]
+        # pin injection: fold back any pinned keyword truncated out above -
+        # it already has >=1 mention (it is a key in `current`), so this
+        # cannot add a keyword with zero mentions. Re-sorting the union keeps
+        # the same total order/tie-break as the unpinned path, so output stays
+        # byte-stable regardless of how many pins fire.
+        pinned_below_cutoff = [kv for kv in ranked[limit:] if self._rules.is_pinned(kv[0])]
+        selected = sorted(top + pinned_below_cutoff, key=lambda kv: (-kv[1], kv[0]))
         keywords = [
             KeywordCount(
                 keyword=kw,
@@ -329,7 +362,7 @@ class TrendQueries:
                     ratio=rising_ratio,
                 ),
             )
-            for kw, count in ranked
+            for kw, count in selected
         ]
         return CloudDataset(window=window, keywords=keywords)
 
