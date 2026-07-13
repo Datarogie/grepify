@@ -24,7 +24,8 @@ keyword extraction and digest prose. No server, no LLM in the serving path.
 
 Full architecture: [`docs/architecture.md`](docs/architecture.md). Product spec
 and issue plan: [`docs/prd.md`](docs/prd.md) (the source of truth). Build order:
-[`docs/playbook.md`](docs/playbook.md).
+[`docs/playbook.md`](docs/playbook.md). Operating it (symptom-first, when
+something breaks): [`docs/runbook.md`](docs/runbook.md).
 
 ## Repo layout
 
