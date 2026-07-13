@@ -133,9 +133,9 @@ def test_summary_html_markup_is_stripped() -> None:
 
 def test_summary_html_entities_are_unescaped() -> None:
     source = make_source("s1")
-    raw_summary = "Q&amp;A: fetchers &lt;vs&gt; normalizers"
+    raw_summary = "Q&amp;A: fetchers &lt; normalizers &gt; parsers"
     item = normalize(_raw(summary=raw_summary), source, fetched_at=_FETCHED)
-    assert item.summary == "Q&A: fetchers <vs> normalizers"
+    assert item.summary == "Q&A: fetchers < normalizers > parsers"
 
 
 def test_summary_script_and_style_bodies_are_dropped() -> None:
@@ -151,17 +151,27 @@ def test_summary_script_and_style_bodies_are_dropped() -> None:
     assert item.summary == "Real article body about agentic coding."
 
 
-def test_summary_preserves_literal_escaped_angle_brackets_as_text() -> None:
-    # Accepted tradeoff (normalize.py docstring): one unescape pass, so plain-text
-    # "&lt;x&gt;" comparison operators survive as text rather than being stripped.
+def test_summary_spaced_comparison_operators_survive() -> None:
+    # Deliberate trade-off (normalize.py docstring): a spaced comparison operator
+    # is not tag-shaped, so the tolerant parser keeps it as text.
+    source = make_source("s1")
+    item = normalize(_raw(summary="x &lt; y and a &gt; b"), source, fetched_at=_FETCHED)
+    assert item.summary == "x < y and a > b"
+
+
+def test_summary_tag_shaped_token_is_treated_as_markup() -> None:
+    # The other side of that trade-off: a token shaped exactly like a tag
+    # ("<b>") is markup once decoded, indistinguishable from a real tag, so it is
+    # stripped. Consistent treatment is what keeps clean_summary idempotent; the
+    # spaced ">" operator alongside it still survives.
     source = make_source("s1")
     item = normalize(_raw(summary="a &lt;b&gt; c and c &gt; a"), source, fetched_at=_FETCHED)
-    assert item.summary == "a <b> c and c > a"
+    assert item.summary == "a c and c > a"
 
 
 def test_summary_entity_encoded_paired_tag_is_stripped() -> None:
-    # A source that HTML-escapes a whole element: the second post-unescape pass
-    # strips the revealed open/close pair.
+    # A source that HTML-escapes a whole element: the revealed markup is stripped
+    # on the pass after its entities decode.
     source = make_source("s1")
     raw_summary = "Intro &lt;div class=&quot;alert&quot;&gt;Breaking news&lt;/div&gt; outro"
     item = normalize(_raw(summary=raw_summary), source, fetched_at=_FETCHED)
@@ -175,16 +185,44 @@ def test_summary_entity_encoded_script_body_is_dropped() -> None:
     assert item.summary == "Real text"
 
 
-def test_summary_entity_encoded_unpaired_fragment_still_preserved() -> None:
-    # The second pass needs a matched close tag of the same name; a lone
-    # unpaired fragment stays text.
+def test_summary_double_entity_encoded_markup_is_stripped() -> None:
+    # Previously documented failure mode (double-encoding): the regex stripper
+    # unwound only one entity layer, leaking the inner markup. Extracting to a
+    # fixed point strips every layer.
     source = make_source("s1")
-    item = normalize(
-        _raw(summary="a &lt;b&gt; c and c &gt; a, still &lt;unclosed&gt; markup"),
-        source,
-        fetched_at=_FETCHED,
-    )
-    assert item.summary == "a <b> c and c > a, still <unclosed> markup"
+    raw_summary = "&amp;lt;div&amp;gt;Breaking news&amp;lt;/div&amp;gt; outro"
+    item = normalize(_raw(summary=raw_summary), source, fetched_at=_FETCHED)
+    assert item.summary == "Breaking news outro"
+
+
+def test_summary_gt_inside_attribute_value_is_stripped() -> None:
+    # Previously documented failure mode: a literal ">" inside an attribute value
+    # broke the tag-strip regex; a real parser reads the attribute correctly.
+    source = make_source("s1")
+    raw_summary = '<a title="a>b" href="https://example.com">Real link text</a> and more'
+    item = normalize(_raw(summary=raw_summary), source, fetched_at=_FETCHED)
+    assert item.summary == "Real link text and more"
+
+
+def test_summary_dangling_unclosed_tag_is_stripped() -> None:
+    # Previously documented failure mode: a dangling/unclosed tag was not stripped
+    # correctly by the regex; the parser closes it the way a browser does.
+    source = make_source("s1")
+    item = normalize(_raw(summary="<p>dangling <b>bold text"), source, fetched_at=_FETCHED)
+    assert item.summary == "dangling bold text"
+
+
+def test_summary_script_body_with_close_script_literal_does_not_leak_markup() -> None:
+    # Previously documented failure mode: a </script> literal inside a script body
+    # ended the non-greedy regex early and leaked the rest as text. The parser ends
+    # the element at the first </script> like a browser; whatever follows is real
+    # prose, and no tag markup survives into the summary.
+    source = make_source("s1")
+    raw_summary = "<script>a = '</script>';</script>Real article text"
+    item = normalize(_raw(summary=raw_summary), source, fetched_at=_FETCHED)
+    assert item.summary is not None
+    assert "Real article text" in item.summary
+    assert "<" not in item.summary and ">" not in item.summary
 
 
 def test_clean_summary_entity_encoded_tag_is_idempotent() -> None:
@@ -214,6 +252,36 @@ def test_clean_summary_idempotent_when_truncating_on_whitespace_boundary() -> No
     # pass would strip, rewriting the item forever; clean_summary must be a fixed point.
     once = clean_summary("word " * 500)  # collapses to 2499 chars, cut lands on a space
     assert not once.endswith(" ")
+    assert clean_summary(once) == once
+
+
+_STRIPPER_CORPUS = [
+    "",
+    "   ",
+    "plain text, no markup",
+    "Q&amp;A: fetchers &lt; normalizers &gt; parsers",
+    "x &lt; y and a &gt; b",
+    "a &lt;b&gt; c and c &gt; a",
+    "a &lt;b&gt; c and c &gt; a, still &lt;unclosed&gt; markup",
+    '<div class="grid grid-cols-2"><span>Model release notes</span>'
+    ' and <a href="https://example.com">a link</a></div>',
+    '<script>var x = "div span";</script><style>.g { display: grid; }</style>Body text.',
+    "Intro &lt;div class=&quot;alert&quot;&gt;Breaking news&lt;/div&gt; outro",
+    "&lt;script&gt;alert(1)&lt;/script&gt;Real text",
+    "&amp;lt;div&amp;gt;Breaking news&amp;lt;/div&amp;gt; outro",
+    '<a title="a>b" href="https://example.com">Real link text</a> and more',
+    "<p>dangling <b>bold text",
+    "<script>a = '</script>';</script>Real article text",
+    "word " * 500,
+    "vector&lt;int&gt; template and &amp;copy; entity",
+]
+
+
+@pytest.mark.parametrize("dirty", _STRIPPER_CORPUS)
+def test_clean_summary_is_a_fixed_point_over_corpus(dirty: str) -> None:
+    # GRP-73: the maintain-renormalize fixed point depends on strip(strip(x)) ==
+    # strip(x) for every input the ingest path might feed it.
+    once = clean_summary(dirty)
     assert clean_summary(once) == once
 
 
