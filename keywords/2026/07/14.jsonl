@@ -176,3 +176,10 @@
 {"item_id":"ebc59bab1d9e6fd527e05bb65a604280397ae27552fb20593ebe7df1c659e203","keyword":"ai investment","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T02:54:26+00:00"}
 {"item_id":"ebc59bab1d9e6fd527e05bb65a604280397ae27552fb20593ebe7df1c659e203","keyword":"entrepreneurship","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T02:54:26+00:00"}
 {"item_id":"ebc59bab1d9e6fd527e05bb65a604280397ae27552fb20593ebe7df1c659e203","keyword":"economic trends","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T02:54:26+00:00"}
+{"item_id":"78ebcced2036527ea4852fd29bdf4365c0a0aefecfc462f6e6042921e7323e66","keyword":"openai","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T03:47:37+00:00"}
+{"item_id":"78ebcced2036527ea4852fd29bdf4365c0a0aefecfc462f6e6042921e7323e66","keyword":"chatgpt","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T03:47:37+00:00"}
+{"item_id":"78ebcced2036527ea4852fd29bdf4365c0a0aefecfc462f6e6042921e7323e66","keyword":"kalshi","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T03:47:37+00:00"}
+{"item_id":"78ebcced2036527ea4852fd29bdf4365c0a0aefecfc462f6e6042921e7323e66","keyword":"prediction markets","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T03:47:37+00:00"}
+{"item_id":"78ebcced2036527ea4852fd29bdf4365c0a0aefecfc462f6e6042921e7323e66","keyword":"world cup","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T03:47:37+00:00"}
+{"item_id":"78ebcced2036527ea4852fd29bdf4365c0a0aefecfc462f6e6042921e7323e66","keyword":"soccer","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T03:47:37+00:00"}
+{"item_id":"78ebcced2036527ea4852fd29bdf4365c0a0aefecfc462f6e6042921e7323e66","keyword":"artificial intelligence","rank":7,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T03:47:37+00:00"}
