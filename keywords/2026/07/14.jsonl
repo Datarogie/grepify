@@ -838,3 +838,34 @@
 {"item_id":"decd95b9b3d1f2fd6fbc3e253f72d54d62a58c4e58db921ed124aaa0a048fb4b","keyword":"anthropic","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T20:15:35+00:00"}
 {"item_id":"decd95b9b3d1f2fd6fbc3e253f72d54d62a58c4e58db921ed124aaa0a048fb4b","keyword":"claude mythos","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T20:15:35+00:00"}
 {"item_id":"decd95b9b3d1f2fd6fbc3e253f72d54d62a58c4e58db921ed124aaa0a048fb4b","keyword":"andrew bailey","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T20:15:35+00:00"}
+{"item_id":"082bf8db8b37946d0de5947f706ade3345f3e125b7142e7939f3f52d8c91d3e9","keyword":"datasette","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"082bf8db8b37946d0de5947f706ade3345f3e125b7142e7939f3f52d8c91d3e9","keyword":"software release","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"082bf8db8b37946d0de5947f706ade3345f3e125b7142e7939f3f52d8c91d3e9","keyword":"permissions system","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"082bf8db8b37946d0de5947f706ade3345f3e125b7142e7939f3f52d8c91d3e9","keyword":"api","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"d05864c367599c90b511e18af0cabae5ddac475699d3964fc25dd54078d82613","keyword":"domain sdk","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"d05864c367599c90b511e18af0cabae5ddac475699d3964fc25dd54078d82613","keyword":"typescript","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"d05864c367599c90b511e18af0cabae5ddac475699d3964fc25dd54078d82613","keyword":"custom domains","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"d05864c367599c90b511e18af0cabae5ddac475699d3964fc25dd54078d82613","keyword":"vercel","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"d05864c367599c90b511e18af0cabae5ddac475699d3964fc25dd54078d82613","keyword":"cloudflare","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"d05864c367599c90b511e18af0cabae5ddac475699d3964fc25dd54078d82613","keyword":"railway","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"d05864c367599c90b511e18af0cabae5ddac475699d3964fc25dd54078d82613","keyword":"render","rank":7,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"d05864c367599c90b511e18af0cabae5ddac475699d3964fc25dd54078d82613","keyword":"netlify","rank":8,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"3248d2b8d4890db20cf0c0d5c5c11d0869dab43a4592a485b4b6543f95174f80","keyword":"ai models","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"3248d2b8d4890db20cf0c0d5c5c11d0869dab43a4592a485b4b6543f95174f80","keyword":"decision-making","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"3248d2b8d4890db20cf0c0d5c5c11d0869dab43a4592a485b4b6543f95174f80","keyword":"computational resources","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"3248d2b8d4890db20cf0c0d5c5c11d0869dab43a4592a485b4b6543f95174f80","keyword":"devavrat shah","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"c5e67646c436ce7bae07d721124c9c692dce58b3916da2a8d6563ca501206560","keyword":"mistral vibe","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"c5e67646c436ce7bae07d721124c9c692dce58b3916da2a8d6563ca501206560","keyword":"claude code","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"c5e67646c436ce7bae07d721124c9c692dce58b3916da2a8d6563ca501206560","keyword":"cursor","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"c5e67646c436ce7bae07d721124c9c692dce58b3916da2a8d6563ca501206560","keyword":"codex","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"c5e67646c436ce7bae07d721124c9c692dce58b3916da2a8d6563ca501206560","keyword":"ai agents","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"c5e67646c436ce7bae07d721124c9c692dce58b3916da2a8d6563ca501206560","keyword":"software development","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"46de965c841c662f6523685bcf57a04df78af71818201575ed66f0b342857198","keyword":"monorale ai","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"46de965c841c662f6523685bcf57a04df78af71818201575ed66f0b342857198","keyword":"series a funding","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"46de965c841c662f6523685bcf57a04df78af71818201575ed66f0b342857198","keyword":"venture capital","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"46de965c841c662f6523685bcf57a04df78af71818201575ed66f0b342857198","keyword":"ai startups","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"e6f370029eab0a3649522e4c293fdfc02605ffd256c51f4329c3f9c23acea64b","keyword":"openai","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"e6f370029eab0a3649522e4c293fdfc02605ffd256c51f4329c3f9c23acea64b","keyword":"chatgpt","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"e6f370029eab0a3649522e4c293fdfc02605ffd256c51f4329c3f9c23acea64b","keyword":"smart speaker","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"e6f370029eab0a3649522e4c293fdfc02605ffd256c51f4329c3f9c23acea64b","keyword":"hardware","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}
+{"item_id":"e6f370029eab0a3649522e4c293fdfc02605ffd256c51f4329c3f9c23acea64b","keyword":"ai devices","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-14T21:39:47+00:00"}

@@ -1,0 +1,21 @@
+{
+  "run_id": "20260714T213645Z-b4c0cb",
+  "command": "ingest",
+  "started_at": "2026-07-14T21:36:45+00:00",
+  "finished_at": "2026-07-14T21:39:45+00:00",
+  "ok": true,
+  "counts": {
+    "sources_attempted": 92,
+    "sources_ok": 90,
+    "sources_empty": 1,
+    "sources_error": 1,
+    "sources_skipped": 35,
+    "items_new": 6
+  },
+  "durations_ms": {
+    "total_ms": 179993
+  },
+  "notes": [
+    "snowflake-engineering: snowflake-engineering: all acquisition rungs failed: snowflake-engineering: HTTP 404; snowflake-engineering: HTTP 404; snowflake-engineering: HTTP 404; snowflake-engineering: unparseable feed: SAXParseException('not well-formed (invalid token)')"
+  ]
+}
