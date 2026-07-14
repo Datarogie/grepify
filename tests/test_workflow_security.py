@@ -74,10 +74,10 @@ def test_write_permissions_are_isolated_by_capability() -> None:
         "validate-source": {"contents": "read"},
         "prepare-data": {"contents": "read"},
         "run-pipeline": {"contents": "read"},
-        "data-update": {"contents": "write"},
+        "data-update": {"actions": "read", "contents": "write"},
         "build-site": {"contents": "read"},
         "deploy-pages": {"pages": "write", "id-token": "write"},
-        "final-status": {},
+        "final-status": {"contents": "read"},
         "notify-failure": {"issues": "write"},
     }
     actual = {name: job.get("permissions", {}) for name, job in workflow["jobs"].items()}
@@ -86,6 +86,38 @@ def test_write_permissions_are_isolated_by_capability() -> None:
     for name, job in workflow["jobs"].items():
         if name != "deploy-pages":
             assert "environment" not in job
+
+
+def test_github_token_is_step_scoped_for_artifact_download_and_data_push() -> None:
+    workflow = load_workflow(WORKFLOW_DIR / "pipeline.yml")
+    assert "GITHUB_TOKEN" not in workflow.get("env", {})
+    for job_name, job in workflow["jobs"].items():
+        job_env = job.get("env") or {}
+        assert "GITHUB_TOKEN" not in job_env, job_name
+        for step in job.get("steps", []) or []:
+            env = step.get("env") or {}
+            if "GITHUB_TOKEN" in env:
+                assert job_name == "data-update"
+                assert step.get("name") == "Commit pipeline data (to the `data` branch)"
+                assert env["GITHUB_TOKEN"] == "${{ github.token }}"  # noqa: S105
+            elif "GH_TOKEN" in env:
+                assert job_name == "data-update"
+                assert step.get("name") == "Download pipeline data result"
+                assert env["GH_TOKEN"] == "${{ github.token }}"  # noqa: S105
+            else:
+                assert "github.token" not in str(env)
+
+    push_step = next(
+        step
+        for job, step in iter_steps(workflow)
+        if job == "data-update"
+        and step.get("name") == "Commit pipeline data (to the `data` branch)"
+    )
+    run = push_step["run"]
+    assert "extraheader" in run
+    assert "x-access-token" not in run
+    assert 'remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"' in run
+    assert "unset GITHUB_TOKEN auth_header" in run
 
 
 def test_llm_secrets_only_on_consuming_steps() -> None:
@@ -147,3 +179,16 @@ def test_every_job_has_timeout_and_dependabot_keeps_github_actions() -> None:
     dependabot = yaml.safe_load((ROOT / ".github" / "dependabot.yml").read_text())
     ecosystems = {entry["package-ecosystem"] for entry in dependabot["updates"]}
     assert "github-actions" in ecosystems
+
+
+def test_gitlab_pages_production_runs_are_default_branch_guarded() -> None:
+    gitlab = yaml.safe_load((ROOT / ".gitlab-ci.yml").read_text())
+    rules = gitlab["pages"]["rules"]
+    assert rules
+    for rule in rules:
+        expression = rule["if"]
+        if (
+            '$CI_PIPELINE_SOURCE == "schedule"' in expression
+            or '$CI_PIPELINE_SOURCE == "web"' in expression
+        ):
+            assert "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH" in expression

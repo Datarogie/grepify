@@ -64,8 +64,8 @@ validate:
 pages:
   stage: pages
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-    - if: $CI_PIPELINE_SOURCE == "web" # on-demand run from the UI
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # on-demand run from the UI
   resource_group: pipeline # serialize overlapping runs (≈ GH concurrency group)
   # The pipeline needs the E5 optional extra (youtube-transcript-api for
   # transcripts); `validate` stays on the lean `make install` from

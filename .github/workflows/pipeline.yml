@@ -212,6 +212,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
+      actions: read
       contents: write
     steps:
       - name: Download pipeline data result
@@ -244,12 +245,15 @@ jobs:
           mkdir data-result
           unzip -q artifact.zip -d data-result
       - name: Commit pipeline data (to the `data` branch)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           git init data
-          git -C data remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          if git ls-remote --exit-code --heads origin data >/dev/null 2>&1; then
-            git -C data fetch --depth=1 origin data
+          git -C data remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          auth_header="AUTHORIZATION: bearer ${GITHUB_TOKEN}"
+          if git -C data -c http.https://github.com/.extraheader="$auth_header" ls-remote --exit-code --heads origin data >/dev/null 2>&1; then
+            git -C data -c http.https://github.com/.extraheader="$auth_header" fetch --depth=1 origin data
             git -C data checkout -B data FETCH_HEAD
             find data -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
           else
@@ -265,7 +269,8 @@ jobs:
             exit 0
           fi
           git -C data commit -m "chore(data): pipeline run [skip ci]"
-          git -C data push origin HEAD:data
+          git -C data -c http.https://github.com/.extraheader="$auth_header" push origin HEAD:data
+          unset GITHUB_TOKEN auth_header
 
   build-site:
     needs: [run-pipeline, data-update]
@@ -323,17 +328,25 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    permissions: {}
+    permissions:
+      contents: read
     steps:
-      - name: Fail after last-known-good deploy when upstream pipeline failed
-        run: |
-          if [ "${{ needs.run-pipeline.outputs.truth_ok }}" != "true" ]; then
-            echo "Upstream ingest/extract/digest failed; site deployment used last-known-good data." >&2
-            exit 1
-          fi
-          if [ "${{ needs.guard-production-ref.result }}" = "failure" ] || [ "${{ needs.validate-source.result }}" = "failure" ] || [ "${{ needs.prepare-data.result }}" = "failure" ] || [ "${{ needs.build-site.result }}" = "failure" ] || [ "${{ needs.deploy-pages.result }}" = "failure" ]; then
-            exit 1
-          fi
+      - name: Checkout main (code)
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Evaluate production final status
+        env:
+          TRUTH_OK: ${{ needs.run-pipeline.outputs.truth_ok }}
+          GUARD_RESULT: ${{ needs.guard-production-ref.result }}
+          VALIDATE_RESULT: ${{ needs.validate-source.result }}
+          PREPARE_RESULT: ${{ needs.prepare-data.result }}
+          RUN_PIPELINE_RESULT: ${{ needs.run-pipeline.result }}
+          DATA_UPDATE_RESULT: ${{ needs.data-update.result }}
+          BUILD_RESULT: ${{ needs.build-site.result }}
+          DEPLOY_RESULT: ${{ needs.deploy-pages.result }}
+        run: python scripts/pipeline_final_status.py
 
   notify-failure:
     needs: [final-status]
