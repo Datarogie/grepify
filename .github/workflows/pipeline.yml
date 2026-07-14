@@ -223,7 +223,74 @@ jobs:
           python - <<'PY'
           import json
           import os
+          import stat
+          import urllib.error
+          import urllib.parse
           import urllib.request
+          import zipfile
+          from pathlib import Path
+
+          REDIRECT_STATUSES = {302, 303, 307, 308}
+          ALLOWED_ARCHIVE_HOST_SUFFIXES = (".blob.core.windows.net", ".actions.githubusercontent.com")
+          ALLOWED_ARCHIVE_HOSTS = {
+              "objects.githubusercontent.com",
+              "github-releases.githubusercontent.com",
+              "productionresultssa.blob.core.windows.net",
+          }
+
+
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  return None
+
+
+          def validate_signed_archive_url(location):
+              if not location:
+                  raise SystemExit("artifact archive redirect did not include a Location header")
+              parsed = urllib.parse.urlparse(location)
+              if parsed.scheme != "https":
+                  raise SystemExit("artifact archive redirect must use https")
+              if parsed.username or parsed.password:
+                  raise SystemExit("artifact archive redirect must not include userinfo")
+              if not parsed.hostname or not parsed.netloc:
+                  raise SystemExit("artifact archive redirect has malformed authority")
+              host = parsed.hostname.lower().rstrip(".")
+              if host not in ALLOWED_ARCHIVE_HOSTS and not host.endswith(ALLOWED_ARCHIVE_HOST_SUFFIXES):
+                  raise SystemExit("artifact archive redirect host is not in the allowed GitHub storage set")
+              return location
+
+
+          def safe_member_path(destination, member_name):
+              member = Path(member_name)
+              if member.is_absolute() or ".." in member.parts:
+                  raise SystemExit(f"unsafe artifact path: {member_name}")
+              if any(part == ".git" for part in member.parts):
+                  raise SystemExit(f"artifact must not contain .git metadata: {member_name}")
+              target = (destination / member).resolve()
+              destination_resolved = destination.resolve()
+              if target != destination_resolved and destination_resolved not in target.parents:
+                  raise SystemExit(f"artifact path escapes destination: {member_name}")
+              return target
+
+
+          def safe_extract_zip(archive_path, destination):
+              destination.mkdir(parents=True, exist_ok=True)
+              with zipfile.ZipFile(archive_path) as zip_file:
+                  members = zip_file.infolist()
+                  for info in members:
+                      mode = info.external_attr >> 16
+                      if stat.S_ISLNK(mode) or stat.S_ISCHR(mode) or stat.S_ISBLK(mode) or stat.S_ISFIFO(mode):
+                          raise SystemExit(f"artifact member has unsafe file type: {info.filename}")
+                      safe_member_path(destination, info.filename)
+                  for info in members:
+                      target = safe_member_path(destination, info.filename)
+                      if info.is_dir():
+                          target.mkdir(parents=True, exist_ok=True)
+                          continue
+                      target.parent.mkdir(parents=True, exist_ok=True)
+                      with zip_file.open(info) as src, target.open("wb") as dst:
+                          dst.write(src.read())
+
 
           run_id = os.environ["GITHUB_RUN_ID"]
           repo = os.environ["GITHUB_REPOSITORY"]
@@ -238,12 +305,24 @@ jobs:
           if not matches:
               raise SystemExit("pipeline-data-result artifact not found")
           download_url = matches[0]["archive_download_url"]
-          req = urllib.request.Request(download_url, headers={"Authorization": f"Bearer {token}"})
-          with urllib.request.urlopen(req, timeout=60) as response, open("artifact.zip", "wb") as out:
+          api_req = urllib.request.Request(
+              download_url,
+              headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"},
+          )
+          opener = urllib.request.build_opener(NoRedirect)
+          try:
+              opener.open(api_req, timeout=30)
+          except urllib.error.HTTPError as exc:
+              if exc.code not in REDIRECT_STATUSES:
+                  raise SystemExit(f"unexpected artifact archive redirect status: {exc.code}") from exc
+              signed_url = validate_signed_archive_url(exc.headers.get("Location"))
+          else:
+              raise SystemExit("artifact archive endpoint did not redirect")
+          archive_req = urllib.request.Request(signed_url)
+          with urllib.request.urlopen(archive_req, timeout=60) as response, open("artifact.zip", "wb") as out:
               out.write(response.read())
+          safe_extract_zip(Path("artifact.zip"), Path("data-result"))
           PY
-          mkdir data-result
-          unzip -q artifact.zip -d data-result
       - name: Commit pipeline data (to the `data` branch)
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -365,7 +444,7 @@ jobs:
             const { data: found } = await github.rest.search.issuesAndPullRequests({
               q: `repo:${context.repo.owner}/${context.repo.repo} type:issue state:open in:title "${title}"`,
             });
-            const existing = found.items.find((issue) => issue.title === title);
+            const existing = found.items.find((issue) => issue.title === title && issue.number !== 112);
             if (existing) {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,

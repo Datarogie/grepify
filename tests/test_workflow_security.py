@@ -120,6 +120,39 @@ def test_github_token_is_step_scoped_for_artifact_download_and_data_push() -> No
     assert "unset GITHUB_TOKEN auth_header" in run
 
 
+def test_artifact_archive_download_strips_credentials_across_redirect() -> None:
+    workflow = load_workflow(WORKFLOW_DIR / "pipeline.yml")
+    download_step = next(
+        step
+        for job, step in iter_steps(workflow)
+        if job == "data-update" and step.get("name") == "Download pipeline data result"
+    )
+    run = download_step["run"]
+    assert "class NoRedirect" in run
+    assert "redirect_request" in run
+    assert "return None" in run
+    assert "REDIRECT_STATUSES = {302, 303, 307, 308}" in run
+    assert "validate_signed_archive_url" in run
+    assert 'parsed.scheme != "https"' in run
+    assert "parsed.username or parsed.password" in run
+    assert "not parsed.hostname or not parsed.netloc" in run
+    assert "ALLOWED_ARCHIVE_HOST_SUFFIXES" in run
+    assert "host not in ALLOWED_ARCHIVE_HOSTS" in run
+    assert "safe_extract_zip" in run
+    assert "stat.S_ISLNK" in run
+    assert "artifact must not contain .git metadata" in run
+    assert "unzip -q" not in run
+    assert (
+        'headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}'
+        in run
+    )
+    assert "archive_req = urllib.request.Request(signed_url)" in run
+    assert (
+        "Authorization" not in run.split("archive_req = urllib.request.Request(signed_url)", 1)[1]
+    )
+    assert "--location-trusted" not in run
+
+
 def test_llm_secrets_only_on_consuming_steps() -> None:
     allowed_steps = {
         "Remediate HTML-contaminated keywords (O1, one-off)",
@@ -192,3 +225,14 @@ def test_gitlab_pages_production_runs_are_default_branch_guarded() -> None:
             or '$CI_PIPELINE_SOURCE == "web"' in expression
         ):
             assert "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH" in expression
+
+
+def test_failure_notification_excludes_issue_112() -> None:
+    workflow = load_workflow(WORKFLOW_DIR / "pipeline.yml")
+    notify_step = next(
+        step
+        for job, step in iter_steps(workflow)
+        if job == "notify-failure" and step.get("name") == "Notify on failure"
+    )
+    script = notify_step["with"]["script"]
+    assert "issue.number !== 112" in script
