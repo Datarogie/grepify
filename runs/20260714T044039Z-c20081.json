@@ -1,0 +1,28 @@
+{
+  "run_id": "20260714T044039Z-c20081",
+  "command": "ingest",
+  "started_at": "2026-07-14T04:40:39+00:00",
+  "finished_at": "2026-07-14T04:41:55+00:00",
+  "ok": true,
+  "counts": {
+    "sources_attempted": 92,
+    "sources_ok": 83,
+    "sources_empty": 1,
+    "sources_error": 8,
+    "sources_skipped": 35,
+    "items_new": 6
+  },
+  "durations_ms": {
+    "total_ms": 75690
+  },
+  "notes": [
+    "snowflake-engineering: snowflake-engineering: all acquisition rungs failed: snowflake-engineering: HTTP 404; snowflake-engineering: HTTP 404; snowflake-engineering: HTTP 404; snowflake-engineering: unparseable feed: SAXParseException('not well-formed (invalid token)')",
+    "yt-jack-roberts: yt-jack-roberts: HTTP 404",
+    "yt-dylan-davis: yt-dylan-davis: HTTP 404",
+    "yt-futurepedia: yt-futurepedia: HTTP 404",
+    "yt-greg-isenberg: yt-greg-isenberg: HTTP 404",
+    "yt-kevin-stratvert: yt-kevin-stratvert: HTTP 404",
+    "yt-lex-fridman: yt-lex-fridman: HTTP 404",
+    "yt-theprimeagen: yt-theprimeagen: HTTP 404"
+  ]
+}
