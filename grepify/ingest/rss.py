@@ -48,6 +48,7 @@ from grepify.ingest.base import Fetcher, FetchOutcome, RawItem
 from grepify.ingest.feedutil import parse_feed_bytes, raw_item_from_feed_entry
 from grepify.ingest.http import HttpxTransport, Transport, get_or_raise, safe_url_for_log
 from grepify.ingest.ladder import alt_endpoint_urls, discover_feed_url, site_root
+from grepify.ingest.substack import parse_substack_archive_bytes, substack_archive_url
 from grepify.models import Rung, Source, SourceKind
 
 _TIMEOUT_SECONDS = 10.0
@@ -96,9 +97,10 @@ class RssFetcher(Fetcher):
     def acquire(self, source: Source) -> FetchOutcome:
         """Walk the acquisition ladder (ADR 0002 §1) and report the rung.
 
-        Order: direct (rung 0) -> alternate endpoints (rung 1) -> feed
-        autodiscovery (rung 2) -> a maintainer-pinned mirror in ``active_url``
-        (rung 3). A rung *advances* only when the one before it **failed**
+        Order: direct (rung 0) -> alternate endpoints (rung 1) -> Substack
+        archive (for ``*.substack.com/feed`` sources) -> feed autodiscovery
+        (rung 2) -> a maintainer-pinned mirror in ``active_url`` (rung 3).
+        A rung *advances* only when the one before it **failed**
         (raised :class:`~grepify.errors.FetchError`); a rung that returns a
         parseable feed serves it and stops, even when that feed is empty (a
         quiet feed is not a failure and must not be re-classified as degraded).
@@ -114,6 +116,15 @@ class RssFetcher(Fetcher):
                 errors.append(str(exc))
                 continue
             return FetchOutcome(items, rung, None if rung is Rung.DIRECT else url)
+
+        archive_url = substack_archive_url(source.url)
+        if archive_url is not None:
+            try:
+                items = self._fetch_substack_archive(source, archive_url)
+            except FetchError as exc:
+                errors.append(str(exc))
+            else:
+                return FetchOutcome(items, Rung.SUBSTACK_ARCHIVE, archive_url)
 
         discovered = self._autodiscover(source, errors)
         for rung, url in self._discovered_candidates(source, discovered):
@@ -164,6 +175,20 @@ class RssFetcher(Fetcher):
             )
             return None
         return discover_feed_url(response.content, base_url=root)
+
+    def _fetch_substack_archive(self, source: Source, url: str) -> list[RawItem]:
+        response = get_or_raise(
+            self._transport,
+            url,
+            headers={"user-agent": _USER_AGENT, "accept": "text/html,application/xhtml+xml"},
+            timeout=self._timeout,
+            source_id=source.source_id,
+        )
+        if not (200 <= response.status_code < 300):
+            raise FetchError(f"{source.source_id}: Substack archive HTTP {response.status_code}")
+        return parse_substack_archive_bytes(
+            response.content, source_id=source.source_id, archive_url=url
+        )
 
     def _fetch_feed(self, source: Source, url: str, *, use_cache: bool) -> list[RawItem]:
         headers = {"user-agent": _USER_AGENT, "accept": _ACCEPT}
