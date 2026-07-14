@@ -219,7 +219,7 @@ jobs:
 
       - name: Deploy to Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
       # GRP-64: Build/Deploy above already ran from last-committed truth even
       # though Ingest/Extract/a digest step failed - this is the step that
