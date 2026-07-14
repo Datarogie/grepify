@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import pytest
 
+from grepify.health import HealthSnapshot, SourceHealth
+from grepify.models import FetchStatus, Rung, Source, SourceKind, SourceStatus
 from grepify.site.pages import (
+    build_health_view,
     build_pages,
     collapse_near_duplicates,
     item_matches_filter,
@@ -15,6 +18,7 @@ from grepify.site.pages import (
 )
 from grepify.site.trends import CloudDataset, DigestDetail, ItemSummary, KeywordCount
 from grepify.windows import Window
+from tests.conftest import make_source
 
 
 def _summary(
@@ -291,11 +295,6 @@ def test_rising_strip_default_limit_caps_at_eight() -> None:
 
 # --- health view lifecycle split (ADR 0002 §2, pinned health ACs; GRP-66) ----
 
-from grepify.health import HealthSnapshot, SourceHealth  # noqa: E402
-from grepify.models import FetchStatus, Rung, SourceStatus  # noqa: E402
-from grepify.site.pages import build_health_view  # noqa: E402
-from tests.conftest import make_source  # noqa: E402
-
 
 def _src(source_id: str, status: SourceStatus, **extra: object):  # type: ignore[no-untyped-def]
     return make_source(source_id).model_copy(update={"status": status, **extra})
@@ -437,3 +436,80 @@ def test_coverage_rollup_empty_when_nothing_quiet() -> None:
     rollup = coverage_rollup(rows, quiet_after_days=30)
     assert rollup.has_quiet is False
     assert rollup.quiet_names == ()
+
+
+# --- health view source endpoints -------------------------------------------
+
+
+def test_health_view_keeps_configured_fallback_and_observed_endpoint_separate() -> None:
+
+    source = Source(
+        source_id="s1",
+        name="S1",
+        kind=SourceKind.RSS,
+        url="https://example.com/feed.xml",
+        url_hash="abc",
+        group_id="g",
+        added_at="2026-07-01T00:00:00+00:00",
+        status=SourceStatus.DEGRADED,
+        active_url="https://configured.example/alt.xml",
+    )
+    snapshot = HealthSnapshot(
+        run_id="r",
+        generated_at="2026-07-02T00:00:00+00:00",
+        sources=[
+            SourceHealth(
+                source_id="s1",
+                attempts=1,
+                last_status=FetchStatus.OK,
+                last_started_at="2026-07-02T00:00:00+00:00",
+                consecutive_failures=0,
+                flagged=False,
+                last_resolved_url="https://observed.example/found.xml",
+            )
+        ],
+    )
+
+    row = build_health_view(snapshot, [source]).live[0]
+    assert row.configured_fallback_url == "https://configured.example/alt.xml"
+    assert row.configured_fallback_link is not None
+    assert row.configured_fallback_link.href == "https://configured.example/alt.xml"
+    assert row.last_resolved_url == "https://observed.example/found.xml"
+    assert row.last_resolved_link is not None
+    assert row.last_resolved_link.href == "https://observed.example/found.xml"
+
+
+def test_health_view_does_not_link_unsafe_configured_or_observed_endpoints() -> None:
+
+    source = Source(
+        source_id="s1",
+        name="S1",
+        kind=SourceKind.RSS,
+        url="https://example.com/feed.xml",
+        url_hash="abc",
+        group_id="g",
+        added_at="2026-07-01T00:00:00+00:00",
+        status=SourceStatus.DEGRADED,
+        active_url="https://user:pass@example.com/alt.xml",
+    )
+    snapshot = HealthSnapshot(
+        run_id="r",
+        generated_at="2026-07-02T00:00:00+00:00",
+        sources=[
+            SourceHealth(
+                source_id="s1",
+                attempts=1,
+                last_status=FetchStatus.OK,
+                last_started_at="2026-07-02T00:00:00+00:00",
+                consecutive_failures=0,
+                flagged=False,
+                last_resolved_url="http://127.0.0.1/feed.xml",
+            )
+        ],
+    )
+
+    row = build_health_view(snapshot, [source]).live[0]
+    assert row.configured_fallback_url == "https://user:pass@example.com/alt.xml"
+    assert row.configured_fallback_link is None
+    assert row.last_resolved_url == "http://127.0.0.1/feed.xml"
+    assert row.last_resolved_link is None

@@ -503,7 +503,8 @@ timestamps, or consecutive-failure streaks. "New items captured" means items
 newly committed by that attempt (`items_new`), not the total upstream entries
 seen in the feed.
 
-Configured and fallback endpoints are rendered through the centralized published
-URL policy before becoming links. Unsupported, malformed, credential-bearing, or
+Configured source URLs, configured fallback URLs, and observed last resolved
+endpoints are rendered through the centralized published URL policy before
+becoming links. Unsupported, malformed, credential-bearing, or
 forbidden literal destinations are shown as non-clickable text; raw acquisition
 traces and secrets must not be copied into source messages or fetch errors.

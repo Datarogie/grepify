@@ -230,8 +230,10 @@ class HealthRow:
     message: str | None
     configured_url: str
     configured_link: PublishedUrl | None
-    fallback_url: str | None
-    fallback_link: PublishedUrl | None
+    configured_fallback_url: str | None
+    configured_fallback_link: PublishedUrl | None
+    last_resolved_url: str | None
+    last_resolved_link: PublishedUrl | None
     items_href: str | None
     health: SourceHealth | None
 
@@ -297,9 +299,7 @@ def build_health_view(
     disabled: list[HealthRow] = []
     for source in sorted(sources, key=lambda s: s.source_id):
         health = by_id.get(source.source_id)
-        fallback_url = source.active_url or (
-            health.last_resolved_url if health is not None else None
-        )
+        last_resolved_url = health.last_resolved_url if health is not None else None
         row = HealthRow(
             source_id=source.source_id,
             name=source.name,
@@ -310,9 +310,11 @@ def build_health_view(
             message=source.message,
             configured_url=source.url,
             configured_link=safe_published_url(source.url),
-            fallback_url=fallback_url,
-            fallback_link=safe_published_url(fallback_url),
-            items_href=f"../items/?source={quote(source.source_id, safe='')}"
+            configured_fallback_url=source.active_url,
+            configured_fallback_link=safe_published_url(source.active_url),
+            last_resolved_url=last_resolved_url,
+            last_resolved_link=safe_published_url(last_resolved_url),
+            items_href=f"../items/#source={quote(source.source_id, safe='')}"
             if source.status.is_enabled
             else None,
             health=health,
