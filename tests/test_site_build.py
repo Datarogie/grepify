@@ -16,6 +16,7 @@ import re
 import textwrap
 from datetime import UTC, datetime
 from pathlib import Path
+from urllib.parse import unquote
 
 import pytest
 
@@ -1038,3 +1039,21 @@ def test_absent_output_created_during_claim_is_preserved(
 
     assert (output / "index.html").read_text(encoding="utf-8") == "occupant"
     assert not stage.exists()
+
+
+def test_health_source_deeplink_matches_items_filter_contract(tmp_path: Path) -> None:
+    _, out = build_canned(tmp_path)
+    health_html = (out / "health" / "index.html").read_text(encoding="utf-8")
+    items_html = (out / "items" / "index.html").read_text(encoding="utf-8")
+    filters_js = (out / "static" / "filters.js").read_text(encoding="utf-8")
+
+    match = re.search(r'href="\.\./items/#source=([^"]+)">filter items by source</a>', health_html)
+    assert match, "health page should link to a source hash understood by filters.js"
+    encoded_source = match.group(1)
+    source_id = unquote(encoded_source)
+    assert f'data-source="{source_id}"' in items_html
+
+    assert 'name === "source"' in filters_js
+    assert "sourceSel.value = value" in filters_js
+    assert "matches(row, kind, source, keyword)" in filters_js
+    assert 'row.getAttribute("data-source") !== source' in filters_js

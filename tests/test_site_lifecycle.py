@@ -80,6 +80,8 @@ def _build(tmp_path: Path) -> Path:
                 attempts=10,
                 last_status=FetchStatus.OK,
                 last_started_at="2026-07-08T08:00:00+00:00",
+                last_error="older HTTP 500",
+                error_class="http_5xx",
                 consecutive_failures=0,
                 flagged=False,
                 last_rung=Rung.DIRECT,
@@ -92,6 +94,7 @@ def _build(tmp_path: Path) -> Path:
                 consecutive_failures=0,
                 flagged=False,
                 last_rung=Rung.AUTODISCOVERY,
+                last_resolved_url="https://served.example/found.xml",
             ),
             SourceHealth(
                 source_id="s-dead",
@@ -159,3 +162,40 @@ def test_sources_page_shows_paywalled_message(tmp_path: Path) -> None:
     html = (_build(tmp_path) / "sources" / "index.html").read_text(encoding="utf-8")
     assert "No free acquisition path; not attempted." in html
     assert "paywalled" in html
+
+
+def test_health_drilldown_uses_native_details_and_escapes_hostile_values(tmp_path: Path) -> None:
+    html = (_build(tmp_path) / "health" / "index.html").read_text(encoding="utf-8")
+    assert "<details><summary>Active One</summary>" in html
+    assert "<dt>Total real attempts</dt><dd>10</dd>" in html
+    assert "filter items by source" in html
+    assert "|safe" not in Path("grepify/site/templates/health.html").read_text(encoding="utf-8")
+
+
+def test_health_page_is_deterministic(tmp_path: Path) -> None:
+    first = (_build(tmp_path / "a") / "health" / "index.html").read_text(encoding="utf-8")
+    second = (_build(tmp_path / "b") / "health" / "index.html").read_text(encoding="utf-8")
+    assert first == second
+
+
+def test_health_page_separates_configured_fallback_from_observed_endpoint(tmp_path: Path) -> None:
+    html = (_build(tmp_path) / "health" / "index.html").read_text(encoding="utf-8")
+    assert "Configured fallback URL" in html
+    assert "Last resolved endpoint" in html
+    assert 'href="https://ex.com/alt.xml" rel="noopener noreferrer">configured fallback</a>' in html
+    served_link = (
+        'href="https://served.example/found.xml" rel="noopener noreferrer">'
+        "last resolved endpoint</a>"
+    )
+    assert served_link in html
+    active_section = html.split("<summary>Active One</summary>", 1)[1].split("</details>", 1)[0]
+    assert "none configured" in active_section
+    assert "none recorded" in active_section
+
+
+def test_compact_error_class_describes_latest_attempt_only(tmp_path: Path) -> None:
+    html = (_build(tmp_path) / "health" / "index.html").read_text(encoding="utf-8")
+    active_row = html.split("<summary>Active One</summary>", 1)[1].split("</tr>", 1)[0]
+    assert "Historical last error</dt><dd>older HTTP 500</dd>" in active_row
+    assert "Historical error class</dt><dd>http_5xx</dd>" in active_row
+    assert '<td class="status-ok">ok</td>\n<td>-</td>' in active_row

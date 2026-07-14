@@ -295,3 +295,85 @@ def test_write_health_snapshot_writes_json(tmp_path: Path) -> None:
     assert by_id["s2"].last_error == "dead"
     assert by_id["s2"].consecutive_failures == 1
     assert by_id["s2"].flagged is False
+
+
+def test_drilldown_statistics_ignore_skipped_and_track_items_and_urls() -> None:
+    entries = [
+        FetchLogEntry(
+            source_id="s1",
+            run_id="r0",
+            started_at="2026-07-01T00:00:00+00:00",
+            status=FetchStatus.SKIPPED,
+        ),
+        FetchLogEntry(
+            source_id="s1",
+            run_id="r1",
+            started_at="2026-07-01T01:00:00+00:00",
+            status=FetchStatus.OK,
+            items_new=2,
+        ),
+        FetchLogEntry(
+            source_id="s1",
+            run_id="r2",
+            started_at="2026-07-02T01:00:00+00:00",
+            status=FetchStatus.EMPTY,
+            items_new=0,
+        ),
+        FetchLogEntry(
+            source_id="s1",
+            run_id="r3",
+            started_at="2026-07-03T01:00:00+00:00",
+            status=FetchStatus.ERROR,
+            error="HTTP 500",
+        ),
+        FetchLogEntry(
+            source_id="s1",
+            run_id="r4",
+            started_at="2026-07-04T01:00:00+00:00",
+            status=FetchStatus.OK,
+            items_new=4,
+            resolved_url="https://example.com/alt.xml",
+        ),
+    ]
+    health = compute_health(entries, run_id="r4", generated_at="2026-07-04T02:00:00+00:00").sources[
+        0
+    ]
+    assert health.attempts == 4
+    assert health.ok_attempts == 2
+    assert health.empty_attempts == 1
+    assert health.failed_attempts == 1
+    assert health.successful_attempts == 3
+    assert health.last_successful_at == "2026-07-04T01:00:00+00:00"
+    assert health.last_failed_at == "2026-07-03T01:00:00+00:00"
+    assert health.last_error == "HTTP 500"
+    assert health.error_class is ErrorClass.HTTP_5XX
+    assert health.consecutive_failures == 0
+    assert health.total_items_new == 6
+    assert health.latest_items_new == 4
+    assert health.last_resolved_url == "https://example.com/alt.xml"
+
+
+def test_only_skipped_history_yields_no_source_rollup() -> None:
+    entries = [_entry("s1", "r1", "2026-07-01T00:00:00+00:00", FetchStatus.SKIPPED)]
+    snapshot = compute_health(entries, run_id="r1", generated_at="2026-07-01T00:00:00+00:00")
+    assert snapshot.sources == []
+
+
+def test_old_health_snapshot_without_new_fields_still_loads() -> None:
+    raw = {
+        "run_id": "r1",
+        "generated_at": "2026-07-01T00:00:00+00:00",
+        "sources": [
+            {
+                "source_id": "s1",
+                "attempts": 1,
+                "last_status": "ok",
+                "last_started_at": "2026-07-01T00:00:00+00:00",
+                "consecutive_failures": 0,
+                "flagged": False,
+            }
+        ],
+    }
+    snapshot = HealthSnapshot.model_validate(raw)
+    assert snapshot.sources[0].successful_attempts == 0
+    assert snapshot.sources[0].total_items_new == 0

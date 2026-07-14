@@ -39,10 +39,29 @@
 <p class="muted">Snapshot from run prior-run, generated 2026-07-08T09:00:00+00:00</p>
 
 <table>
-<thead><tr><th>Source</th><th>Class</th><th>Last status</th><th>Error</th><th>Last attempt</th><th>Attempts</th><th>Consecutive failures</th></tr></thead>
+<thead><tr><th>Source</th><th>Class</th><th>Last status</th><th>Error class</th><th>Last attempt</th><th>Attempts</th><th>Consecutive failures</th></tr></thead>
 <tbody>
 <tr>
-<td>Source One</td>
+<td><details><summary>Source One</summary>
+<dl>
+<dt>Source ID</dt><dd>s1</dd>
+<dt>Configured source URL</dt><dd><a href="https://ex.com/one/feed" rel="noopener noreferrer">configured feed</a></dd>
+<dt>Configured fallback URL</dt><dd><span class="muted">none configured</span></dd>
+<dt>Last resolved endpoint</dt><dd><span class="muted">none recorded</span></dd>
+<dt>Captured items</dt><dd><a href="../items/#source=s1">filter items by source</a></dd><dt>Total real attempts</dt><dd>10</dd>
+<dt>OK attempts</dt><dd>0</dd>
+<dt>Empty attempts</dt><dd>0</dd>
+<dt>Failed attempts</dt><dd>0</dd>
+<dt>Successful attempts (ok or empty)</dt><dd>0</dd>
+<dt>Last successful attempt</dt><dd>-</dd>
+<dt>Last failed attempt</dt><dd>-</dd>
+<dt>Historical last error</dt><dd>-</dd>
+<dt>Historical error class</dt><dd>-</dd>
+<dt>Current consecutive-failure count</dt><dd>0</dd>
+<dt>Last acquisition rung</dt><dd>-</dd>
+<dt>Total new items captured</dt><dd>0</dd>
+<dt>New items captured by latest real attempt</dt><dd>0</dd>
+</dl></details></td>
 <td class="status-ok">active</td>
 <td class="status-ok">ok</td>
 <td>-</td>
@@ -51,10 +70,29 @@
 <td>0</td>
 </tr>
 <tr class="status-error">
-<td>Source Two</td>
+<td><details><summary>Source Two</summary>
+<dl>
+<dt>Source ID</dt><dd>s2</dd>
+<dt>Configured source URL</dt><dd><a href="https://www.youtube.com/feeds/videos.xml?channel_id=UC123" rel="noopener noreferrer">configured feed</a></dd>
+<dt>Configured fallback URL</dt><dd><span class="muted">none configured</span></dd>
+<dt>Last resolved endpoint</dt><dd><span class="muted">none recorded</span></dd>
+<dt>Captured items</dt><dd><a href="../items/#source=s2">filter items by source</a></dd><dt>Total real attempts</dt><dd>8</dd>
+<dt>OK attempts</dt><dd>0</dd>
+<dt>Empty attempts</dt><dd>0</dd>
+<dt>Failed attempts</dt><dd>0</dd>
+<dt>Successful attempts (ok or empty)</dt><dd>0</dd>
+<dt>Last successful attempt</dt><dd>-</dd>
+<dt>Last failed attempt</dt><dd>-</dd>
+<dt>Historical last error</dt><dd>returned HTTP 429 Too Many Requests</dd>
+<dt>Historical error class</dt><dd>http_4xx</dd>
+<dt>Current consecutive-failure count</dt><dd>6</dd>
+<dt>Last acquisition rung</dt><dd>-</dd>
+<dt>Total new items captured</dt><dd>0</dd>
+<dt>New items captured by latest real attempt</dt><dd>0</dd>
+</dl></details></td>
 <td class="status-ok">active</td>
 <td class="status-error">error</td>
-<td title="returned HTTP 429 Too Many Requests">http_4xx</td>
+<td>http_4xx</td>
 <td>2026-07-08T08:00:00</td>
 <td>8</td>
 <td>6 ⚑</td>

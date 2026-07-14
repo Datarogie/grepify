@@ -74,12 +74,24 @@
     if (empty) empty.hidden = visible !== 0;
   }
 
-  // Deep-link: the keyword cloud links here with #keyword=<term>.
+  function decodeHashValue(value) {
+    try { return decodeURIComponent(value.replace(/\+/g, "%20")); } catch (e) { return value; }
+  }
+
+  // Deep-link: keyword cloud links here with #keyword=<term>; health source rows
+  // link with #source=<source_id>. Multiple params use the normal hash query
+  // form (#keyword=agents&source=s1) and are applied before filtering.
   function readHash() {
-    var m = /[#&]keyword=([^&]+)/.exec(window.location.hash || "");
-    if (m) {
-      try { keywordInput.value = decodeURIComponent(m[1]); } catch (e) { keywordInput.value = m[1]; }
-    }
+    var hash = (window.location.hash || "").replace(/^#/, "");
+    if (!hash) return;
+    var parts = hash.split("&");
+    parts.forEach(function (part) {
+      var pair = part.split("=");
+      var name = pair.shift();
+      var value = decodeHashValue(pair.join("="));
+      if (name === "keyword") keywordInput.value = value;
+      if (name === "source") sourceSel.value = value;
+    });
   }
 
   kindSel.addEventListener("change", apply);

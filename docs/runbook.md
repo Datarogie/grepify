@@ -488,3 +488,23 @@ normalizer - investigate that, do not just re-run O1.
   `validate` or any `pull_request`-triggered step, and never log a credential.
 </content>
 </invoke>
+
+## Health drill-down fields
+
+The health page joins current source configuration with `data/health.json`. Live
+`active` and `degraded` sources stay in the main table; `dead` and `paywalled`
+sources render in the disabled record section; sources removed from config do
+not reappear from stale fetch history.
+
+Each live row has a native HTML `<details>` drill-down. Counts are derived from
+committed `fetch_log` truth only. `skipped` cadence records are transparent: they
+do not count as attempts and do not change last status, success/failure
+timestamps, or consecutive-failure streaks. "New items captured" means items
+newly committed by that attempt (`items_new`), not the total upstream entries
+seen in the feed.
+
+Configured source URLs, configured fallback URLs, and observed last resolved
+endpoints are rendered through the centralized published URL policy before
+becoming links. Unsupported, malformed, credential-bearing, or
+forbidden literal destinations are shown as non-clickable text; raw acquisition
+traces and secrets must not be copied into source messages or fetch errors.
