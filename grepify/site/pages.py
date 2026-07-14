@@ -250,10 +250,17 @@ class HealthView:
     table; ``disabled`` are ``paywalled``/``dead`` sources shown in a separate
     labelled, collapsed section so they never read as live flagged errors.
     ``gone`` sources are absent from config, so their stale fetch-log rows are
-    dropped entirely (they simply disappear)."""
+    dropped entirely (they simply disappear). ``run_id``/``generated_at`` carry
+    the snapshot provenance (``None`` when no snapshot has been written yet)."""
 
     live: list[HealthRow]
     disabled: list[HealthRow]
+    run_id: str | None = None
+    generated_at: str | None = None
+
+    @property
+    def has_snapshot(self) -> bool:
+        return self.run_id is not None
 
 
 def build_health_view(
@@ -290,7 +297,12 @@ def build_health_view(
             health=by_id.get(source.source_id),
         )
         (live if source.status.is_enabled else disabled).append(row)
-    return HealthView(live=live, disabled=disabled)
+    return HealthView(
+        live=live,
+        disabled=disabled,
+        run_id=snapshot.run_id if snapshot is not None else None,
+        generated_at=snapshot.generated_at if snapshot is not None else None,
+    )
 
 
 def latest_digest_per_category(digests: Sequence[DigestDetail]) -> list[DigestDetail]:

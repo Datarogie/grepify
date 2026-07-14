@@ -90,42 +90,47 @@ def propose_transition(
     """
     if health is None or health.last_status is None:
         return None
-    last = health.last_status
-    rung = health.last_rung
-    served = last in (FetchStatus.OK, FetchStatus.EMPTY)
-
-    if current is SourceStatus.DEGRADED and served and (rung is None or rung is Rung.DIRECT):
-        return SourceStatus.ACTIVE, "rung 0 (direct) served again - recovered from degraded"
-    if current is SourceStatus.ACTIVE and served and rung is not None and rung.is_fallback:
-        return SourceStatus.DEGRADED, f"served from fallback rung {rung.value!r} - primary failing"
-    if current is SourceStatus.DEAD and served:
-        via = rung.value if rung is not None else "direct"
-        target = (
-            SourceStatus.DEGRADED if rung is not None and rung.is_fallback else SourceStatus.ACTIVE
-        )
-        return target, f"dead re-check succeeded via rung {via!r}"
-
+    served = health.last_status in (FetchStatus.OK, FetchStatus.EMPTY)
+    if served:
+        return _propose_on_success(current, health.last_rung)
     down_eligible = (
         not quiet
-        and last is FetchStatus.ERROR
+        and health.last_status is FetchStatus.ERROR
         and current in (SourceStatus.ACTIVE, SourceStatus.DEGRADED)
     )
-    if not down_eligible:
-        return None
+    return _propose_on_failure(health) if down_eligible else None
+
+
+def _propose_on_success(
+    current: SourceStatus, rung: Rung | None
+) -> tuple[SourceStatus, str] | None:
+    on_fallback = rung is not None and rung.is_fallback
+    via = rung.value if rung is not None else "direct"
+    if current is SourceStatus.DEGRADED and not on_fallback:
+        return SourceStatus.ACTIVE, "rung 0 (direct) served again - recovered from degraded"
+    if current is SourceStatus.ACTIVE and on_fallback:
+        return SourceStatus.DEGRADED, f"served from fallback rung {via!r} - primary failing"
+    if current is SourceStatus.DEAD:
+        target = SourceStatus.DEGRADED if on_fallback else SourceStatus.ACTIVE
+        return target, f"dead re-check succeeded via rung {via!r}"
+    return None
+
+
+def _propose_on_failure(health: SourceHealth) -> tuple[SourceStatus, str] | None:
     if _looks_paywalled(health.last_error):
         return SourceStatus.PAYWALLED, "HTTP 402 - hint only; a human must confirm the ToS status"
-    if health.consecutive_failures >= DEAD_THRESHOLD:
-        if _looks_gone(health.last_error):
-            return (
-                SourceStatus.GONE,
-                f"{health.consecutive_failures} consecutive failures, target returns 404/410 "
-                "(no longer exists) - remove from the group file",
-            )
+    if health.consecutive_failures < DEAD_THRESHOLD:
+        return None
+    if _looks_gone(health.last_error):
         return (
-            SourceStatus.DEAD,
-            f"{health.consecutive_failures} consecutive failures across the full ladder",
+            SourceStatus.GONE,
+            f"{health.consecutive_failures} consecutive failures, target returns 404/410 "
+            "(no longer exists) - remove from the group file",
         )
-    return None
+    return (
+        SourceStatus.DEAD,
+        f"{health.consecutive_failures} consecutive failures across the full ladder",
+    )
 
 
 def build_doctor_report(
@@ -225,9 +230,7 @@ def format_propose_patch(rows: list[DoctorRow]) -> str:
         patch.setdefault(row.group_id, []).append(
             {
                 "id": row.source_id,
-                "action": "remove"
-                if row.proposed_status is SourceStatus.GONE
-                else "set-status",
+                "action": "remove" if row.proposed_status is SourceStatus.GONE else "set-status",
                 "current": row.status.value,
                 "proposed": row.proposed_status.value,
                 "evidence": row.reason or "",
@@ -235,7 +238,6 @@ def format_propose_patch(rows: list[DoctorRow]) -> str:
         )
 
     header = (
-        "# grepify doctor --propose: review, edit sources/groups/*.yml, commit. "
-        "Not auto-applied.\n"
+        "# grepify doctor --propose: review, edit sources/groups/*.yml, commit. Not auto-applied.\n"
     )
     return header + yaml.safe_dump(patch, sort_keys=True, default_flow_style=False)

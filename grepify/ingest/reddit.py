@@ -123,7 +123,7 @@ class RedditFetcher(Fetcher):
             items = self._parse_json(response.content, source_id=source.source_id)
             return FetchOutcome(items[:_ITEM_CAP], Rung.DIRECT)
         fallback_url = _rss_fallback_url(source.url)
-        items = self._fetch_rss_fallback(source, headers=headers)
+        items = self._fetch_rss_fallback(source, fallback_url, headers=headers)
         return FetchOutcome(items[:_ITEM_CAP], Rung.ALT_ENDPOINT, fallback_url)
 
     def _get_with_backoff(
@@ -156,8 +156,9 @@ class RedditFetcher(Fetcher):
                 self._sleep(_BACKOFF_BASE_SECONDS * (2**attempt))
         return None
 
-    def _fetch_rss_fallback(self, source: Source, *, headers: dict[str, str]) -> list[RawItem]:
-        fallback_url = _rss_fallback_url(source.url)
+    def _fetch_rss_fallback(
+        self, source: Source, fallback_url: str, *, headers: dict[str, str]
+    ) -> list[RawItem]:
         response = get_or_raise(
             self._transport,
             fallback_url,

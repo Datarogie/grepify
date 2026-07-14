@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from grepify.doctor import build_doctor_report, format_doctor_report
 from grepify.health import ErrorClass, HealthSnapshot, SourceHealth, compute_health
 from grepify.models import FetchLogEntry, FetchStatus, SourceKind
@@ -125,3 +127,137 @@ def test_source_health_carries_error_class_used_by_report() -> None:
         flagged=False,
     )
     assert health.error_class is ErrorClass.UNPARSEABLE
+
+
+# --- lifecycle transition proposals (ADR 0002 §2/§3, GRP-66) -----------------
+
+from grepify.doctor import format_propose_patch, propose_transition  # noqa: E402
+from grepify.models import Rung, SourceStatus  # noqa: E402
+
+
+def _health(
+    *,
+    last_status: FetchStatus,
+    rung: Rung | None = None,
+    error: str | None = None,
+    consecutive: int = 0,
+) -> SourceHealth:
+    return SourceHealth(
+        source_id="s1",
+        attempts=max(consecutive, 1),
+        last_status=last_status,
+        last_started_at="2026-07-11T00:00:00+00:00",
+        last_error=error,
+        error_class=None,
+        consecutive_failures=consecutive,
+        flagged=consecutive >= 5,
+        last_rung=rung,
+    )
+
+
+@pytest.mark.parametrize(
+    ("current", "health", "quiet", "expected"),
+    [
+        (SourceStatus.ACTIVE, None, False, None),
+        (
+            SourceStatus.ACTIVE,
+            _health(last_status=FetchStatus.OK, rung=Rung.ALT_ENDPOINT),
+            False,
+            SourceStatus.DEGRADED,
+        ),
+        (
+            SourceStatus.DEGRADED,
+            _health(last_status=FetchStatus.OK, rung=Rung.DIRECT),
+            False,
+            SourceStatus.ACTIVE,
+        ),
+        (SourceStatus.ACTIVE, _health(last_status=FetchStatus.OK, rung=Rung.DIRECT), False, None),
+        (
+            SourceStatus.DEAD,
+            _health(last_status=FetchStatus.OK, rung=Rung.DIRECT),
+            False,
+            SourceStatus.ACTIVE,
+        ),
+        (
+            SourceStatus.DEAD,
+            _health(last_status=FetchStatus.EMPTY, rung=Rung.AUTODISCOVERY),
+            False,
+            SourceStatus.DEGRADED,
+        ),
+        (
+            SourceStatus.ACTIVE,
+            _health(last_status=FetchStatus.ERROR, error="s1: HTTP 500", consecutive=16),
+            False,
+            SourceStatus.DEAD,
+        ),
+        (
+            SourceStatus.DEGRADED,
+            _health(last_status=FetchStatus.ERROR, error="s1: HTTP 500", consecutive=16),
+            False,
+            SourceStatus.DEAD,
+        ),
+        (
+            SourceStatus.ACTIVE,
+            _health(last_status=FetchStatus.ERROR, error="s1: HTTP 404", consecutive=16),
+            False,
+            SourceStatus.GONE,
+        ),
+        (
+            SourceStatus.ACTIVE,
+            _health(last_status=FetchStatus.ERROR, error="s1: HTTP 500", consecutive=15),
+            False,
+            None,
+        ),
+        (
+            SourceStatus.ACTIVE,
+            _health(last_status=FetchStatus.ERROR, error="s1: HTTP 402", consecutive=6),
+            False,
+            SourceStatus.PAYWALLED,
+        ),
+        (
+            SourceStatus.ACTIVE,
+            _health(last_status=FetchStatus.ERROR, error="s1: HTTP 500", consecutive=16),
+            True,  # quiet (Reddit) is exempt from down transitions
+            None,
+        ),
+    ],
+)
+def test_propose_transition_table(
+    current: SourceStatus,
+    health: SourceHealth | None,
+    quiet: bool,
+    expected: SourceStatus | None,
+) -> None:
+    result = propose_transition(current, health, quiet=quiet)
+    assert (result[0] if result else None) is expected
+
+
+def test_paywalled_is_only_hinted_with_evidence_string() -> None:
+    result = propose_transition(
+        SourceStatus.ACTIVE,
+        _health(last_status=FetchStatus.ERROR, error="s1: HTTP 402", consecutive=6),
+        quiet=False,
+    )
+    assert result is not None
+    assert "hint only" in result[1]
+
+
+def test_propose_patch_lists_crossings_and_marks_gone_as_removal() -> None:
+    active = make_source("keep-active")
+    to_dead = make_source("go-dead").model_copy(update={"status": SourceStatus.ACTIVE})
+    snapshot = compute_health(
+        [_fetch_entry("go-dead", FetchStatus.ERROR, error="go-dead: HTTP 500") for _ in range(16)]
+        + [_fetch_entry("keep-active", FetchStatus.OK)],
+        run_id="r1",
+        generated_at="2026-07-11T00:00:00+00:00",
+    )
+    rows = build_doctor_report([active, to_dead], snapshot)
+    patch = format_propose_patch(rows)
+    assert "go-dead" in patch
+    assert "set-status" in patch
+    assert "keep-active" not in patch  # no crossing -> not in the patch
+
+
+def test_propose_patch_empty_when_no_crossings() -> None:
+    rows = build_doctor_report([make_source("s1")], HealthSnapshot(run_id="r", generated_at="t"))
+    assert format_propose_patch(rows) == "no transitions proposed"

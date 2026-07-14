@@ -286,3 +286,75 @@ def test_rising_strip_caps_at_limit() -> None:
 def test_rising_strip_default_limit_caps_at_eight() -> None:
     cloud = _cloud(*[(f"kw{n}", 20 - n, 20 - n, True) for n in range(10)])
     assert len(rising_strip(cloud)) == 8
+
+
+# --- health view lifecycle split (ADR 0002 §2, pinned health ACs; GRP-66) ----
+
+from grepify.health import HealthSnapshot, SourceHealth  # noqa: E402
+from grepify.models import FetchStatus, Rung, SourceStatus  # noqa: E402
+from grepify.site.pages import build_health_view  # noqa: E402
+from tests.conftest import make_source  # noqa: E402
+
+
+def _src(source_id: str, status: SourceStatus, **extra: object):  # type: ignore[no-untyped-def]
+    return make_source(source_id).model_copy(update={"status": status, **extra})
+
+
+def _sh(source_id: str, status: FetchStatus, *, rung: Rung | None = None, flagged: bool = False):  # type: ignore[no-untyped-def]
+    return SourceHealth(
+        source_id=source_id,
+        attempts=18,
+        last_status=status,
+        last_started_at="2026-07-08T08:00:00+00:00",
+        consecutive_failures=18 if flagged else 0,
+        flagged=flagged,
+        last_rung=rung,
+    )
+
+
+def test_health_view_splits_live_from_disabled() -> None:
+    sources = [
+        _src("a", SourceStatus.ACTIVE),
+        _src("d", SourceStatus.DEGRADED),
+        _src("dead", SourceStatus.DEAD, evidence="e"),
+        _src("pay", SourceStatus.PAYWALLED, message="m"),
+    ]
+    snap = HealthSnapshot(run_id="r", generated_at="t", sources=[])
+    view = build_health_view(snap, sources)
+    assert {r.source_id for r in view.live} == {"a", "d"}
+    assert {r.source_id for r in view.disabled} == {"dead", "pay"}
+
+
+def test_health_view_drops_rows_for_sources_no_longer_in_config() -> None:
+    # A `gone` source is removed from config; its stale fetch-log row must not
+    # linger on the health page.
+    snap = HealthSnapshot(
+        run_id="r", generated_at="t", sources=[_sh("ghost", FetchStatus.ERROR, flagged=True)]
+    )
+    view = build_health_view(snap, [_src("a", SourceStatus.ACTIVE)])
+    ids = {r.source_id for r in view.live + view.disabled}
+    assert "ghost" not in ids
+
+
+def test_degraded_row_exposes_served_rung() -> None:
+    snap = HealthSnapshot(
+        run_id="r", generated_at="t", sources=[_sh("d", FetchStatus.OK, rung=Rung.AUTODISCOVERY)]
+    )
+    view = build_health_view(snap, [_src("d", SourceStatus.DEGRADED)])
+    row = view.live[0]
+    assert row.is_degraded
+    assert row.rung_label == "autodiscovery"
+
+
+def test_quiet_source_never_shows_flagged() -> None:
+    snap = HealthSnapshot(
+        run_id="r", generated_at="t", sources=[_sh("q", FetchStatus.ERROR, flagged=False)]
+    )
+    view = build_health_view(snap, [_src("q", SourceStatus.ACTIVE)], quiet_source_ids={"q"})
+    assert view.live[0].show_flagged is False
+
+
+def test_no_snapshot_reports_absent() -> None:
+    view = build_health_view(None, [_src("a", SourceStatus.ACTIVE)])
+    assert view.has_snapshot is False
+    assert {r.source_id for r in view.live} == {"a"}

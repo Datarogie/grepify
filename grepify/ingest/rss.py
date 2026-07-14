@@ -116,18 +116,30 @@ class RssFetcher(Fetcher):
             return FetchOutcome(items, rung, None if rung is Rung.DIRECT else url)
 
         discovered = self._autodiscover(source, errors)
-        if discovered is not None:
+        for rung, url in self._discovered_candidates(source, discovered):
             try:
-                items = self._fetch_feed(source, discovered, use_cache=False)
-                return FetchOutcome(items, Rung.AUTODISCOVERY, discovered)
+                items = self._fetch_feed(source, url, use_cache=False)
             except FetchError as exc:
                 errors.append(str(exc))
+                continue
+            return FetchOutcome(items, rung, url)
 
         raise FetchError(f"{source.source_id}: all acquisition rungs failed: {'; '.join(errors)}")
 
     def _static_candidates(self, source: Source) -> list[tuple[Rung, str]]:
+        """Rungs 0 and 1: the direct feed then same-publisher alternates."""
         candidates: list[tuple[Rung, str]] = [(Rung.DIRECT, source.url)]
         candidates += [(Rung.ALT_ENDPOINT, url) for url in alt_endpoint_urls(source.url)]
+        return candidates
+
+    def _discovered_candidates(
+        self, source: Source, discovered: str | None
+    ) -> list[tuple[Rung, str]]:
+        """Rungs 2 and 3, in ADR order: an autodiscovered feed then, last, the
+        maintainer-pinned mirror in ``active_url`` (a known-good alternate)."""
+        candidates: list[tuple[Rung, str]] = []
+        if discovered is not None:
+            candidates.append((Rung.AUTODISCOVERY, discovered))
         if source.active_url:
             candidates.append((Rung.MIRROR, source.active_url))
         return candidates
@@ -146,7 +158,9 @@ class RssFetcher(Fetcher):
             errors.append(str(exc))
             return None
         if not (200 <= response.status_code < 300):
-            errors.append(f"{source.source_id}: autodiscovery GET {root} HTTP {response.status_code}")
+            errors.append(
+                f"{source.source_id}: autodiscovery GET {root} HTTP {response.status_code}"
+            )
             return None
         return discover_feed_url(response.content, base_url=root)
 

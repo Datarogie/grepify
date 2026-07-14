@@ -192,7 +192,7 @@ def run_ingest(
         last_real_attempt=last_real_attempt,
         min_interval_hours=services.config.settings().ingest.min_interval_hours,
         per_source_min_interval_hours={
-            s.source_id: DEAD_RECHECK_HOURS for s in fetchable if s.status is SourceStatus.DEAD
+            s.source_id: DEAD_RECHECK_HOURS for s in fetchable if _is_dead_recheck(s)
         },
     )
     results = [
@@ -202,18 +202,28 @@ def run_ingest(
     return IngestSummary(results=results)
 
 
+def _is_dead_recheck(source: Source) -> bool:
+    """Whether a ``dead`` source is re-probed on the slow cadence (ADR 0002 §2).
+
+    Only an explicitly-classified ``dead`` source is: validate requires such a
+    source to carry ``evidence``, so its presence distinguishes a triaged
+    ``status: dead`` from a legacy bare ``enabled: false`` (which maps to
+    ``dead`` for display but is a plain off switch, never re-probed)."""
+    return source.status is SourceStatus.DEAD and source.evidence is not None
+
+
 def _fetchable_sources(config: ConfigProvider) -> list[Source]:
     """Sources the run may dispatch: every enabled (``active``/``degraded``)
-    source, plus ``dead`` sources (for the slow re-check, ADR 0002 §2). A
-    ``dead`` source in an enabled group is still eligible - cadence gates it to
-    the 30-day interval. ``paywalled`` is terminal and never dispatched (no
-    ladder walk); sources in a disabled group are excluded entirely."""
+    source, plus explicitly-classified ``dead`` sources (for the slow re-check,
+    ADR 0002 §2, gated to the 30-day interval by cadence). ``paywalled`` is
+    terminal and never dispatched (no ladder walk, ToS-respecting); a legacy
+    bare ``enabled: false`` source and any source in a disabled group are
+    excluded entirely."""
     enabled_groups = {g.group_id for g in config.groups() if g.enabled}
     return [
         s
         for s in config.sources()
-        if s.group_id in enabled_groups
-        and (s.enabled or s.status is SourceStatus.DEAD)
+        if s.group_id in enabled_groups and (s.enabled or _is_dead_recheck(s))
     ]
 
 

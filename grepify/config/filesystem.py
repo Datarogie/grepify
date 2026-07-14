@@ -180,15 +180,17 @@ class FilesystemConfigProvider(ConfigProvider):
         return errors
 
     def _lifecycle_errors(self, path: Path, spec: SourceSpec) -> list[str]:
-        """Offline lifecycle checks (ADR 0002): a ``dead`` source needs
-        ``evidence`` and a ``paywalled`` source needs a reader-facing
-        ``message`` (it renders on the sources page). Structural rules
-        (gone-rejection, status/enabled agreement) are enforced by the schema
-        model validators before this runs."""
+        """Offline lifecycle checks (ADR 0002): an explicit ``status: dead``
+        needs ``evidence`` and an explicit ``status: paywalled`` needs a
+        reader-facing ``message`` (it renders on the sources page). The check
+        keys on the explicit ``status``, not the derived one, so a legacy bare
+        ``enabled: false`` file stays valid unchanged (ADR 0002 §4 back-compat).
+        Structural rules (gone-rejection, status/enabled agreement) are enforced
+        by the schema model validators before this runs."""
         errors: list[str] = []
-        if spec.effective_status is SourceStatus.DEAD and not spec.evidence:
+        if spec.status is SourceStatus.DEAD and not spec.evidence:
             errors.append(f"{path.name}: dead source {spec.id!r} must carry an 'evidence' note")
-        if spec.effective_status is SourceStatus.PAYWALLED and not spec.message:
+        if spec.status is SourceStatus.PAYWALLED and not spec.message:
             errors.append(
                 f"{path.name}: paywalled source {spec.id!r} must carry a reader-facing 'message'"
             )

@@ -9,7 +9,7 @@ import pytest
 from grepify.errors import FetchError
 from grepify.ingest import RedditFetcher
 from grepify.ingest.http import HttpResponse
-from grepify.models import SourceKind
+from grepify.models import Rung, SourceKind
 from tests.conftest import ScriptedTransport, fixture_response, make_source
 
 _SUB_URL = "https://www.reddit.com/r/LocalLLaMA/new.json"
@@ -229,3 +229,31 @@ def test_transport_exception_retried_then_falls_back() -> None:
     )
     items = _fetcher(transport, max_attempts=1).fetch(make_source("localllama", url=_SUB_URL))
     assert len(items) == 2
+
+
+# --- acquisition-rung reporting (ADR 0002 §1, GRP-66) ------------------------
+
+
+def test_acquire_reports_direct_rung_on_json_success() -> None:
+    transport = ScriptedTransport([fixture_response("reddit", "new.json")])
+    outcome = _fetcher(transport).acquire(
+        make_source("localllama", kind=SourceKind.REDDIT, url=_SUB_URL)
+    )
+    assert outcome.rung is Rung.DIRECT
+    assert outcome.resolved_url is None
+    assert len(outcome.items) == 3
+
+
+def test_acquire_reports_alt_endpoint_rung_on_rss_fallback() -> None:
+    transport = ScriptedTransport(
+        [
+            HttpResponse(status_code=403, content=b"", headers={}),
+            fixture_response("reddit", "fallback.rss"),
+        ]
+    )
+    outcome = _fetcher(transport).acquire(
+        make_source("localllama", kind=SourceKind.REDDIT, url=_SUB_URL)
+    )
+    assert outcome.rung is Rung.ALT_ENDPOINT
+    assert outcome.resolved_url == "https://www.reddit.com/r/LocalLLaMA/new.rss"
+    assert len(outcome.items) == 2
