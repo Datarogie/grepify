@@ -23,6 +23,7 @@ from grepify.clock import FixedClock
 from grepify.config.filesystem import FilesystemConfigProvider
 from grepify.errors import ConfigError
 from grepify.health import ErrorClass, HealthSnapshot, SourceHealth
+from grepify.ingest import RawItem, normalize
 from grepify.models import ExtractionMethod, FetchStatus, Item, ItemKeyword, SourceKind
 from grepify.path_safety import ContainedPath, ensure_safe_output_dir
 from grepify.paths import DataLayout
@@ -232,6 +233,55 @@ def build_canned(  # noqa: PLR0913 - test fixture builder, each knob is a distin
         base_path=base_path,
     )
     return result, tmp_path / "public"
+
+
+def test_normalized_ipv6_item_url_reaches_generated_html_and_json(tmp_path: Path) -> None:
+    conf = tmp_path / "sources"
+    (conf / "groups").mkdir(parents=True, exist_ok=True)
+    (conf / "settings.yml").write_text(_SETTINGS, encoding="utf-8")
+    (conf / "keywords.yml").write_text(_KEYWORDS, encoding="utf-8")
+    (conf / "groups" / "ipv6.yml").write_text(
+        textwrap.dedent(
+            """
+            group: ipv6
+            name: IPv6 Sources
+            category: ai
+            sources:
+              - {id: s-ipv6, kind: rss, name: IPv6 Source, url: 'https://feeds.example/rss.xml'}
+            """
+        ).strip(),
+        encoding="utf-8",
+    )
+
+    source = FilesystemConfigProvider(conf).sources()[0]
+    raw = RawItem(
+        url="http://[2001:db8::1]:8080/post?q=1&utm_source=x#fragment",
+        title="Valid IPv6 story",
+    )
+    item = normalize(raw, source, fetched_at="2026-07-08T11:00:00+00:00")
+    assert item.canonical_url == "http://[2001:db8::1]:8080/post?q=1"
+
+    data = tmp_path / "data"
+    repo = JsonlSqliteRepository(data)
+    repo.add_items([item])
+    repo.close()
+
+    out = build_site(
+        config=FilesystemConfigProvider(conf),
+        repository=JsonlSqliteRepository(data),
+        layout=DataLayout(data),
+        clock=_CLOCK,
+        run_id=_RUN_ID,
+        output_dir=tmp_path / "public",
+        base_path="/grepify/",
+    ).output_dir
+
+    items_html = (out / "items/index.html").read_text(encoding="utf-8")
+    assert '<a href="http://[2001:db8::1]:8080/post?q=1" rel="noopener noreferrer">' in items_html
+    assert "Valid IPv6 story" in items_html
+
+    payload = json.loads((out / "items/page-1.json").read_text(encoding="utf-8"))
+    assert payload["items"][0]["url"] == "http://[2001:db8::1]:8080/post?q=1"
 
 
 def test_generated_output_omits_unsafe_href_schemes_but_keeps_titles(tmp_path: Path) -> None:

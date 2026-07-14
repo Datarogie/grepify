@@ -81,6 +81,7 @@ from selectolax.parser import HTMLParser
 from grepify.ingest.base import RawItem
 from grepify.ingest.dedup import compute_content_hash
 from grepify.models import Item, Source, SourceKind
+from grepify.url_authority import format_url_authority
 
 _SUMMARY_MAX_CHARS = 2000  # PRD §6 / F-ING-04: store a truncated excerpt only
 _MAX_STRIP_PASSES = 10
@@ -118,15 +119,20 @@ def canonicalize_url(url: str) -> str:
     otherwise unchanged (nothing to canonicalize safely).
     """
     stripped = url.strip()
-    parts = urlsplit(stripped)
+    try:
+        parts = urlsplit(stripped)
+    except ValueError:
+        return stripped
     scheme = parts.scheme.lower()
     if scheme not in ("http", "https") or not parts.hostname:
         return stripped
 
     host = parts.hostname  # urlsplit.hostname lowercases the host (no punycode/IDNA change)
-    port = parts.port
-    default_port = (scheme == "http" and port == 80) or (scheme == "https" and port == 443)
-    netloc = host if port is None or default_port else f"{host}:{port}"
+    try:
+        port = parts.port
+    except ValueError:
+        return stripped
+    netloc = format_url_authority(scheme=scheme, host=host, port=port)
 
     path = parts.path
     if len(path) > 1 and path.endswith("/"):

@@ -37,6 +37,15 @@ def _raw(**kw: object) -> RawItem:
         ("https://example.com:443/a", "https://example.com/a"),
         ("http://example.com:80/a", "http://example.com/a"),
         ("https://example.com:8080/a", "https://example.com:8080/a"),
+        ("https://192.0.2.1:443/a", "https://192.0.2.1/a"),
+        ("http://192.0.2.1:8080/a", "http://192.0.2.1:8080/a"),
+        ("https://[2001:db8::1]/post", "https://[2001:db8::1]/post"),
+        ("http://[2001:db8::1]:8080/post", "http://[2001:db8::1]:8080/post"),
+        ("http://[2001:db8::1]:80/post", "http://[2001:db8::1]/post"),
+        (
+            "https://[2001:db8::1]:443/post?q=1&utm_source=x#fragment",
+            "https://[2001:db8::1]/post?q=1",
+        ),
         ("https://example.com/a#section", "https://example.com/a"),
         ("https://example.com/a?utm_source=x&id=5&fbclid=9", "https://example.com/a?id=5"),
         ("  https://example.com/a  ", "https://example.com/a"),
@@ -50,6 +59,18 @@ def test_canonicalize_url(raw: str, expected: str) -> None:
 
 def test_canonicalize_preserves_remaining_query_order() -> None:
     assert canonicalize_url("https://e.com/a?b=2&a=1&utm_x=z") == "https://e.com/a?b=2&a=1"
+
+
+def test_canonicalize_malformed_ipv6_authority_returns_stripped_input() -> None:
+    assert canonicalize_url("  https://[2001:db8::1/post  ") == "https://[2001:db8::1/post"
+
+
+def test_ipv6_canonical_url_drives_deterministic_item_id() -> None:
+    source = make_source("s1")
+    raw = _raw(url="https://[2001:db8::1]:443/post#fragment", external_id=None)
+    item = normalize(raw, source, fetched_at=_FETCHED)
+    assert item.canonical_url == "https://[2001:db8::1]/post"
+    assert item.item_id == compute_item_id(SourceKind.RSS, "https://[2001:db8::1]/post", None)
 
 
 # --- item_id identity rule --------------------------------------------------

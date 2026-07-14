@@ -11,6 +11,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from urllib.parse import SplitResult, unquote, urljoin, urlsplit, urlunsplit
 
+from grepify.url_authority import format_url_authority
+
 _ALLOWED_SCHEMES = frozenset({"http", "https"})
 _C0_SPACE = "".join(chr(i) for i in range(0x21))
 
@@ -70,10 +72,7 @@ def _published_from_parts(parts: SplitResult) -> PublishedUrl | None:
     host = parts.hostname or ""
     if not host or _has_forbidden_chars(host):
         return None
-    port = parts.port
-    default_port = (scheme == "http" and port == 80) or (scheme == "https" and port == 443)
-    authority_host = f"[{host}]" if ":" in host else host
-    netloc = authority_host if port is None or default_port else f"{authority_host}:{port}"
+    netloc = format_url_authority(scheme=scheme, host=host, port=parts.port)
     path = parts.path or "/"
     return PublishedUrl(urlunsplit((scheme, netloc, path, parts.query, parts.fragment)))
 
