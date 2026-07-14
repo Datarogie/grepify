@@ -72,7 +72,8 @@ def _published_from_parts(parts: SplitResult) -> PublishedUrl | None:
         return None
     port = parts.port
     default_port = (scheme == "http" and port == 80) or (scheme == "https" and port == 443)
-    netloc = host if port is None or default_port else f"{host}:{port}"
+    authority_host = f"[{host}]" if ":" in host else host
+    netloc = authority_host if port is None or default_port else f"{authority_host}:{port}"
     path = parts.path or "/"
     return PublishedUrl(urlunsplit((scheme, netloc, path, parts.query, parts.fragment)))
 

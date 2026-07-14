@@ -36,6 +36,10 @@ def test_unsafe_or_unresolved_published_urls_are_absent(raw: str | None) -> None
         ("//cdn.example.com/x", "https://feeds.example.org/rss.xml", "https://cdn.example.com/x"),
         ("../post?id=1", "https://example.com/feeds/main.xml", "https://example.com/post?id=1"),
         ("item", "https://example.com/feeds/main.xml", "https://example.com/feeds/item"),
+        ("https://[2001:db8::1]/post", None, "https://[2001:db8::1]/post"),
+        ("http://[2001:db8::1]:8080/post", None, "http://[2001:db8::1]:8080/post"),
+        ("http://[2001:db8::1]:80/post", None, "http://[2001:db8::1]/post"),
+        ("https://[2001:db8::1]:443/post?q=1#frag", None, "https://[2001:db8::1]/post?q=1#frag"),
     ],
 )
 def test_valid_published_urls_are_normalized_and_relative_urls_resolve(
