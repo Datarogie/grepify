@@ -610,3 +610,44 @@ def test_staged_render_failure_preserves_output_and_removes_stage(
 
     assert (out / "index.html").read_text(encoding="utf-8") == previous
     assert not list(tmp_path.glob(".public.*.tmp"))
+
+
+def test_keyboard_interrupt_during_first_replace_preserves_output(tmp_path: Path) -> None:
+    output = tmp_path / "public"
+    output.mkdir()
+    (output / "index.html").write_text("previous", encoding="utf-8")
+    stage = tmp_path / ".public.stage"
+    stage.mkdir()
+
+    def interrupt_first_replace(_src: Path, _dst: Path) -> None:
+        raise KeyboardInterrupt
+
+    with pytest.raises(KeyboardInterrupt):
+        _replace_output(stage, output, replace=interrupt_first_replace)
+
+    assert (output / "index.html").read_text(encoding="utf-8") == "previous"
+    assert not stage.exists()
+
+
+def test_publish_preserves_broken_symlink_occupant(tmp_path: Path) -> None:
+    output = tmp_path / "public"
+    output.mkdir()
+    (output / "index.html").write_text("previous", encoding="utf-8")
+    stage = tmp_path / ".public.stage"
+    stage.mkdir()
+    missing_target = tmp_path / "missing-target"
+
+    def occupy_with_broken_symlink(src: Path, dst: Path) -> None:
+        src.replace(dst)
+        output.symlink_to(missing_target, target_is_directory=True)
+
+    with pytest.raises(RuntimeError, match="destination is occupied"):
+        _replace_output(stage, output, replace=occupy_with_broken_symlink)
+
+    backups = list(tmp_path.glob(".public.*.previous"))
+    assert output.is_symlink()
+    assert not output.exists()
+    assert output.readlink() == missing_target
+    assert len(backups) == 1
+    assert (backups[0] / "index.html").read_text(encoding="utf-8") == "previous"
+    assert stage.exists()

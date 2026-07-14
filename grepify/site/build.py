@@ -519,11 +519,15 @@ def _replace_output(
     backup_dir.rmdir()
     moved_existing = False
     try:
-        if output_dir.exists():
+        if _path_occupied(output_dir):
             replace(output_dir, backup_dir)
             moved_existing = True
+        if _path_occupied(output_dir):
+            raise RuntimeError(
+                f"output destination became occupied; previous output preserved at {backup_dir}"
+            )
         replace(stage_dir, output_dir)
-    except Exception as exc:
+    except BaseException as exc:
         _handle_publish_failure(
             _PublishFailure(
                 stage_dir=stage_dir,
@@ -544,7 +548,7 @@ def _handle_publish_failure(failure: _PublishFailure) -> None:
         if failure.stage_dir.exists():
             shutil.rmtree(failure.stage_dir)
         return
-    if not failure.output_dir.exists():
+    if not _path_occupied(failure.output_dir):
         failure.replace(failure.backup_dir, failure.output_dir)
         if failure.stage_dir.exists():
             shutil.rmtree(failure.stage_dir)
@@ -553,6 +557,14 @@ def _handle_publish_failure(failure: _PublishFailure) -> None:
         f"output publish failed and destination is occupied; "
         f"previous output preserved at {failure.backup_dir}"
     ) from failure.original
+
+
+def _path_occupied(path: Path) -> bool:
+    try:
+        path.stat(follow_symlinks=False)
+    except FileNotFoundError:
+        return False
+    return True
 
 
 def _copy_static(output_dir: ContainedPath) -> None:
