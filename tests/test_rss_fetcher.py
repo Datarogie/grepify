@@ -7,7 +7,21 @@ import pytest
 from grepify.errors import FetchError
 from grepify.ingest import RssFetcher
 from grepify.ingest.http import HttpResponse
+from grepify.models import Rung
 from tests.conftest import ScriptedTransport, fixture_response, make_source
+
+_FEED_URL = "https://example.com/s1/feed"
+
+
+def _fail(status: int = 404) -> HttpResponse:
+    return HttpResponse(status_code=status, content=b"", headers={})
+
+
+def _html(body: bytes) -> HttpResponse:
+    return HttpResponse(status_code=200, content=body, headers={})
+
+
+_HTML_WITH_LINK = b'<link rel="alternate" type="application/rss+xml" href="/found.xml">'
 
 
 def test_valid_feed_maps_all_entries() -> None:
@@ -141,3 +155,96 @@ def test_conditional_get_cache_is_per_source() -> None:
 
     _url, headers = transport.calls[1]
     assert "if-none-match" not in headers
+
+
+# --- acquisition ladder (ADR 0002 §1, GRP-66) --------------------------------
+
+
+def test_acquire_direct_success_reports_direct_rung() -> None:
+    transport = ScriptedTransport([fixture_response("rss", "valid.xml")])
+    outcome = RssFetcher(transport).acquire(make_source("s1", url=_FEED_URL))
+    assert outcome.rung is Rung.DIRECT
+    assert outcome.resolved_url is None
+    assert len(outcome.items) == 3
+    assert len(transport.calls) == 1  # no fallback GET when rung 0 serves
+
+
+def test_acquire_empty_feed_serves_directly_not_degraded() -> None:
+    # A quiet (empty) feed is a successful rung-0 serve, not a failure to
+    # escalate: the ladder must stop, still reporting DIRECT.
+    transport = ScriptedTransport([fixture_response("rss", "empty.xml")])
+    outcome = RssFetcher(transport).acquire(make_source("s1", url=_FEED_URL))
+    assert outcome.rung is Rung.DIRECT
+    assert outcome.items == []
+    assert len(transport.calls) == 1
+
+
+def test_acquire_falls_back_to_alt_endpoint() -> None:
+    transport = ScriptedTransport([_fail(403), fixture_response("rss", "valid.xml")])
+    outcome = RssFetcher(transport).acquire(make_source("s1", url=_FEED_URL))
+    assert outcome.rung is Rung.ALT_ENDPOINT
+    assert outcome.resolved_url == "https://example.com/s1/feed/"
+    assert len(outcome.items) == 3
+    assert len(transport.calls) == 2
+
+
+def test_acquire_falls_back_to_autodiscovery() -> None:
+    transport = ScriptedTransport(
+        [
+            _fail(),
+            _fail(),
+            _fail(),
+            _fail(),
+            _html(_HTML_WITH_LINK),
+            fixture_response("rss", "valid.xml"),
+        ]
+    )
+    outcome = RssFetcher(transport).acquire(make_source("s1", url=_FEED_URL))
+    assert outcome.rung is Rung.AUTODISCOVERY
+    assert outcome.resolved_url == "https://example.com/found.xml"
+    assert len(outcome.items) == 3
+    # 4 static rungs (direct + 3 alts) + 1 home-page GET + 1 discovered-feed GET.
+    assert len(transport.calls) == 6
+    assert transport.calls[4][0] == "https://example.com/"
+
+
+def test_acquire_falls_back_to_pinned_mirror_after_autodiscovery() -> None:
+    source = make_source("s1", url=_FEED_URL).model_copy(
+        update={"active_url": "https://example.com/mirror.xml"}
+    )
+    # All statics fail; the home page has no feed link, so autodiscovery yields
+    # nothing and the ADR rung-3 pinned mirror serves last.
+    transport = ScriptedTransport(
+        [
+            _fail(),
+            _fail(),
+            _fail(),
+            _fail(),
+            _html(b"<html>no feed</html>"),
+            fixture_response("rss", "valid.xml"),
+        ]
+    )
+    outcome = RssFetcher(transport).acquire(source)
+    assert outcome.rung is Rung.MIRROR
+    assert outcome.resolved_url == "https://example.com/mirror.xml"
+    assert transport.calls[-1][0] == "https://example.com/mirror.xml"
+
+
+def test_acquire_all_rungs_failing_raises_with_bounded_attempts() -> None:
+    # direct + 3 alts + 1 home-page probe = 5 GETs, then it stops (no active_url,
+    # no discovered feed): bounded, never spins (PRD §9).
+    transport = ScriptedTransport(
+        [_fail(), _fail(), _fail(), _fail(), _html(b"<html>no feed</html>")]
+    )
+    with pytest.raises(FetchError, match="all acquisition rungs failed"):
+        RssFetcher(transport).acquire(make_source("s1", url=_FEED_URL))
+    assert len(transport.calls) == 5
+
+
+def test_fetch_still_uses_only_the_direct_rung() -> None:
+    # The single-rung fetch() path is unchanged for non-orchestrator callers:
+    # a rung-0 failure raises, it never walks the ladder.
+    transport = ScriptedTransport([_fail(403)])
+    with pytest.raises(FetchError, match="403"):
+        RssFetcher(transport).fetch(make_source("s1", url=_FEED_URL))
+    assert len(transport.calls) == 1

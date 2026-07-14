@@ -44,10 +44,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from grepify.errors import FetchError
-from grepify.ingest.base import Fetcher, RawItem
+from grepify.ingest.base import Fetcher, FetchOutcome, RawItem
 from grepify.ingest.feedutil import parse_feed_bytes, raw_item_from_feed_entry
 from grepify.ingest.http import HttpxTransport, Transport, get_or_raise
-from grepify.models import Source, SourceKind
+from grepify.ingest.ladder import alt_endpoint_urls, discover_feed_url, site_root
+from grepify.models import Rung, Source, SourceKind
 
 _TIMEOUT_SECONDS = 10.0
 _USER_AGENT = (
@@ -84,8 +85,88 @@ class RssFetcher(Fetcher):
         return SourceKind.RSS
 
     def fetch(self, source: Source) -> list[RawItem]:
+        """Fetch the primary feed only (rung 0), preserving conditional GET.
+
+        This is the single-rung path every non-orchestrator caller keeps: the
+        ladder (:meth:`acquire`) is what the orchestrator drives so it can
+        record which rung served.
+        """
+        return self._fetch_feed(source, source.url, use_cache=True)
+
+    def acquire(self, source: Source) -> FetchOutcome:
+        """Walk the acquisition ladder (ADR 0002 §1) and report the rung.
+
+        Order: direct (rung 0) -> alternate endpoints (rung 1) -> feed
+        autodiscovery (rung 2) -> a maintainer-pinned mirror in ``active_url``
+        (rung 3). A rung *advances* only when the one before it **failed**
+        (raised :class:`~grepify.errors.FetchError`); a rung that returns a
+        parseable feed serves it and stops, even when that feed is empty (a
+        quiet feed is not a failure and must not be re-classified as degraded).
+        Attempts are bounded - one GET per static rung plus one HTML + one feed
+        GET for autodiscovery - so the ladder can never spin (no unbounded
+        retries, PRD §9).
+        """
+        errors: list[str] = []
+        for rung, url in self._static_candidates(source):
+            try:
+                items = self._fetch_feed(source, url, use_cache=rung is Rung.DIRECT)
+            except FetchError as exc:
+                errors.append(str(exc))
+                continue
+            return FetchOutcome(items, rung, None if rung is Rung.DIRECT else url)
+
+        discovered = self._autodiscover(source, errors)
+        for rung, url in self._discovered_candidates(source, discovered):
+            try:
+                items = self._fetch_feed(source, url, use_cache=False)
+            except FetchError as exc:
+                errors.append(str(exc))
+                continue
+            return FetchOutcome(items, rung, url)
+
+        raise FetchError(f"{source.source_id}: all acquisition rungs failed: {'; '.join(errors)}")
+
+    def _static_candidates(self, source: Source) -> list[tuple[Rung, str]]:
+        """Rungs 0 and 1: the direct feed then same-publisher alternates."""
+        candidates: list[tuple[Rung, str]] = [(Rung.DIRECT, source.url)]
+        candidates += [(Rung.ALT_ENDPOINT, url) for url in alt_endpoint_urls(source.url)]
+        return candidates
+
+    def _discovered_candidates(
+        self, source: Source, discovered: str | None
+    ) -> list[tuple[Rung, str]]:
+        """Rungs 2 and 3, in ADR order: an autodiscovered feed then, last, the
+        maintainer-pinned mirror in ``active_url`` (a known-good alternate)."""
+        candidates: list[tuple[Rung, str]] = []
+        if discovered is not None:
+            candidates.append((Rung.AUTODISCOVERY, discovered))
+        if source.active_url:
+            candidates.append((Rung.MIRROR, source.active_url))
+        return candidates
+
+    def _autodiscover(self, source: Source, errors: list[str]) -> str | None:
+        root = site_root(source.url)
+        try:
+            response = get_or_raise(
+                self._transport,
+                root,
+                headers={"user-agent": _USER_AGENT},
+                timeout=self._timeout,
+                source_id=source.source_id,
+            )
+        except FetchError as exc:
+            errors.append(str(exc))
+            return None
+        if not (200 <= response.status_code < 300):
+            errors.append(
+                f"{source.source_id}: autodiscovery GET {root} HTTP {response.status_code}"
+            )
+            return None
+        return discover_feed_url(response.content, base_url=root)
+
+    def _fetch_feed(self, source: Source, url: str, *, use_cache: bool) -> list[RawItem]:
         headers = {"user-agent": _USER_AGENT, "accept": _ACCEPT}
-        state = self._cache.get(source.source_id)
+        state = self._cache.get(url) if use_cache else None
         if state is not None:
             if state.etag:
                 headers["if-none-match"] = state.etag
@@ -94,7 +175,7 @@ class RssFetcher(Fetcher):
 
         response = get_or_raise(
             self._transport,
-            source.url,
+            url,
             headers=headers,
             timeout=self._timeout,
             source_id=source.source_id,
@@ -106,10 +187,11 @@ class RssFetcher(Fetcher):
             raise FetchError(f"{source.source_id}: HTTP {response.status_code}")
 
         parsed = parse_feed_bytes(response.content, source_id=source.source_id)
-        self._cache[source.source_id] = _ConditionalGetState(
-            etag=response.headers.get("etag"),
-            last_modified=response.headers.get("last-modified"),
-        )
+        if use_cache:
+            self._cache[url] = _ConditionalGetState(
+                etag=response.headers.get("etag"),
+                last_modified=response.headers.get("last-modified"),
+            )
 
         feed_lang = parsed.feed.get("language")
         return [raw_item_from_feed_entry(entry, lang=feed_lang) for entry in parsed.entries]

@@ -25,10 +25,11 @@ Failure modes
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 
 from pydantic import BaseModel, ConfigDict
 
-from grepify.models import Source, SourceKind
+from grepify.models import Rung, Source, SourceKind
 
 
 class RawItem(BaseModel):
@@ -51,6 +52,21 @@ class RawItem(BaseModel):
     transcript_ref: str | None = None  # youtube only; typically None until E5
 
 
+@dataclass(frozen=True)
+class FetchOutcome:
+    """A fetch result plus which acquisition rung served it (ADR 0002 §1).
+
+    ``rung`` is :attr:`~grepify.models.Rung.DIRECT` for the primary feed and a
+    fallback rung when the ladder recovered a source from an alternate path;
+    ``resolved_url`` records the URL a fallback rung served from (``None`` for
+    ``DIRECT``, which is just ``source.url``) as degraded evidence.
+    """
+
+    items: list[RawItem]
+    rung: Rung = Rung.DIRECT
+    resolved_url: str | None = None
+
+
 class Fetcher(ABC):
     """One source kind's fetcher. All kinds implement this identical contract."""
 
@@ -68,3 +84,14 @@ class Fetcher(ABC):
         can isolate and continue. Implementations must not compute identity or
         hashes - that is :mod:`grepify.ingest.normalize`'s job.
         """
+
+    def acquire(self, source: Source) -> FetchOutcome:
+        """Fetch ``source`` and report which acquisition rung served it.
+
+        The default is a single direct fetch (rung 0), so a fetcher with no
+        fallback ladder inherits it unchanged. Ladder-aware fetchers
+        (:mod:`grepify.ingest.rss`, :mod:`grepify.ingest.reddit`) override this
+        to walk their ordered rungs; the orchestrator records the rung on the
+        ``fetch_log`` row.
+        """
+        return FetchOutcome(items=self.fetch(source))

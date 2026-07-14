@@ -52,10 +52,10 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from grepify.clock import to_iso
 from grepify.errors import FetchError
-from grepify.ingest.base import Fetcher, RawItem
+from grepify.ingest.base import Fetcher, FetchOutcome, RawItem
 from grepify.ingest.feedutil import clean_title, parse_feed_bytes, raw_item_from_feed_entry
 from grepify.ingest.http import HttpResponse, HttpxTransport, Transport, get_or_raise
-from grepify.models import Source, SourceKind
+from grepify.models import Rung, Source, SourceKind
 
 _TIMEOUT_SECONDS = 10.0
 _USER_AGENT = "grepify-ingest/0.1 (personal feed aggregator; +https://github.com/Datarogie/grepify)"
@@ -102,15 +102,29 @@ class RedditFetcher(Fetcher):
         return SourceKind.REDDIT
 
     def fetch(self, source: Source) -> list[RawItem]:
+        return self.acquire(source).items
+
+    def acquire(self, source: Source) -> FetchOutcome:
+        """Try ``new.json`` (rung 0), falling back to ``.rss`` (rung 1, F-ING-04).
+
+        The JSON endpoint is the primary; when it is blocked or exhausted - a
+        403 from a CI IP is the documented Reddit failure (PRD §13) - the
+        documented ``.rss`` listing is tried once before the source reads as an
+        error. A ``.rss`` recovery is a fallback rung, so it surfaces as
+        :attr:`~grepify.models.Rung.ALT_ENDPOINT` (degraded), letting the ~26
+        best-effort Reddit sources still serve when their JSON is per-request
+        blocked instead of all reading red.
+        """
         headers = {"user-agent": _USER_AGENT}
         url = _with_limit(source.url, _ITEM_CAP)
 
         response = self._get_with_backoff(url, headers=headers, source_id=source.source_id)
         if response is not None:
             items = self._parse_json(response.content, source_id=source.source_id)
-        else:
-            items = self._fetch_rss_fallback(source, headers=headers)
-        return items[:_ITEM_CAP]
+            return FetchOutcome(items[:_ITEM_CAP], Rung.DIRECT)
+        fallback_url = _rss_fallback_url(source.url)
+        items = self._fetch_rss_fallback(source, fallback_url, headers=headers)
+        return FetchOutcome(items[:_ITEM_CAP], Rung.ALT_ENDPOINT, fallback_url)
 
     def _get_with_backoff(
         self, url: str, *, headers: dict[str, str], source_id: str
@@ -142,8 +156,9 @@ class RedditFetcher(Fetcher):
                 self._sleep(_BACKOFF_BASE_SECONDS * (2**attempt))
         return None
 
-    def _fetch_rss_fallback(self, source: Source, *, headers: dict[str, str]) -> list[RawItem]:
-        fallback_url = _rss_fallback_url(source.url)
+    def _fetch_rss_fallback(
+        self, source: Source, fallback_url: str, *, headers: dict[str, str]
+    ) -> list[RawItem]:
         response = get_or_raise(
             self._transport,
             fallback_url,

@@ -24,11 +24,13 @@ mismatched hash widths - a corrupt cache, surfaced loudly.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from typing import Any
 
+from grepify.health import HealthSnapshot, SourceHealth
 from grepify.ingest.dedup import hamming_distance
+from grepify.models import Source, SourceStatus
 from grepify.site.trends import CloudDataset, DigestDetail, ItemSummary, KeywordCount
 
 ITEMS_PER_PAGE = 20  # F-SIT-03
@@ -207,6 +209,100 @@ def rising_strip(cloud: CloudDataset, *, limit: int = RISING_STRIP_LIMIT) -> lis
     in the window is rising, so the caller can hide the strip entirely.
     """
     return [kw for kw in cloud.keywords if kw.rising][:limit]
+
+
+@dataclass(frozen=True)
+class HealthRow:
+    """One source's row on the health page: config lifecycle joined with its
+    fetch-log health (GRP-66)."""
+
+    source_id: str
+    name: str
+    kind: str
+    status: SourceStatus
+    quiet: bool
+    evidence: str | None
+    message: str | None
+    health: SourceHealth | None
+
+    @property
+    def is_degraded(self) -> bool:
+        return self.status is SourceStatus.DEGRADED
+
+    @property
+    def rung_label(self) -> str | None:
+        if self.health is not None and self.health.last_rung is not None:
+            return self.health.last_rung.value
+        return None
+
+    @property
+    def show_flagged(self) -> bool:
+        """A red flag only for a genuinely-flagged live source. Quiet
+        (best-effort) sources never flag, matching the ingest/doctor rule."""
+        return self.health is not None and self.health.flagged and not self.quiet
+
+
+@dataclass(frozen=True)
+class HealthView:
+    """The health page split by lifecycle (GRP-66, pinned health-page ACs).
+
+    ``live`` are the enabled (``active``/``degraded``) sources shown in the main
+    table; ``disabled`` are ``paywalled``/``dead`` sources shown in a separate
+    labelled, collapsed section so they never read as live flagged errors.
+    ``gone`` sources are absent from config, so their stale fetch-log rows are
+    dropped entirely (they simply disappear). ``run_id``/``generated_at`` carry
+    the snapshot provenance (``None`` when no snapshot has been written yet)."""
+
+    live: list[HealthRow]
+    disabled: list[HealthRow]
+    run_id: str | None = None
+    generated_at: str | None = None
+
+    @property
+    def has_snapshot(self) -> bool:
+        return self.run_id is not None
+
+
+def build_health_view(
+    snapshot: HealthSnapshot | None,
+    sources: Iterable[Source],
+    *,
+    quiet_source_ids: Iterable[str] = (),
+) -> HealthView:
+    """Join a :class:`~grepify.health.HealthSnapshot` with config ``sources`` by
+    lifecycle class (ADR 0002 §2; pinned health-page ACs).
+
+    Cross-checking against current config is the whole point: a snapshot row for
+    a source no longer in config (a removed ``gone`` source) is dropped, and a
+    ``dead``/``paywalled`` source is routed to the ``disabled`` section instead
+    of showing its frozen error streak as a live flag. Both sections are sorted
+    by ``source_id`` for byte-stable output. A source with no fetch-log history
+    yet still appears, in the section its class dictates."""
+    by_id: dict[str, SourceHealth] = {}
+    if snapshot is not None:
+        by_id = {h.source_id: h for h in snapshot.sources}
+    quiet = frozenset(quiet_source_ids)
+
+    live: list[HealthRow] = []
+    disabled: list[HealthRow] = []
+    for source in sorted(sources, key=lambda s: s.source_id):
+        row = HealthRow(
+            source_id=source.source_id,
+            name=source.name,
+            kind=source.kind.value,
+            status=source.status,
+            quiet=source.source_id in quiet,
+            evidence=source.evidence,
+            message=source.message,
+            health=by_id.get(source.source_id),
+        )
+        (live if source.status.is_enabled else disabled).append(row)
+    return HealthView(
+        live=live,
+        disabled=disabled,
+        run_id=snapshot.run_id if snapshot is not None else None,
+        generated_at=snapshot.generated_at if snapshot is not None else None,
+    )
 
 
 def latest_digest_per_category(digests: Sequence[DigestDetail]) -> list[DigestDetail]:

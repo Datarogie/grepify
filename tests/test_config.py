@@ -213,3 +213,80 @@ def test_unregistered_kind_in_disabled_group_is_not_rejected(tmp_path: Path) -> 
     """
     report = _provider(tmp_path, {"g.yml": group}).validate(registered_kinds=_RSS_ONLY)
     assert report.ok, report.errors
+
+
+# --- lifecycle classification (ADR 0002, GRP-66) -----------------------------
+
+
+def _lifecycle_group(body: str) -> str:
+    return textwrap.dedent(
+        f"""
+        group: g
+        name: G
+        category: ai
+        sources:
+          {body}
+        """
+    )
+
+
+def test_status_derives_enabled(tmp_path: Path) -> None:
+    group = _lifecycle_group(
+        """- {id: a, kind: rss, url: 'https://x/a/feed', status: active}
+          - {id: d, kind: rss, url: 'https://x/d/feed', status: dead, evidence: 'e'}
+          - {id: p, kind: rss, url: 'https://x/p/feed', status: paywalled, message: 'm'}"""
+    )
+    by_id = {s.source_id: s for s in _provider(tmp_path, {"g.yml": group}).sources()}
+    assert by_id["a"].enabled is True and by_id["a"].status.value == "active"
+    assert by_id["d"].enabled is False and by_id["d"].status.value == "dead"
+    assert by_id["p"].enabled is False and by_id["p"].status.value == "paywalled"
+
+
+def test_back_compat_enabled_maps_to_status(tmp_path: Path) -> None:
+    group = _lifecycle_group(
+        """- {id: on-src, kind: rss, url: 'https://x/on/feed', enabled: true}
+          - {id: off-src, kind: rss, url: 'https://x/off/feed', enabled: false}"""
+    )
+    by_id = {s.source_id: s for s in _provider(tmp_path, {"g.yml": group}).sources()}
+    assert by_id["on-src"].status.value == "active"
+    assert by_id["off-src"].status.value == "dead"  # legacy disabled maps to dead
+
+
+def test_dead_without_evidence_is_rejected(tmp_path: Path) -> None:
+    group = _lifecycle_group("- {id: d, kind: rss, url: 'https://x/d/feed', status: dead}")
+    report = _provider(tmp_path, {"g.yml": group}).validate()
+    assert not report.ok
+    assert any("must carry an 'evidence'" in e for e in report.errors)
+
+
+def test_paywalled_without_message_is_rejected(tmp_path: Path) -> None:
+    group = _lifecycle_group("- {id: p, kind: rss, url: 'https://x/p/feed', status: paywalled}")
+    report = _provider(tmp_path, {"g.yml": group}).validate()
+    assert not report.ok
+    assert any("must carry a reader-facing 'message'" in e for e in report.errors)
+
+
+def test_gone_status_in_group_file_is_rejected(tmp_path: Path) -> None:
+    group = _lifecycle_group("- {id: x, kind: rss, url: 'https://x/x/feed', status: gone}")
+    report = _provider(tmp_path, {"g.yml": group}).validate()
+    assert not report.ok
+    assert any("gone" in e for e in report.errors)
+
+
+def test_status_and_enabled_disagreement_is_rejected(tmp_path: Path) -> None:
+    group = _lifecycle_group(
+        "- {id: x, kind: rss, url: 'https://x/x/feed', status: active, enabled: false}"
+    )
+    report = _provider(tmp_path, {"g.yml": group}).validate()
+    assert not report.ok
+    assert any("enabled" in e for e in report.errors)
+
+
+def test_bare_disabled_source_stays_valid_without_evidence(tmp_path: Path) -> None:
+    # Back-compat: a legacy `enabled: false` (no explicit status) needs no
+    # evidence - existing files stay valid (ADR 0002 §4).
+    group = _lifecycle_group(
+        "- {id: off-src, kind: rss, url: 'https://x/off/feed', enabled: false}"
+    )
+    report = _provider(tmp_path, {"g.yml": group}).validate()
+    assert report.ok, report.errors

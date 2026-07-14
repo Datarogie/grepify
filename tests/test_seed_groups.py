@@ -16,7 +16,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from grepify.config.filesystem import FilesystemConfigProvider
-from grepify.models import SourceKind
+from grepify.models import SourceKind, SourceStatus
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 _SOURCES = _REPO_ROOT / "sources"
@@ -53,13 +53,15 @@ def test_expected_groups_present() -> None:
 
 
 def test_trendcloud_scrape_has_all_118_sources() -> None:
-    # The trendcloud.io /sources AI list is 118 sources (83 rss, 9 youtube, 26 reddit).
+    # The trendcloud.io /sources AI list was 118 sources (83 rss, 9 youtube, 26
+    # reddit); clarifai-blog was removed as `gone` (#66, ADR 0002: HTTP 404
+    # 16/16 is a moved/dead URL, not a WAF block), leaving 117 (82 rss).
     sources = [s for s in _provider().sources() if s.group_id in _TRENDCLOUD_GROUPS]
-    assert len(sources) == 118, len(sources)
+    assert len(sources) == 117, len(sources)
     by_kind = {k: 0 for k in SourceKind}
     for s in sources:
         by_kind[s.kind] += 1
-    assert by_kind[SourceKind.RSS] == 83
+    assert by_kind[SourceKind.RSS] == 82
     assert by_kind[SourceKind.YOUTUBE] == 9
     assert by_kind[SourceKind.REDDIT] == 26
 
@@ -99,12 +101,17 @@ def test_prd_mandated_seeds_present() -> None:
         assert by_id[sid].kind is SourceKind.REDDIT
 
 
-def test_dead_sources_disabled_not_omitted() -> None:
-    # "mark dead ones enabled: false rather than omitting them" - the data-eng
-    # seeds whose feed path could not be confirmed ship disabled, still present.
+def test_dead_and_reprobe_sources_present_not_omitted() -> None:
+    # ADR 0002: a `dead` source stays in the file (status: dead + evidence)
+    # rather than being omitted; the two never-fetched data-eng seeds are
+    # provisional-active re-probes (enabled) so the pipeline ladder resolves
+    # their real feed instead of leaving them dark.
     by_id = {s.source_id: s for s in _provider().sources()}
-    assert by_id["dbt-developer-blog"].enabled is False
-    assert by_id["snowflake-engineering"].enabled is False
+    assert by_id["benn-substack"].status is SourceStatus.DEAD
+    assert by_id["benn-substack"].enabled is False
+    assert by_id["benn-substack"].evidence is not None
+    assert by_id["dbt-developer-blog"].enabled is True
+    assert by_id["snowflake-engineering"].enabled is True
 
 
 def test_youtube_sources_have_channel_id_locator() -> None:

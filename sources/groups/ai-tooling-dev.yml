@@ -32,8 +32,8 @@ sources:
     kind: rss
     name: AIModels
     url: https://aimodels.substack.com/feed
-    enabled: false  # #45 2026-07-13: browser User-Agent + feed Accept header (run 20260713T003917Z) did not
-                    # recover - still HTTP 403 (server-side WAF/IP block, not a UA issue). Disabled with evidence.
+    status: dead
+    evidence: "#45 run 20260713T003917Z: Substack HTTP 403 after browser UA (WAF/IP block, not a UA issue); rungs 0-2 cannot beat it. Recheck 30d; Substack -> strong rung 4 (openrss / self-host RSSHub) opt-in candidate."
     added_at: "2026-07-08"
   - id: analytics-vidhya
     kind: rss
@@ -44,14 +44,6 @@ sources:
     kind: rss
     name: Artificial Intelligence +
     url: https://www.aiplusinfo.com/feed/
-    added_at: "2026-07-08"
-  - id: clarifai-blog
-    kind: rss
-    name: Clarifai Blog
-    url: https://www.clarifai.com/blog/rss.xml
-    enabled: false  # #45 2026-07-12: kept disabled - HTTP 404 (16/16) is a moved/dead URL, not a WAF block,
-                    # so the browser-UA/Accept fetch-header fix does not apply here; needs a corrected URL.
-                    # (Egress to feed hosts is blocked in this environment, so no live discovery is possible.)
     added_at: "2026-07-08"
   - id: cogito-tech-blog
     kind: rss
@@ -169,8 +161,8 @@ sources:
     kind: rss
     name: Shaip Blog
     url: https://www.shaip.com/feed/
-    enabled: false  # #45 2026-07-13: browser User-Agent + feed Accept header (run 20260713T003917Z) did not
-                    # recover - still serves an unparseable HTML challenge page, not feed XML. Disabled with evidence.
+    status: dead
+    evidence: "#45 run 20260713T003917Z: browser UA + feed Accept serves an unparseable HTML challenge page, not feed XML; rungs 0-2 cannot parse it. Recheck 30d; rung 4 opt-in candidate."
     added_at: "2026-07-08"
   - id: spritle-blog
     kind: rss
@@ -181,8 +173,8 @@ sources:
     kind: rss
     name: Theodo Data & AI Blog
     url: https://data-ai.theodo.com/en/technical-blog/rss.xml
-    enabled: false  # #45 2026-07-13: browser User-Agent + feed Accept header (run 20260713T003917Z) did not
-                    # recover - still serves an unparseable HTML challenge page, not feed XML. Disabled with evidence.
+    status: dead
+    evidence: "#45 run 20260713T003917Z: browser UA + feed Accept serves an unparseable HTML challenge page, not feed XML; rungs 0-2 cannot parse it. Recheck 30d; rung 4 opt-in candidate."
     added_at: "2026-07-08"
   - id: towards-data-science
     kind: rss

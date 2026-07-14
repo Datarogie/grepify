@@ -16,8 +16,8 @@ sources:
     kind: rss
     name: benn.substack.com (Benn Stancil)
     url: https://benn.substack.com/feed
-    enabled: false  # #45 2026-07-13: browser User-Agent + feed Accept header (run 20260713T003917Z) did not
-                    # recover - still HTTP 403 (server-side WAF/IP block, not a UA issue). Disabled with evidence.
+    status: dead
+    evidence: "#45 run 20260713T003917Z: Substack HTTP 403 after browser UA (WAF/IP block, not a UA issue); rungs 0-2 cannot beat it. Recheck 30d; Substack -> strong rung 4 (openrss / self-host RSSHub) opt-in candidate."
     added_at: "2026-07-08"
   - id: getdbt-roundup
     kind: rss
@@ -33,13 +33,17 @@ sources:
     kind: rss
     name: dbt Developer Blog
     url: https://docs.getdbt.com/blog/rss.xml
-    enabled: false  # UNVERIFIED feed path - confirm in networked liveness pass
+    # #66: UNVERIFIED path, never fetched. Provisional active (ADR 0002 worked example): the
+    # pipeline ladder (rung 2 autodiscovery on docs.getdbt.com) resolves the real feed; classify
+    # from the first result rather than leaving it dark.
     added_at: "2026-07-08"
   - id: snowflake-engineering
     kind: rss
     name: Snowflake Engineering Blog
     url: https://www.snowflake.com/engineering-blog/feed/
-    enabled: false  # UNVERIFIED feed path - confirm in networked liveness pass
+    # #66: UNVERIFIED path, never fetched. Provisional active (ADR 0002 worked example): the
+    # pipeline ladder (rung 2 autodiscovery on snowflake.com) resolves the real feed; classify
+    # from the first result rather than leaving it dark.
     added_at: "2026-07-08"
   - id: r-dataengineering
     kind: reddit

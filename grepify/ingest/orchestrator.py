@@ -31,11 +31,23 @@ already-capped list to the same bound is a no-op, so this never
 double-truncates incorrectly - the cap is a property of every source kind,
 not something each fetcher has to get right alone.
 
-Enabled sources
-----------------
-A source is ingested only if both its own ``enabled`` flag and its parent
-group's ``enabled`` flag are true (PRD §7 group semantics: disabling a group
-disables everything in it, not just its own flag).
+Fetchable sources (ADR 0002 §2)
+--------------------------------
+A source is ingested only if its parent group is enabled (PRD §7 group
+semantics) and it is itself either enabled (``active``/``degraded``) or ``dead``.
+``dead`` sources are dispatched for the slow re-check (a long per-source cadence
+interval, :data:`DEAD_RECHECK_HOURS`) so a server that recovers is noticed
+without a human re-investigation; a ``paywalled`` source is terminal and never
+dispatched (no ladder walk, ToS-respecting), and a ``gone`` source no longer
+exists in config at all.
+
+Acquisition ladder (ADR 0002 §1)
+---------------------------------
+Each source is dispatched through :meth:`FetcherRegistry.acquire
+<grepify.ingest.registry.FetcherRegistry.acquire>`, which walks the fetcher's
+ordered rungs and reports which one served. That rung is recorded on the
+``fetch_log`` row, so a fallback-served (``degraded``) source is visibly
+degraded rather than silently fine.
 
 Cadence (T6, GRP-31)
 --------------------
@@ -80,10 +92,11 @@ from grepify.ingest.registry import FetcherRegistry
 from grepify.ingest.rss import RssFetcher
 from grepify.ingest.transcript import TranscriptStore
 from grepify.ingest.youtube import YouTubeFetcher
-from grepify.models import FetchLogEntry, FetchStatus, Source
+from grepify.models import FetchLogEntry, FetchStatus, Rung, Source, SourceStatus
 from grepify.repository.base import Repository
 
 ITEM_CAP_DEFAULT = 50  # F-ING-06
+DEAD_RECHECK_HOURS = 30 * 24  # ADR 0002 §2: slow re-check cadence for `dead` sources
 
 
 @dataclass(frozen=True)
@@ -106,6 +119,7 @@ class SourceResult:
     items_new: int
     duration_ms: int
     error: str | None = None
+    rung: Rung | None = None
 
 
 @dataclass(frozen=True)
@@ -171,11 +185,15 @@ def run_ingest(
     now = services.clock.now()
     started_at = to_iso(now)
     last_real_attempt = last_real_attempt_at(services.repository.iter_fetch_log())
+    fetchable = _fetchable_sources(services.config)
     decision = split_by_cadence(
-        _enabled_sources(services.config),
+        fetchable,
         now=now,
         last_real_attempt=last_real_attempt,
         min_interval_hours=services.config.settings().ingest.min_interval_hours,
+        per_source_min_interval_hours={
+            s.source_id: DEAD_RECHECK_HOURS for s in fetchable if _is_dead_recheck(s)
+        },
     )
     results = [
         _skip_for_cadence(source, services, run_id=run_id, started_at=started_at)
@@ -184,9 +202,29 @@ def run_ingest(
     return IngestSummary(results=results)
 
 
-def _enabled_sources(config: ConfigProvider) -> list[Source]:
+def _is_dead_recheck(source: Source) -> bool:
+    """Whether a ``dead`` source is re-probed on the slow cadence (ADR 0002 §2).
+
+    Only an explicitly-classified ``dead`` source is: validate requires such a
+    source to carry ``evidence``, so its presence distinguishes a triaged
+    ``status: dead`` from a legacy bare ``enabled: false`` (which maps to
+    ``dead`` for display but is a plain off switch, never re-probed)."""
+    return source.status is SourceStatus.DEAD and source.evidence is not None
+
+
+def _fetchable_sources(config: ConfigProvider) -> list[Source]:
+    """Sources the run may dispatch: every enabled (``active``/``degraded``)
+    source, plus explicitly-classified ``dead`` sources (for the slow re-check,
+    ADR 0002 §2, gated to the 30-day interval by cadence). ``paywalled`` is
+    terminal and never dispatched (no ladder walk, ToS-respecting); a legacy
+    bare ``enabled: false`` source and any source in a disabled group are
+    excluded entirely."""
     enabled_groups = {g.group_id for g in config.groups() if g.enabled}
-    return [s for s in config.sources() if s.enabled and s.group_id in enabled_groups]
+    return [
+        s
+        for s in config.sources()
+        if s.group_id in enabled_groups and (s.enabled or _is_dead_recheck(s))
+    ]
 
 
 def _record(repository: Repository, entry: FetchLogEntry) -> SourceResult:
@@ -207,6 +245,7 @@ def _record(repository: Repository, entry: FetchLogEntry) -> SourceResult:
         items_new=entry.items_new,
         duration_ms=entry.duration_ms or 0,
         error=entry.error,
+        rung=entry.rung,
     )
 
 
@@ -253,13 +292,14 @@ def _run_source(
         t0=time.monotonic(),
     )
     try:
-        raw_items = services.registry.fetch(source)[:item_cap]
+        outcome = services.registry.acquire(source)
+        raw_items = outcome.items[:item_cap]
         if not raw_items:
-            return _finish(attempt, FetchStatus.EMPTY)
+            return _finish(attempt, FetchStatus.EMPTY, rung=outcome.rung)
         fetched_at = to_iso(services.clock.now())
         items = dedup_within_batch(normalize_batch(raw_items, source, fetched_at=fetched_at))
         items_new = services.repository.add_items(items)
-        return _finish(attempt, FetchStatus.OK, items_new=items_new)
+        return _finish(attempt, FetchStatus.OK, items_new=items_new, rung=outcome.rung)
     except FetchError as exc:
         return _finish(attempt, FetchStatus.ERROR, error=str(exc))
     except KeyError as exc:
@@ -272,7 +312,12 @@ def _run_source(
 
 
 def _finish(
-    attempt: _Attempt, status: FetchStatus, *, items_new: int = 0, error: str | None = None
+    attempt: _Attempt,
+    status: FetchStatus,
+    *,
+    items_new: int = 0,
+    error: str | None = None,
+    rung: Rung | None = None,
 ) -> SourceResult:
     return _record(
         attempt.repository,
@@ -284,5 +329,6 @@ def _finish(
             items_new=items_new,
             error=error,
             duration_ms=int((time.monotonic() - attempt.t0) * 1000),
+            rung=rung,
         ),
     )

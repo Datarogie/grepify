@@ -25,20 +25,34 @@
 <p class="muted">No digests generated yet.</p>
 {% endif %}
 
-{% if health %}
-<p class="muted">Snapshot from run {{ health.run_id }}, generated {{ health.generated_at }}</p>
-{% if health.sources %}
+{% if health_view.has_snapshot %}
+<p class="muted">Snapshot from run {{ health_view.run_id }}, generated {{ health_view.generated_at }}</p>
+{% else %}
+<p class="muted">No health snapshot available - run the pipeline to generate <code>data/health.json</code>.</p>
+{% endif %}
+
+{% if health_view.has_snapshot %}
+{% if health_view.live %}
 <table>
-<thead><tr><th>Source</th><th>Last status</th><th>Error</th><th>Last attempt</th><th>Attempts</th><th>Consecutive failures</th></tr></thead>
+<thead><tr><th>Source</th><th>Class</th><th>Last status</th><th>Error</th><th>Last attempt</th><th>Attempts</th><th>Consecutive failures</th></tr></thead>
 <tbody>
-{% for s in health.sources %}
-<tr{% if s.flagged %} class="status-error"{% endif %}>
-<td>{{ s.source_id }}</td>
-<td class="status-{{ s.last_status }}">{{ s.last_status }}</td>
-<td{% if s.last_error %} title="{{ s.last_error }}"{% endif %}>{{ s.error_class if s.error_class else "-" }}</td>
-<td>{{ s.last_started_at[:19] }}</td>
-<td>{{ s.attempts }}</td>
-<td>{{ s.consecutive_failures }}{% if s.flagged %} ⚑{% endif %}</td>
+{% for row in health_view.live %}
+<tr{% if row.show_flagged %} class="status-error"{% endif %}>
+<td>{{ row.name }}</td>
+<td class="status-{{ 'warn' if row.is_degraded else 'ok' }}">{{ row.status }}{% if row.is_degraded and row.rung_label %} (via {{ row.rung_label }}){% endif %}</td>
+{% if row.health %}
+<td class="status-{{ row.health.last_status }}">{{ row.health.last_status }}</td>
+<td{% if row.health.last_error %} title="{{ row.health.last_error }}"{% endif %}>{{ row.health.error_class if row.health.error_class else "-" }}</td>
+<td>{{ row.health.last_started_at[:19] }}</td>
+<td>{{ row.health.attempts }}</td>
+<td>{{ row.health.consecutive_failures }}{% if row.show_flagged %} ⚑{% endif %}{% if row.quiet %} <span class="muted">(quiet)</span>{% endif %}</td>
+{% else %}
+<td class="muted">never-fetched</td>
+<td>-</td>
+<td>-</td>
+<td>0</td>
+<td>0</td>
+{% endif %}
 </tr>
 {% endfor %}
 </tbody>
@@ -46,7 +60,23 @@
 {% else %}
 <p class="muted">No source attempts recorded yet.</p>
 {% endif %}
-{% else %}
-<p class="muted">No health snapshot available - run the pipeline to generate <code>data/health.json</code>.</p>
+{% endif %}
+
+{% if health_view.disabled %}
+<details class="lifecycle-disabled">
+<summary>Disabled sources ({{ health_view.disabled | length }}) - not fetched, shown for the record</summary>
+<table>
+<thead><tr><th>Source</th><th>Class</th><th>Reason</th></tr></thead>
+<tbody>
+{% for row in health_view.disabled %}
+<tr>
+<td>{{ row.name }}</td>
+<td class="status-warn">{{ row.status }}</td>
+<td class="muted">{{ row.message or row.evidence or "-" }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</details>
 {% endif %}
 {% endblock %}

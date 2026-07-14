@@ -42,8 +42,8 @@ sources:
     kind: rss
     name: AI TechPark
     url: https://ai-techpark.com/category/ai/feed/
-    enabled: false  # #45 2026-07-13: browser User-Agent + feed Accept header (run 20260713T003917Z) did not
-                    # recover - still HTTP 403 (server-side WAF/IP block, not a UA issue). Disabled with evidence.
+    status: dead
+    evidence: "#45 run 20260713T003917Z: browser UA + feed Accept still HTTP 403 (server-side WAF/IP block, not a UA issue); rungs 0-2 cannot beat a WAF. Recheck 30d; rung 4 (self-host RSSHub) opt-in candidate."
     added_at: "2026-07-08"
   - id: ai-time-journal
     kind: rss
@@ -54,8 +54,8 @@ sources:
     kind: rss
     name: AIM AI
     url: https://analyticsindiamag.com/ai-news-updates/feed/
-    enabled: false  # #45 2026-07-13: browser User-Agent + feed Accept header (run 20260713T003917Z) did not
-                    # recover - still serves an unparseable HTML challenge page, not feed XML. Disabled with evidence.
+    status: dead
+    evidence: "#45 run 20260713T003917Z: browser UA + feed Accept returns an unparseable Cloudflare HTML challenge, not feed XML; the JS challenge defeats rungs 0-2. Recheck 30d; rung 4 opt-in candidate."
     added_at: "2026-07-08"
   - id: ars-technica-ai
     kind: rss
@@ -136,9 +136,8 @@ sources:
     kind: rss
     name: Inside AI News
     url: https://insideainews.com/feed/
-    enabled: false  # #45 2026-07-13: TLS seclevel-1 context (permit legacy ciphers, cert verification on,
-                    # TLS 1.2 floor) did NOT recover - run 20260713T010831Z still SSLV3_ALERT_HANDSHAKE_FAILURE.
-                    # Confirmed dead; kept disabled. Did not drop to deprecated TLS 1.0. See docs/feed-triage.md.
+    status: dead
+    evidence: "#45 run 20260713T010831Z: TLS seclevel-1 context (legacy ciphers permitted, cert verification on, TLS 1.2 floor) still SSLV3_ALERT_HANDSHAKE_FAILURE; network-level, we do not drop to deprecated TLS 1.0. Recheck 30d in case the operator upgrades TLS. See docs/feed-triage.md."
     added_at: "2026-07-08"
   - id: just-ai-news
     kind: rss
@@ -149,9 +148,8 @@ sources:
     kind: rss
     name: KnowTechie AI
     url: https://knowtechie.com/category/ai/feed/
-    enabled: false  # #45 2026-07-13: TLS seclevel-1 context (permit legacy ciphers, cert verification on,
-                    # TLS 1.2 floor) did NOT recover - run 20260713T010831Z still SSLV3_ALERT_HANDSHAKE_FAILURE.
-                    # Confirmed dead; kept disabled. Did not drop to deprecated TLS 1.0. See docs/feed-triage.md.
+    status: dead
+    evidence: "#45 run 20260713T010831Z: TLS seclevel-1 context (legacy ciphers permitted, cert verification on, TLS 1.2 floor) still SSLV3_ALERT_HANDSHAKE_FAILURE; network-level, we do not drop to deprecated TLS 1.0. Recheck 30d in case the operator upgrades TLS. See docs/feed-triage.md."
     added_at: "2026-07-08"
   - id: la-biblia-de-la-ia
     kind: rss

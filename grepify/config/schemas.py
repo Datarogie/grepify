@@ -29,7 +29,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
-from grepify.models import SourceKind
+from grepify.models import SourceKind, SourceStatus
 
 # Which locator field each kind requires (PRD §7). The value resolves to the
 # canonical URL that becomes the source identity (url + url_hash).
@@ -46,7 +46,16 @@ class _ConfigModel(BaseModel):
 
 
 class SourceSpec(_ConfigModel):
-    """One source within a group file. Exactly one locator field per kind."""
+    """One source within a group file. Exactly one locator field per kind.
+
+    Lifecycle (ADR 0002): ``status`` is authoritative and ``enabled`` is derived
+    from it (``active``/``degraded`` -> enabled, ``paywalled``/``dead`` ->
+    disabled). For back-compat a file may still carry ``enabled`` alone, absent
+    ``status``: ``enabled: true`` maps to ``active`` and ``enabled: false`` to
+    ``dead``. A ``gone`` source is never represented here - it is removed from
+    the group file entirely, so an explicit ``status: gone`` is rejected. When
+    both ``status`` and ``enabled`` are set explicitly they must agree.
+    """
 
     id: str
     kind: SourceKind
@@ -54,6 +63,11 @@ class SourceSpec(_ConfigModel):
     enabled: bool = True
     added_at: str | None = None
     config: dict[str, Any] | None = None  # per-source overrides -> items.config_json
+    status: SourceStatus | None = None
+    evidence: str | None = None  # required for dead (offline validate check)
+    message: str | None = None  # required for paywalled; rendered on the sources page
+    ladder: list[str] | None = None  # explicit opt-in to higher rungs (3/4)
+    active_url: str | None = None  # a fallback/mirror rung that served (degraded evidence)
     # Kind-specific locators (exactly one required, matching `kind`):
     url: str | None = None  # rss
     channel_id: str | None = None  # youtube
@@ -74,6 +88,34 @@ class SourceSpec(_ConfigModel):
                 f"{required!r} (got {sorted(present) or 'nothing'})"
             )
         return self
+
+    @model_validator(mode="after")
+    def _check_lifecycle(self) -> SourceSpec:
+        if self.status is SourceStatus.GONE:
+            raise ValueError(
+                f"source {self.id!r}: status 'gone' must not appear in a group file - "
+                "a gone source is removed from the file (its reasoning lives in the "
+                "removing commit)"
+            )
+        explicit_enabled = "enabled" in self.model_fields_set
+        if self.status is not None and explicit_enabled and self.enabled != self.status.is_enabled:
+            raise ValueError(
+                f"source {self.id!r}: status {self.status.value!r} implies "
+                f"enabled={self.status.is_enabled}, but enabled={self.enabled} is set explicitly"
+            )
+        return self
+
+    @property
+    def effective_status(self) -> SourceStatus:
+        """The authoritative lifecycle class: explicit ``status`` if set, else
+        derived from ``enabled`` (``true`` -> active, ``false`` -> dead)."""
+        if self.status is not None:
+            return self.status
+        return SourceStatus.ACTIVE if self.enabled else SourceStatus.DEAD
+
+    @property
+    def effective_enabled(self) -> bool:
+        return self.effective_status.is_enabled
 
     @property
     def canonical_url(self) -> str:

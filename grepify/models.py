@@ -47,6 +47,47 @@ class FetchStatus(StrEnum):
         return self is not FetchStatus.SKIPPED
 
 
+class SourceStatus(StrEnum):
+    """A source's lifecycle class (ADR 0002), authoritative over ``enabled``.
+
+    ``active``/``degraded`` are enabled (fetched); ``paywalled``/``dead`` are
+    disabled (``dead`` still gets a slow re-check, ``paywalled`` is terminal).
+    ``gone`` is a removal signal - a source is deleted from its group file, so
+    it never reaches storage as a live class (validate rejects a ``gone`` entry
+    left in a group file).
+    """
+
+    ACTIVE = "active"
+    DEGRADED = "degraded"
+    PAYWALLED = "paywalled"
+    GONE = "gone"
+    DEAD = "dead"
+
+    @property
+    def is_enabled(self) -> bool:
+        return self in (SourceStatus.ACTIVE, SourceStatus.DEGRADED)
+
+
+class Rung(StrEnum):
+    """Which acquisition-ladder strategy served a fetch (ADR 0002 §1).
+
+    Recorded on the ``fetch_log`` row so the classification layer can tell a
+    primary-served feed (``direct`` -> active) from a fallback-served one
+    (anything else -> degraded). ``direct`` is rung 0; the rest are the ordered
+    fallbacks a source reaches only when the rung before it failed.
+    """
+
+    DIRECT = "direct"
+    ALT_ENDPOINT = "alt_endpoint"
+    AUTODISCOVERY = "autodiscovery"
+    MIRROR = "mirror"
+    THIRD_PARTY = "third_party"
+
+    @property
+    def is_fallback(self) -> bool:
+        return self is not Rung.DIRECT
+
+
 class DigestKind(StrEnum):
     DAILY = "daily"
     WEEKLY = "weekly"
@@ -85,6 +126,10 @@ class Source(_Record):
     enabled: bool = True
     added_at: str
     config_json: str | None = None
+    status: SourceStatus = SourceStatus.ACTIVE
+    evidence: str | None = None
+    message: str | None = None
+    active_url: str | None = None
 
 
 class Item(_Record):
@@ -149,6 +194,7 @@ class FetchLogEntry(_Record):
     items_new: int = 0
     error: str | None = None
     duration_ms: int | None = None
+    rung: Rung | None = None
 
 
 class LlmLogEntry(_Record):

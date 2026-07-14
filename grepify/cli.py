@@ -97,7 +97,7 @@ from grepify.digest import (
     run_digest_pipeline,
 )
 from grepify.digest.periods import previous_day, previous_iso_week
-from grepify.doctor import build_doctor_report, format_doctor_report
+from grepify.doctor import build_doctor_report, format_doctor_report, format_propose_patch
 from grepify.extract import (
     ExtractPipelineResult,
     YakeFallbackExtractor,
@@ -774,13 +774,21 @@ def health(ctx: typer.Context) -> None:
 
 
 @app.command()
-def doctor(ctx: typer.Context) -> None:
+def doctor(
+    ctx: typer.Context,
+    propose: Annotated[
+        bool,
+        typer.Option(help="Emit a reviewable YAML patch of proposed lifecycle transitions."),
+    ] = False,
+) -> None:
     """Per-source fetch status + error-class triage report (T5, GRP-30).
 
     Joins the configured sources with a fresh recompute over ``fetch_log``
     (:mod:`grepify.doctor`) - repeatable and read-only, so re-running it as
     triage progresses always reflects current config + current truth without
-    needing a prior ``ingest`` to have written ``health.json``.
+    needing a prior ``ingest`` to have written ``health.json``. With
+    ``--propose`` it emits the lifecycle-transition proposals the evidence
+    justifies as a YAML patch (ADR 0002 §3); it still writes nothing.
     """
     state: AppState = ctx.obj
     config = FilesystemConfigProvider(state.config_root)
@@ -792,14 +800,15 @@ def doctor(ctx: typer.Context) -> None:
     finally:
         repository.close()
 
+    quiet = _quiet_source_ids(sources, settings)
     snapshot = compute_health(
         entries,
         run_id="doctor",
         generated_at=to_iso(state.clock.now()),
-        quiet_source_ids=_quiet_source_ids(sources, settings),
+        quiet_source_ids=quiet,
     )
-    rows = build_doctor_report(sources, snapshot)
-    typer.echo(format_doctor_report(rows))
+    rows = build_doctor_report(sources, snapshot, quiet_source_ids=quiet)
+    typer.echo(format_propose_patch(rows) if propose else format_doctor_report(rows))
 
 
 WarnBytesOpt = Annotated[
