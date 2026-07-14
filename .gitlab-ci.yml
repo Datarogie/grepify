@@ -24,6 +24,15 @@
 # next person to edit this file) - keep the `pages` schedule owned by Kyle's
 # account with failed-pipeline email notifications on, and that closes the
 # same gap without new code.
+#
+# GRP-64: ingest/extract/digest run non-fatally so the site still redeploys
+# from the last committed `data`-branch truth on a systemic failure there
+# (mirrors pipeline.yml). Unlike GitHub Actions, GitLab's classic `pages` job
+# only deploys artifacts from a job that itself finishes - there is no
+# separate "deploy step" that already ran independent of the job's final
+# status - so this file uses `allow_failure.exit_codes` + `artifacts.when:
+# always` to keep the deploy alive while still marking the job red. See the
+# `pages` job below and docs/runbook.md.
 
 stages:
   - validate
@@ -78,17 +87,47 @@ pages:
     # the job log - same `make` target either way (F-OPS-03 portability).
     - make datasize
     - eval "$(make digest-gate)" # sets shell vars daily=/weekly=
-    - make ingest
-    - make extract
+    # GRP-64: non-fatal on purpose (see the header comment) - capture each
+    # exit code instead of letting `set -e` stop the job here.
+    - set +e
+    - make ingest; ingest_status=$?
+    - make extract; extract_status=$?
     # Per-category digests (GRP-41/42), gated by the America/Edmonton clock
     # (GRP-45). LLM CI/CD variables are consumed only here, never in `validate`.
     # Run a manual pipeline with FORCE_DIGEST=true (a CI/CD variable) to bypass
     # the gate on demand for testing; scheduled runs stay gated (mirrors the
     # GitHub workflow_dispatch force_digest input).
-    - if [ "$daily" = "true" ] || [ "$FORCE_DIGEST" = "true" ]; then make digest-daily; fi
-    - if [ "$weekly" = "true" ] || [ "$FORCE_DIGEST" = "true" ]; then make digest-weekly; fi
-    - make commit-data
+    - daily_status=0
+    - if [ "$daily" = "true" ] || [ "$FORCE_DIGEST" = "true" ]; then make digest-daily; daily_status=$?; fi
+    - weekly_status=0
+    - if [ "$weekly" = "true" ] || [ "$FORCE_DIGEST" = "true" ]; then make digest-weekly; weekly_status=$?; fi
+    - set -e
+    - |
+      if [ "$ingest_status" -ne 0 ] || [ "$extract_status" -ne 0 ] ||
+         [ "$daily_status" -ne 0 ] || [ "$weekly_status" -ne 0 ]; then
+        truth_ok=false
+      else
+        truth_ok=true
+      fi
+    # No partial truth reaches Build: skip the commit and roll the data
+    # worktree back to its last committed state if anything above failed.
+    - if [ "$truth_ok" = "true" ]; then make commit-data; else git -C data reset --hard HEAD && git -C data clean -fd; fi
+    # A real build failure must still block deploy: clear `public/` before
+    # `set -e` ends the job, so `artifacts.when: always` below never ships a
+    # partial site.
+    - trap 'rm -rf public' ERR
     - make build
+    - trap - ERR
+    # Build succeeded above (a real build failure exits the job at the trap,
+    # before this line, with `public/` cleared). `exit 64` only signals
+    # "deployed, but ingest/extract/a digest step failed" - `allow_failure`
+    # below keeps this job's artifact upload (and so the Pages deploy) alive
+    # while still marking the job red, mirroring pipeline.yml's "Fail run on
+    # upstream failure" step.
+    - if [ "$truth_ok" != "true" ]; then exit 64; fi
   artifacts:
+    when: always
     paths:
       - public
+  allow_failure:
+    exit_codes: 64
