@@ -17,13 +17,17 @@ import textwrap
 from datetime import UTC, datetime
 from pathlib import Path
 
+import pytest
+
 from grepify.clock import FixedClock
 from grepify.config.filesystem import FilesystemConfigProvider
+from grepify.errors import ConfigError
 from grepify.health import ErrorClass, HealthSnapshot, SourceHealth
 from grepify.models import ExtractionMethod, FetchStatus, Item, ItemKeyword, SourceKind
+from grepify.path_safety import ContainedPath, ensure_safe_output_dir
 from grepify.paths import DataLayout
 from grepify.repository.jsonl_sqlite import JsonlSqliteRepository
-from grepify.site.build import BuildResult, build_site
+from grepify.site.build import BuildResult, _replace_output, build_site
 
 GOLDEN = Path(__file__).parent / "fixtures" / "site" / "pages"
 _CLOCK = FixedClock(datetime(2026, 7, 8, 13, 0, tzinfo=UTC))  # 07:00 MDT
@@ -424,3 +428,102 @@ def test_rebuild_clears_stale_output(tmp_path: Path) -> None:
     stale.write_text("stale", encoding="utf-8")
     build_canned(tmp_path)  # rebuild into the same tmp_path/public
     assert not stale.exists()
+
+
+def test_build_rejects_unsafe_output_directories(tmp_path: Path) -> None:
+    build_canned(tmp_path)
+    data = tmp_path / "data"
+    conf = tmp_path / "sources"
+    unsafe_paths = [Path("/"), tmp_path, data, conf, tmp_path / ".." / "outside"]
+
+    for unsafe in unsafe_paths:
+        with pytest.raises(ValueError, match="unsafe output directory"):
+            build_site(
+                config=FilesystemConfigProvider(conf),
+                repository=JsonlSqliteRepository(data),
+                layout=DataLayout(data),
+                clock=_CLOCK,
+                run_id=_RUN_ID,
+                output_dir=unsafe,
+                protected_roots=(conf,),
+            )
+
+
+def test_build_rejects_output_symlink_escape(tmp_path: Path) -> None:
+    build_canned(tmp_path)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "public-link"
+    link.symlink_to(outside, target_is_directory=True)
+
+    with pytest.raises(ValueError, match="unsafe output directory"):
+        build_site(
+            config=FilesystemConfigProvider(tmp_path / "sources"),
+            repository=JsonlSqliteRepository(tmp_path / "data"),
+            layout=DataLayout(tmp_path / "data"),
+            clock=_CLOCK,
+            run_id=_RUN_ID,
+            output_dir=link,
+            protected_roots=(tmp_path / "sources",),
+        )
+    assert outside.exists()
+
+
+def test_failed_build_preserves_previous_output(tmp_path: Path) -> None:
+    _, out = build_canned(tmp_path)
+    previous = (out / "index.html").read_text(encoding="utf-8")
+    (tmp_path / "sources" / "keywords.yml").write_text("aliases: []\n", encoding="utf-8")
+
+    with pytest.raises(ConfigError):
+        build_site(
+            config=FilesystemConfigProvider(tmp_path / "sources"),
+            repository=JsonlSqliteRepository(tmp_path / "data"),
+            layout=DataLayout(tmp_path / "data"),
+            clock=_CLOCK,
+            run_id=_RUN_ID,
+            output_dir=out,
+            protected_roots=(tmp_path / "sources",),
+        )
+
+    assert (out / "index.html").read_text(encoding="utf-8") == previous
+
+
+def test_generated_path_containment_rejects_traversal(tmp_path: Path) -> None:
+    root = ContainedPath.create(tmp_path / "public")
+    with pytest.raises(ValueError, match="escapes output root"):
+        root.resolve(Path("../outside.html"))
+    with pytest.raises(ValueError, match="relative"):
+        root.resolve(Path("/outside.html"))
+
+
+def test_default_public_output_under_cwd_is_safe() -> None:
+    repo_root = Path.cwd()
+    safe = ensure_safe_output_dir(
+        Path("public"),
+        cwd=repo_root,
+        protected_roots=(repo_root / "data", repo_root / "sources"),
+    )
+    assert safe == repo_root / "public"
+
+
+def test_failed_replacement_restores_previous_output(tmp_path: Path) -> None:
+    output = tmp_path / "public"
+    output.mkdir()
+    (output / "index.html").write_text("previous", encoding="utf-8")
+    stage = tmp_path / ".public.stage"
+    stage.mkdir()
+    calls = 0
+
+    def replace_with_publish_failure(src: Path, dst: Path) -> None:
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            output.mkdir()
+            (output / "index.html").write_text("interloper", encoding="utf-8")
+            raise OSError("publish failed")
+        src.replace(dst)
+
+    with pytest.raises(OSError, match="publish failed"):
+        _replace_output(stage, output, replace=replace_with_publish_failure)
+
+    assert (output / "index.html").read_text(encoding="utf-8") == "previous"

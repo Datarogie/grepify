@@ -25,11 +25,21 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 from grepify.models import SourceKind, SourceStatus
+
+_SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+
+
+def _validate_slug(value: str, label: str) -> str:
+    if _SLUG_RE.fullmatch(value) is None:
+        raise ValueError(f"{label} must be a lowercase slug of letters, digits, and hyphens")
+    return value
+
 
 # Which locator field each kind requires (PRD §7). The value resolves to the
 # canonical URL that becomes the source identity (url + url_hash).
@@ -58,6 +68,12 @@ class SourceSpec(_ConfigModel):
     """
 
     id: str
+
+    @field_validator("id")
+    @classmethod
+    def _id_slug(cls, value: str) -> str:
+        return _validate_slug(value, "source id")
+
     kind: SourceKind
     name: str | None = None
     enabled: bool = True
@@ -153,6 +169,12 @@ class GroupFile(_ConfigModel):
     group: str
     name: str
     category: str
+
+    @field_validator("group", "category")
+    @classmethod
+    def _path_slug(cls, value: str) -> str:
+        return _validate_slug(value, "identifier")
+
     enabled: bool = True
     builtin: bool = False
     sources: list[SourceSpec] = []
