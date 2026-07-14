@@ -28,12 +28,13 @@ from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
+from urllib.parse import quote
 
 from grepify.clock import from_iso
 from grepify.health import HealthSnapshot, SourceHealth
 from grepify.ingest.dedup import hamming_distance
 from grepify.models import Source, SourceStatus
-from grepify.site.published_url import safe_published_url
+from grepify.site.published_url import PublishedUrl, safe_published_url
 from grepify.site.trends import CloudDataset, DigestDetail, ItemSummary, KeywordCount
 
 ITEMS_PER_PAGE = 20  # F-SIT-03
@@ -227,6 +228,11 @@ class HealthRow:
     quiet: bool
     evidence: str | None
     message: str | None
+    configured_url: str
+    configured_link: PublishedUrl | None
+    fallback_url: str | None
+    fallback_link: PublishedUrl | None
+    items_href: str | None
     health: SourceHealth | None
 
     @property
@@ -290,6 +296,10 @@ def build_health_view(
     live: list[HealthRow] = []
     disabled: list[HealthRow] = []
     for source in sorted(sources, key=lambda s: s.source_id):
+        health = by_id.get(source.source_id)
+        fallback_url = source.active_url or (
+            health.last_resolved_url if health is not None else None
+        )
         row = HealthRow(
             source_id=source.source_id,
             name=source.name,
@@ -298,7 +308,14 @@ def build_health_view(
             quiet=source.source_id in quiet,
             evidence=source.evidence,
             message=source.message,
-            health=by_id.get(source.source_id),
+            configured_url=source.url,
+            configured_link=safe_published_url(source.url),
+            fallback_url=fallback_url,
+            fallback_link=safe_published_url(fallback_url),
+            items_href=f"../items/?source={quote(source.source_id, safe='')}"
+            if source.status.is_enabled
+            else None,
+            health=health,
         )
         (live if source.status.is_enabled else disabled).append(row)
     return HealthView(

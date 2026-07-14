@@ -8,6 +8,7 @@ link, resolving relatives against the feed/source URL when available.
 
 from __future__ import annotations
 
+import ipaddress
 from dataclasses import dataclass
 from urllib.parse import SplitResult, unquote, urljoin, urlsplit, urlunsplit
 
@@ -15,6 +16,7 @@ from grepify.url_authority import format_url_authority
 
 _ALLOWED_SCHEMES = frozenset({"http", "https"})
 _C0_SPACE = "".join(chr(i) for i in range(0x21))
+_DOCUMENTATION_IPV6 = ipaddress.ip_network("2001:db8::/32")
 
 
 @dataclass(frozen=True)
@@ -61,6 +63,8 @@ def _split_http_url(candidate: str) -> SplitResult | None:
         parts = urlsplit(candidate)
         if parts.scheme.lower() not in _ALLOWED_SCHEMES or not parts.hostname:
             return None
+        if parts.username or parts.password or "@" in parts.netloc.rsplit("]", 1)[-1]:
+            return None
         _port = parts.port  # Force port parsing; malformed ports raise ValueError lazily.
     except ValueError:
         return None
@@ -70,7 +74,7 @@ def _split_http_url(candidate: str) -> SplitResult | None:
 def _published_from_parts(parts: SplitResult) -> PublishedUrl | None:
     scheme = parts.scheme.lower()
     host = parts.hostname or ""
-    if not host or _has_forbidden_chars(host):
+    if not host or _has_forbidden_chars(host) or _is_forbidden_literal(host):
         return None
     netloc = format_url_authority(scheme=scheme, host=host, port=parts.port)
     path = parts.path or "/"
@@ -99,3 +103,21 @@ def _safe_base(base_url: str | None) -> str | None:
         return None
     safe = safe_published_url(base_url)
     return safe.href if safe is not None else None
+
+
+def _is_forbidden_literal(host: str) -> bool:
+    try:
+        address = ipaddress.ip_address(host)
+    except ValueError:
+        return False
+    if isinstance(address, ipaddress.IPv6Address) and address.ipv4_mapped is not None:
+        return _is_forbidden_literal(str(address.ipv4_mapped))
+    if isinstance(address, ipaddress.IPv6Address) and address in _DOCUMENTATION_IPV6:
+        return False
+    return (
+        address.is_multicast
+        or address.is_unspecified
+        or address.is_loopback
+        or address.is_link_local
+        or (address.is_private and not address.is_reserved)
+    )

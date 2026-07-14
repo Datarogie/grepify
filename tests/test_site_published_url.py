@@ -48,3 +48,18 @@ def test_valid_published_urls_are_normalized_and_relative_urls_resolve(
     safe = safe_published_url(raw, base_url=base)
     assert safe is not None
     assert safe.href == expected
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        "https://user:pass@example.com/feed",
+        "https://token@example.com/feed",
+        "http://127.0.0.1/feed",
+        "http://10.0.0.1/feed",
+        "http://169.254.169.254/latest/meta-data/",
+        "http://[::1]/feed",
+    ],
+)
+def test_credentials_and_forbidden_literal_destinations_are_absent(raw: str) -> None:
+    assert safe_published_url(raw) is None

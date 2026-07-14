@@ -159,3 +159,17 @@ def test_sources_page_shows_paywalled_message(tmp_path: Path) -> None:
     html = (_build(tmp_path) / "sources" / "index.html").read_text(encoding="utf-8")
     assert "No free acquisition path; not attempted." in html
     assert "paywalled" in html
+
+
+def test_health_drilldown_uses_native_details_and_escapes_hostile_values(tmp_path: Path) -> None:
+    html = (_build(tmp_path) / "health" / "index.html").read_text(encoding="utf-8")
+    assert "<details><summary>Active One</summary>" in html
+    assert "<dt>Total real attempts</dt><dd>10</dd>" in html
+    assert "filter items by source" in html
+    assert "|safe" not in Path("grepify/site/templates/health.html").read_text(encoding="utf-8")
+
+
+def test_health_page_is_deterministic(tmp_path: Path) -> None:
+    first = (_build(tmp_path / "a") / "health" / "index.html").read_text(encoding="utf-8")
+    second = (_build(tmp_path / "b") / "health" / "index.html").read_text(encoding="utf-8")
+    assert first == second

@@ -144,13 +144,22 @@ class SourceHealth(BaseModel):
 
     source_id: str
     attempts: int
+    ok_attempts: int = 0
+    empty_attempts: int = 0
+    failed_attempts: int = 0
+    successful_attempts: int = 0
     last_status: FetchStatus
     last_started_at: str
+    last_successful_at: str | None = None
+    last_failed_at: str | None = None
     last_error: str | None = None
     error_class: ErrorClass | None = None
     consecutive_failures: int
     flagged: bool
     last_rung: Rung | None = None
+    last_resolved_url: str | None = None
+    total_items_new: int = 0
+    latest_items_new: int = 0
 
 
 class HealthSnapshot(BaseModel):
@@ -211,16 +220,39 @@ def _source_health(source_id: str, history: list[FetchLogEntry], *, quiet: bool)
         if entry.status is not FetchStatus.ERROR:
             break
         consecutive += 1
+    ok_attempts = sum(1 for entry in history if entry.status is FetchStatus.OK)
+    empty_attempts = sum(1 for entry in history if entry.status is FetchStatus.EMPTY)
+    failed_attempts = sum(1 for entry in history if entry.status is FetchStatus.ERROR)
+    last_success = next(
+        (
+            entry
+            for entry in reversed(history)
+            if entry.status in (FetchStatus.OK, FetchStatus.EMPTY)
+        ),
+        None,
+    )
+    last_failure = next(
+        (entry for entry in reversed(history) if entry.status is FetchStatus.ERROR), None
+    )
     return SourceHealth(
         source_id=source_id,
         attempts=len(history),
+        ok_attempts=ok_attempts,
+        empty_attempts=empty_attempts,
+        failed_attempts=failed_attempts,
+        successful_attempts=ok_attempts + empty_attempts,
         last_status=last.status,
         last_started_at=last.started_at,
-        last_error=last.error,
-        error_class=classify_error(last.error),
+        last_successful_at=last_success.started_at if last_success is not None else None,
+        last_failed_at=last_failure.started_at if last_failure is not None else None,
+        last_error=last_failure.error if last_failure is not None else None,
+        error_class=classify_error(last_failure.error) if last_failure is not None else None,
         consecutive_failures=consecutive,
         flagged=consecutive >= CONSECUTIVE_FAILURE_THRESHOLD and not quiet,
         last_rung=last.rung,
+        last_resolved_url=last.resolved_url,
+        total_items_new=sum(entry.items_new for entry in history),
+        latest_items_new=last.items_new,
     )
 
 
