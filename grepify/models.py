@@ -191,7 +191,12 @@ class Digest(_Record):
 
 
 class FetchLogEntry(_Record):
-    """One per-source fetch attempt (PRD §6 fetch_log)."""
+    """One per-source fetch attempt (PRD §6 fetch_log).
+
+    Unlike other records, extra fields are ignored, not forbidden: fetch-log
+    truth spans releases, so rows written by a newer grepify with additive
+    columns must stay readable by an older one.
+    """
 
     model_config = ConfigDict(extra="ignore", frozen=True)
 

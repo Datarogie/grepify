@@ -333,7 +333,9 @@ def test_httpx_transport_uses_central_client() -> None:
 
 def test_get_or_raise_redacts_generic_exceptions() -> None:
     class BadTransport:
-        def get(self, url: str, *, headers: dict[str, str], timeout: float) -> Any:
+        def get(
+            self, url: str, *, headers: dict[str, str], timeout: float, max_bytes: int | None = None
+        ) -> Any:
             raise RuntimeError("https://example.com/feed?token=secret")
 
     with pytest.raises(FetchError) as exc:
@@ -615,7 +617,9 @@ def test_httpx_exception_chain_does_not_expose_secret_request_url() -> None:
 
 def test_get_or_raise_does_not_export_exception_context_with_secret_url() -> None:
     class BadTransport:
-        def get(self, url: str, *, headers: dict[str, str], timeout: float) -> Any:
+        def get(
+            self, url: str, *, headers: dict[str, str], timeout: float, max_bytes: int | None = None
+        ) -> Any:
             raise RuntimeError("https://example.com/feed?password=secret")
 
     with pytest.raises(FetchError) as exc:

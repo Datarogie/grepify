@@ -30,7 +30,8 @@ Failure modes
 -------------
 Every per-source failure becomes :class:`~grepify.errors.FetchError`
 (non-fatal, PRD §9): a transport failure (timeout/DNS/connection - see
-:func:`~grepify.ingest.http.get_or_raise`), an HTTP status outside 2xx/304, and
+:func:`~grepify.ingest.http.get_or_raise`), an HTTP status outside 2xx/304, a
+response body over the 2 MB cap (rejected mid-stream, before parsing), and
 a feed feedparser could not extract *any* entries from. A feed feedparser
 partially recovered from (``bozo`` set but entries present) is tolerated:
 recovered entries are returned, nothing raised (F-ING-01 malformed-feed
@@ -41,16 +42,19 @@ XML, zero entries) also returns ``[]`` - an empty feed is normal, not an error.
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
-from urllib.parse import urlsplit
 
 from grepify.errors import FetchError
 from grepify.ingest.base import AcquisitionError, Fetcher, FetchOutcome, RawItem
 from grepify.ingest.feedutil import parse_feed_bytes, raw_item_from_feed_entry
 from grepify.ingest.http import HttpxTransport, Transport, get_or_raise, safe_url_for_log
 from grepify.ingest.ladder import alt_endpoint_urls, discover_feed_url, site_root
-from grepify.ingest.substack import parse_substack_archive_bytes, substack_archive_url
+from grepify.ingest.substack import (
+    is_substack_host,
+    parse_substack_archive_bytes,
+    substack_archive_url,
+)
+from grepify.ingest.trace import coarse_error, status_reason, trace_json, trace_row
 from grepify.models import Rung, Source, SourceKind
 
 _TIMEOUT_SECONDS = 10.0
@@ -120,11 +124,11 @@ class RssFetcher(Fetcher):
                 items = self._fetch_feed(source, url, use_cache=rung is Rung.DIRECT)
             except FetchError as exc:
                 errors.append(str(exc))
-                attempts.append(_trace(rung, url, "error", _coarse_error(exc)))
+                attempts.append(_trace(rung, url, "error", coarse_error(str(exc))))
                 continue
             attempts.append(_trace(rung, url, "served", None, item_count=len(items)))
             return FetchOutcome(
-                items, rung, None if rung is Rung.DIRECT else url, _trace_json(attempts)
+                items, rung, None if rung is Rung.DIRECT else url, trace_json(attempts)
             )
 
         archive_url = substack_archive_url(source.url)
@@ -134,10 +138,10 @@ class RssFetcher(Fetcher):
                 items = self._fetch_substack_archive(source, archive_url)
             except FetchError as exc:
                 errors.append(str(exc))
-                attempts.append(_trace(rung, archive_url, "error", _coarse_error(exc)))
+                attempts.append(_trace(rung, archive_url, "error", coarse_error(str(exc))))
             else:
                 attempts.append(_trace(rung, archive_url, "served", None, item_count=len(items)))
-                return FetchOutcome(items, rung, archive_url, _trace_json(attempts))
+                return FetchOutcome(items, rung, archive_url, trace_json(attempts))
 
         discovered = self._autodiscover(source, errors, attempts)
         for rung, url in self._discovered_candidates(source, discovered):
@@ -145,20 +149,24 @@ class RssFetcher(Fetcher):
                 items = self._fetch_feed(source, url, use_cache=False)
             except FetchError as exc:
                 errors.append(str(exc))
-                attempts.append(_trace(rung, url, "error", _coarse_error(exc)))
+                attempts.append(_trace(rung, url, "error", coarse_error(str(exc))))
                 continue
             attempts.append(_trace(rung, url, "served", None, item_count=len(items)))
-            return FetchOutcome(items, rung, url, _trace_json(attempts))
+            return FetchOutcome(items, rung, url, trace_json(attempts))
 
         raise AcquisitionError(
             f"{source.source_id}: all acquisition rungs failed: {'; '.join(errors)}",
-            acquisition_trace=_trace_json(attempts),
+            acquisition_trace=trace_json(attempts),
         )
 
     def _static_candidates(self, source: Source) -> list[tuple[Rung, str]]:
-        """Rungs 0 and 1: the direct feed then same-publisher alternates."""
+        """Rungs 0 and 1: the direct feed then same-publisher alternates.
+
+        Substack-owned hosts get no rung-1 alternates: the WordPress-shaped
+        variants are unsupported guesses there and only add WAF noise.
+        """
         candidates: list[tuple[Rung, str]] = [(Rung.DIRECT, source.url)]
-        if _provider_for_url(source.url) != "substack_hosted":
+        if not is_substack_host(source.url):
             candidates += [(Rung.ALT_ENDPOINT, url) for url in alt_endpoint_urls(source.url)]
         return candidates
 
@@ -189,7 +197,7 @@ class RssFetcher(Fetcher):
             )
         except FetchError as exc:
             errors.append(str(exc))
-            attempts.append(_trace(Rung.AUTODISCOVERY, root, "error", _coarse_error(exc)))
+            attempts.append(_trace(Rung.AUTODISCOVERY, root, "error", coarse_error(str(exc))))
             return None
         if not (200 <= response.status_code < 300):
             safe_root = safe_url_for_log(root)
@@ -197,12 +205,8 @@ class RssFetcher(Fetcher):
                 f"{source.source_id}: autodiscovery GET {safe_root} HTTP {response.status_code}"
             )
             attempts.append(
-                _trace(Rung.AUTODISCOVERY, root, "error", f"http_{response.status_code}")
+                _trace(Rung.AUTODISCOVERY, root, "error", status_reason(response.status_code))
             )
-            return None
-        if len(response.content) > _MAX_RESPONSE_BYTES:
-            attempts.append(_trace(Rung.AUTODISCOVERY, root, "error", "oversized"))
-            errors.append(f"{source.source_id}: autodiscovery response too large")
             return None
         discovered = discover_feed_url(response.content, base_url=root)
         attempts.append(
@@ -217,6 +221,7 @@ class RssFetcher(Fetcher):
             headers={"user-agent": _USER_AGENT, "accept": "text/html,application/xhtml+xml"},
             timeout=self._timeout,
             source_id=source.source_id,
+            max_bytes=_MAX_RESPONSE_BYTES,
         )
         if not (200 <= response.status_code < 300):
             raise FetchError(f"{source.source_id}: Substack archive HTTP {response.status_code}")
@@ -257,43 +262,13 @@ class RssFetcher(Fetcher):
         return [raw_item_from_feed_entry(entry, lang=feed_lang) for entry in parsed.entries]
 
 
-def _provider_for_url(url: str) -> str:
-    """Classify only trusted URL host shapes; never infer providers from redirects/content."""
-    host = (urlsplit(url).hostname or "").lower().rstrip(".")
-    return "substack_hosted" if host.endswith(".substack.com") else "generic_rss"
-
-
-def _coarse_error(exc: FetchError) -> str:
-    text = str(exc).lower()
-    checks = (
-        (("403",), "runner_blocked_or_forbidden"),
-        (("429",), "rate_limited"),
-        (("too large",), "oversized"),
-        (("timeout",), "timeout"),
-        (("unsafe", "credential", "scheme"), "policy_blocked"),
-        (("unparseable", "malformed"), "parse_error"),
-    )
-    for needles, category in checks:
-        if any(needle in text for needle in needles):
-            return category
-    return "fetch_error"
-
-
 def _trace(
     rung: Rung, url: str, outcome: str, reason: str | None, *, item_count: int | None = None
 ) -> dict[str, object]:
-    row: dict[str, object] = {
-        "provider": _provider_for_url(url),
-        "method": rung.value,
-        "url": safe_url_for_log(url),
-        "outcome": outcome,
-    }
+    fields: dict[str, object] = {}
     if reason is not None:
-        row["reason"] = reason
+        fields["reason"] = reason
     if item_count is not None:
-        row["items"] = item_count
-    return row
-
-
-def _trace_json(attempts: list[dict[str, object]]) -> str:
-    return json.dumps(attempts, sort_keys=True, separators=(",", ":"))
+        fields["items"] = item_count
+    provider = "substack_hosted" if is_substack_host(url) else "generic_rss"
+    return trace_row(provider, rung.value, url, outcome, **fields)

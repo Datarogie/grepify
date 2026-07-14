@@ -275,3 +275,41 @@ def test_json_429_retry_after_is_respected_and_traced() -> None:
     assert outcome.acquisition_trace is not None
     assert "rate_limited" in outcome.acquisition_trace
     assert '"retry_after":"7"' in outcome.acquisition_trace
+
+
+def test_json_429_retry_after_bounds_the_sleep_between_attempts() -> None:
+    sleeps: list[float] = []
+    transport = ScriptedTransport(
+        [
+            HttpResponse(status_code=429, content=b"", headers={"retry-after": "7"}),
+            HttpResponse(status_code=429, content=b"", headers={"retry-after": "not-a-number"}),
+            fixture_response("reddit", "fallback.rss"),
+        ]
+    )
+    outcome = RedditFetcher(transport, sleep=sleeps.append, max_attempts=2).acquire(
+        make_source("localllama", kind=SourceKind.REDDIT, url=_SUB_URL)
+    )
+    assert outcome.rung is Rung.ALT_ENDPOINT
+    assert sleeps == [7.0]
+    assert outcome.acquisition_trace is not None
+    assert '"retry_after":"unusable"' in outcome.acquisition_trace
+    assert "not-a-number" not in outcome.acquisition_trace
+
+
+def test_json_hostile_retry_after_never_stalls_the_run() -> None:
+    sleeps: list[float] = []
+    transport = ScriptedTransport(
+        [
+            HttpResponse(status_code=429, content=b"", headers={"retry-after": "86400"}),
+            HttpResponse(status_code=429, content=b"", headers={}),
+            fixture_response("reddit", "fallback.rss"),
+        ]
+    )
+    outcome = RedditFetcher(transport, sleep=sleeps.append, max_attempts=2).acquire(
+        make_source("localllama", kind=SourceKind.REDDIT, url=_SUB_URL)
+    )
+    assert outcome.rung is Rung.ALT_ENDPOINT
+    assert sleeps == [1.0]
+    assert outcome.acquisition_trace is not None
+    assert '"retry_after":"unusable"' in outcome.acquisition_trace
+    assert '"retry_after":"absent"' in outcome.acquisition_trace

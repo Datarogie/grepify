@@ -9,6 +9,7 @@ import pytest
 
 from grepify.errors import FetchError
 from grepify.ingest import RssFetcher
+from grepify.ingest.base import AcquisitionError
 from grepify.ingest.http import HttpResponse, HttpxTransport, OutboundHttpClient
 from grepify.models import Rung
 from tests.conftest import ScriptedTransport, fixture_response, make_source
@@ -302,7 +303,6 @@ def test_acquire_falls_back_to_generic_substack_archive() -> None:
       <a href="https://example.com/p/not-this-publication">Off-site post</a>
     </body></html>
     """
-    # Substack-hosted, so no WordPress-shaped alternates: direct 403 then archive.
     transport = ScriptedTransport([_fail(403), _html(archive_html)])
 
     outcome = RssFetcher(transport).acquire(
@@ -361,20 +361,21 @@ def test_substack_archive_ignores_off_host_links_and_fails_when_empty() -> None:
     ]
 
 
-def test_substack_direct_success_stays_direct_without_generic_wordpress_alts() -> None:
-    transport = ScriptedTransport([fixture_response("rss", "valid.xml")])
+def test_custom_domain_substack_is_not_inferred_and_keeps_wordpress_alts() -> None:
+    transport = ScriptedTransport([_fail(403), fixture_response("rss", "valid.xml")])
     source = make_source("getdbt-roundup", url="https://roundup.getdbt.com/feed")
     outcome = RssFetcher(transport).acquire(source)
-    assert outcome.rung is Rung.DIRECT
-    assert transport.calls == [("https://roundup.getdbt.com/feed", transport.calls[0][1])]
+    assert outcome.rung is Rung.ALT_ENDPOINT
+    assert [call[0] for call in transport.calls] == [
+        "https://roundup.getdbt.com/feed",
+        "https://roundup.getdbt.com/feed/",
+    ]
 
 
 def test_substack_403_uses_explicit_pinned_fallback_and_preserves_identity() -> None:
     source = make_source("benn-substack", url="https://benn.substack.com/feed").model_copy(
         update={"active_url": "https://substack.com/feed/@benn"}
     )
-    # Direct 403, archive page with no post links, homepage with no feed link,
-    # then the pinned mirror serves.
     transport = ScriptedTransport(
         [
             _fail(403),
@@ -416,6 +417,22 @@ def test_oversized_feed_rejected_before_parse() -> None:
     )
     with pytest.raises(FetchError, match="size limit"):
         RssFetcher(transport).fetch(make_source("s1"))
+
+
+def test_oversized_response_is_traced_as_oversized() -> None:
+    transport = ScriptedTransport(
+        [
+            HttpResponse(status_code=200, content=b"x" * 2_000_001, headers={}),
+            _fail(404),
+            _fail(404),
+            _fail(404),
+            _html(b"<html>no feed</html>"),
+        ]
+    )
+    with pytest.raises(AcquisitionError) as exc:
+        RssFetcher(transport).acquire(make_source("s1"))
+    assert exc.value.acquisition_trace is not None
+    assert '"reason":"oversized"' in exc.value.acquisition_trace
 
 
 def test_acquisition_trace_redacts_sensitive_query_values() -> None:

@@ -17,13 +17,23 @@ from grepify.ingest.base import RawItem
 from grepify.ingest.feedutil import clean_title
 
 
+def is_substack_host(url: str) -> bool:
+    """Whether ``url``'s host is Substack-owned (``*.substack.com``).
+
+    Classifies only the configured URL's host shape; a provider is never
+    inferred from redirects or response content, so custom-domain Substack
+    publications deliberately stay generic.
+    """
+    host = (urlsplit(url).hostname or "").rstrip(".").lower()
+    return host.endswith(".substack.com")
+
+
 def is_substack_feed_url(url: str) -> bool:
     """Whether ``url`` is the canonical feed URL for a Substack publication."""
     parts = urlsplit(url)
-    host = (parts.hostname or "").rstrip(".").lower()
     return (
         parts.scheme.lower() == "https"
-        and host.endswith(".substack.com")
+        and is_substack_host(url)
         and parts.username is None
         and parts.password is None
         and parts.query == ""
