@@ -255,7 +255,7 @@ def test_sensitive_headers_are_stripped_on_cross_origin_redirect() -> None:
         timeout=1,
     )
     assert "authorization" in headers_seen[0]
-    assert "proxy-authorization" in headers_seen[0]
+    assert "proxy-authorization" not in headers_seen[0]
     assert "cookie" in headers_seen[0]
     assert "host" not in headers_seen[0] or headers_seen[0]["host"] == "example.com"
     assert "authorization" not in headers_seen[1]
@@ -424,3 +424,131 @@ def test_llm_transport_blocks_unsafe_url_without_auth_leak() -> None:
     text = str(exc.value)
     assert "Bearer secret" not in text
     assert "token=secret" not in text
+
+
+def test_proxy_authorization_is_stripped_before_initial_request_case_insensitive() -> None:
+    seen: list[dict[str, str]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append({k.lower(): v for k, v in request.headers.items()})
+        return httpx.Response(200)
+
+    client = OutboundHttpClient(
+        resolver=resolver("8.8.8.8"),
+        transport_factory=lambda _: httpx.MockTransport(handler),
+    )
+    client.get(
+        "https://example.com/feed",
+        headers={"pRoXy-AuThOrIzAtIoN": "Basic proxy-secret", "Authorization": "Bearer ok"},
+        timeout=1,
+    )
+
+    assert seen == [seen[0]]
+    assert "proxy-authorization" not in seen[0]
+    assert seen[0]["authorization"] == "Bearer ok"
+    assert "proxy-secret" not in repr(seen)
+
+
+@pytest.mark.parametrize("status_code", [301, 302, 303])
+def test_post_redirects_that_rewrite_method_are_rejected_without_replay(status_code: int) -> None:
+    sent: list[tuple[str, bytes, dict[str, str]]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        sent.append(
+            (str(request.url), request.content, {k.lower(): v for k, v in request.headers.items()})
+        )
+        return httpx.Response(status_code, headers={"location": "https://other.example/chat"})
+
+    client = OutboundHttpClient(
+        resolver=resolver("8.8.8.8"),
+        transport_factory=lambda _: httpx.MockTransport(handler),
+    )
+    with pytest.raises(OutboundRequestError) as exc:
+        client.post_json(
+            "https://example.com/chat",
+            headers={"Authorization": "Bearer secret"},
+            payload={"prompt": "private"},
+            timeout=1,
+        )
+
+    assert exc.value.kind is OutboundErrorKind.UNSAFE_REDIRECT
+    assert [url for url, _body, _headers in sent] == ["https://example.com/chat"]
+    assert b"private" in sent[0][1]
+
+
+@pytest.mark.parametrize("status_code", [307, 308])
+def test_post_cross_origin_preserving_redirect_is_rejected_without_body_or_auth_replay(
+    status_code: int,
+) -> None:
+    sent: list[tuple[str, bytes, dict[str, str]]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        sent.append(
+            (str(request.url), request.content, {k.lower(): v for k, v in request.headers.items()})
+        )
+        if len(sent) == 1:
+            return httpx.Response(status_code, headers={"location": "https://other.example/chat"})
+        return httpx.Response(200)
+
+    client = OutboundHttpClient(
+        resolver=resolver("8.8.8.8"),
+        transport_factory=lambda _: httpx.MockTransport(handler),
+    )
+    with pytest.raises(OutboundRequestError) as exc:
+        client.post_json(
+            "https://example.com/chat",
+            headers={"Authorization": "Bearer secret"},
+            payload={"prompt": "private"},
+            timeout=1,
+        )
+
+    assert exc.value.kind is OutboundErrorKind.UNSAFE_REDIRECT
+    assert [url for url, _body, _headers in sent] == ["https://example.com/chat"]
+    assert sent[0][2]["authorization"] == "Bearer secret"
+
+
+def test_post_same_origin_307_redirect_may_replay_body_to_same_origin_only() -> None:
+    sent: list[tuple[str, bytes, dict[str, str]]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        sent.append(
+            (str(request.url), request.content, {k.lower(): v for k, v in request.headers.items()})
+        )
+        if len(sent) == 1:
+            return httpx.Response(307, headers={"location": "/chat2"})
+        return httpx.Response(200, content=b"ok")
+
+    client = OutboundHttpClient(
+        resolver=resolver("8.8.8.8"),
+        transport_factory=lambda _: httpx.MockTransport(handler),
+    )
+    response = client.post_json(
+        "https://example.com/chat",
+        headers={"Authorization": "Bearer same-origin"},
+        payload={"prompt": "private"},
+        timeout=1,
+    )
+
+    assert response.status_code == 200
+    assert [url for url, _body, _headers in sent] == [
+        "https://example.com/chat",
+        "https://example.com/chat2",
+    ]
+    assert sent[0][1] == sent[1][1]
+    assert sent[1][2]["authorization"] == "Bearer same-origin"
+
+
+def test_empty_resolver_result_is_typed_dns_failure_before_request() -> None:
+    sent: list[str] = []
+    client = OutboundHttpClient(
+        resolver=lambda host, port: [],
+        transport_factory=lambda _: httpx.MockTransport(
+            lambda request: sent.append(str(request.url)) or httpx.Response(200)
+        ),
+    )
+
+    with pytest.raises(OutboundRequestError) as exc:
+        client.get("https://example.com/feed", headers={}, timeout=1)
+
+    assert exc.value.kind is OutboundErrorKind.DNS_FAILURE
+    assert sent == []

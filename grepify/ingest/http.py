@@ -91,6 +91,8 @@ class _BoundResolver:
 
     def validate(self, host: str, port: int) -> list[ipaddress.IPv4Address | ipaddress.IPv6Address]:
         addresses = self._resolver(host, port)
+        if not addresses:
+            raise OutboundRequestError(OutboundErrorKind.DNS_FAILURE, host)
         for address in addresses:
             _reject_unsafe_address(address)
         self._cache[(host, port)] = addresses
@@ -116,8 +118,11 @@ class _PolicyNetworkBackend(httpcore.NetworkBackend):
         local_address: str | None = None,
         socket_options: Iterable[SocketOption] | None = None,
     ) -> httpcore.NetworkStream:
+        addresses = self._resolver.bound(host, port)
+        if not addresses:
+            raise OutboundRequestError(OutboundErrorKind.DNS_FAILURE, host)
         errors: list[Exception] = []
-        for address in self._resolver.bound(host, port):
+        for address in addresses:
             try:
                 return self._backend.connect_tcp(
                     str(address), port, timeout, local_address, socket_options
@@ -205,6 +210,7 @@ class OutboundHttpClient:
                         )
                     next_url = str(httpx.URL(current.raw).join(location))
                     nxt = _validate_url(next_url, self._policy)
+                    _validate_redirect_method(method, response.status_code, current, nxt)
                     if current.scheme == "https" and nxt.scheme == "http":
                         raise OutboundRequestError(
                             OutboundErrorKind.TLS_DOWNGRADE, _redact_url(nxt.raw)
@@ -344,8 +350,23 @@ def _looks_like_ip_bypass(host: str) -> bool:
     return lowered.startswith(("0x", "0")) or lowered.replace(".", "").isdigit() or ":" in lowered
 
 
+def _validate_redirect_method(
+    method: str, status_code: int, current: ValidatedUrl, nxt: ValidatedUrl
+) -> None:
+    if method == "GET":
+        return
+    if status_code in {301, 302, 303}:
+        raise OutboundRequestError(
+            OutboundErrorKind.UNSAFE_REDIRECT, "POST redirect would replay request body"
+        )
+    if nxt.origin != current.origin:
+        raise OutboundRequestError(
+            OutboundErrorKind.UNSAFE_REDIRECT, "POST redirect changed origin"
+        )
+
+
 def _safe_initial_headers(headers: Mapping[str, str]) -> dict[str, str]:
-    return {k: v for k, v in headers.items() if k.lower() != "host"}
+    return {k: v for k, v in headers.items() if k.lower() not in {"host", "proxy-authorization"}}
 
 
 def _strip_cross_origin_headers(headers: Mapping[str, str]) -> dict[str, str]:
