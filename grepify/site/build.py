@@ -123,6 +123,16 @@ _ALL = 10_000_000  # effectively-unbounded limit for the emission query
 
 
 @dataclass(frozen=True)
+class _PublishFailure:
+    stage_dir: Path
+    output_dir: Path
+    backup_dir: Path
+    moved_existing: bool
+    replace: Callable[[Path, Path], None]
+    original: BaseException
+
+
+@dataclass(frozen=True)
 class BuildResult:
     """Rollup for the ``build`` CLI's run manifest."""
 
@@ -508,24 +518,41 @@ def _replace_output(
     )
     backup_dir.rmdir()
     moved_existing = False
-    published = False
     try:
-        if output_dir.exists() or output_dir.is_symlink():
+        if output_dir.exists():
             replace(output_dir, backup_dir)
             moved_existing = True
         replace(stage_dir, output_dir)
-        published = True
-    finally:
-        if not published:
-            if output_dir.exists() or output_dir.is_symlink():
-                if output_dir.is_dir() and not output_dir.is_symlink():
-                    shutil.rmtree(output_dir)
-                else:
-                    output_dir.unlink()
-            if moved_existing and backup_dir.exists():
-                replace(backup_dir, output_dir)
-        if published and backup_dir.exists():
-            shutil.rmtree(backup_dir)
+    except Exception as exc:
+        _handle_publish_failure(
+            _PublishFailure(
+                stage_dir=stage_dir,
+                output_dir=output_dir,
+                backup_dir=backup_dir,
+                moved_existing=moved_existing,
+                replace=replace,
+                original=exc,
+            )
+        )
+        raise
+    if backup_dir.exists():
+        shutil.rmtree(backup_dir)
+
+
+def _handle_publish_failure(failure: _PublishFailure) -> None:
+    if not failure.moved_existing:
+        if failure.stage_dir.exists():
+            shutil.rmtree(failure.stage_dir)
+        return
+    if not failure.output_dir.exists():
+        failure.replace(failure.backup_dir, failure.output_dir)
+        if failure.stage_dir.exists():
+            shutil.rmtree(failure.stage_dir)
+        return
+    raise RuntimeError(
+        f"output publish failed and destination is occupied; "
+        f"previous output preserved at {failure.backup_dir}"
+    ) from failure.original
 
 
 def _copy_static(output_dir: ContainedPath) -> None:

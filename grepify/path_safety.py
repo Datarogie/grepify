@@ -56,7 +56,9 @@ def ensure_safe_output_dir(
     protected = tuple(p.resolve(strict=False) for p in protected_roots)
     if ".." in output_dir.parts or output_dir.is_symlink() or resolved.parent == resolved:
         raise ValueError(f"unsafe output directory: {output_dir}")
-    if resolved == cwd_root:
+    if output_dir.exists() and not output_dir.is_dir():
+        raise ValueError(f"unsafe output directory: {output_dir}")
+    if resolved == cwd_root or contains_or_equals(resolved, cwd_root):
         raise ValueError(f"unsafe output directory: {output_dir}")
     for root in protected:
         if (

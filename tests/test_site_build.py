@@ -434,7 +434,9 @@ def test_build_rejects_unsafe_output_directories(tmp_path: Path) -> None:
     build_canned(tmp_path)
     data = tmp_path / "data"
     conf = tmp_path / "sources"
-    unsafe_paths = [Path("/"), tmp_path, data, conf, tmp_path / ".." / "outside"]
+    non_directory = tmp_path / "not-a-directory"
+    non_directory.write_text("not a directory", encoding="utf-8")
+    unsafe_paths = [Path("/"), tmp_path, data, conf, tmp_path / ".." / "outside", non_directory]
 
     for unsafe in unsafe_paths:
         with pytest.raises(ValueError, match="unsafe output directory"):
@@ -496,6 +498,18 @@ def test_generated_path_containment_rejects_traversal(tmp_path: Path) -> None:
         root.resolve(Path("/outside.html"))
 
 
+def test_output_parent_of_cwd_is_rejected_with_external_roots(tmp_path: Path) -> None:
+    cwd = tmp_path / "repo" / "work"
+    cwd.mkdir(parents=True)
+    external_data = tmp_path / "external-data"
+    external_config = tmp_path / "external-config"
+
+    with pytest.raises(ValueError, match="unsafe output directory"):
+        ensure_safe_output_dir(
+            cwd.parent, cwd=cwd, protected_roots=(external_data, external_config)
+        )
+
+
 def test_default_public_output_under_cwd_is_safe() -> None:
     repo_root = Path.cwd()
     safe = ensure_safe_output_dir(
@@ -506,7 +520,24 @@ def test_default_public_output_under_cwd_is_safe() -> None:
     assert safe == repo_root / "public"
 
 
-def test_failed_replacement_restores_previous_output(tmp_path: Path) -> None:
+def test_first_replacement_failure_leaves_previous_output(tmp_path: Path) -> None:
+    output = tmp_path / "public"
+    output.mkdir()
+    (output / "index.html").write_text("previous", encoding="utf-8")
+    stage = tmp_path / ".public.stage"
+    stage.mkdir()
+
+    def fail_first_replace(_src: Path, _dst: Path) -> None:
+        raise OSError("backup failed")
+
+    with pytest.raises(OSError, match="backup failed"):
+        _replace_output(stage, output, replace=fail_first_replace)
+
+    assert (output / "index.html").read_text(encoding="utf-8") == "previous"
+    assert not stage.exists()
+
+
+def test_publish_failure_restores_previous_output_when_destination_absent(tmp_path: Path) -> None:
     output = tmp_path / "public"
     output.mkdir()
     (output / "index.html").write_text("previous", encoding="utf-8")
@@ -518,8 +549,6 @@ def test_failed_replacement_restores_previous_output(tmp_path: Path) -> None:
         nonlocal calls
         calls += 1
         if calls == 2:
-            output.mkdir()
-            (output / "index.html").write_text("interloper", encoding="utf-8")
             raise OSError("publish failed")
         src.replace(dst)
 
@@ -527,3 +556,57 @@ def test_failed_replacement_restores_previous_output(tmp_path: Path) -> None:
         _replace_output(stage, output, replace=replace_with_publish_failure)
 
     assert (output / "index.html").read_text(encoding="utf-8") == "previous"
+    assert not stage.exists()
+
+
+def test_publish_failure_preserves_backup_when_destination_is_occupied(tmp_path: Path) -> None:
+    output = tmp_path / "public"
+    output.mkdir()
+    (output / "index.html").write_text("previous", encoding="utf-8")
+    stage = tmp_path / ".public.stage"
+    stage.mkdir()
+    calls = 0
+
+    def replace_with_publish_conflict(src: Path, dst: Path) -> None:
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            output.mkdir()
+            (output / "index.html").write_text("interloper", encoding="utf-8")
+            raise OSError("publish failed")
+        src.replace(dst)
+
+    with pytest.raises(RuntimeError, match="destination is occupied"):
+        _replace_output(stage, output, replace=replace_with_publish_conflict)
+
+    backups = list(tmp_path.glob(".public.*.previous"))
+    assert (output / "index.html").read_text(encoding="utf-8") == "interloper"
+    assert len(backups) == 1
+    assert (backups[0] / "index.html").read_text(encoding="utf-8") == "previous"
+    assert stage.exists()
+
+
+def test_staged_render_failure_preserves_output_and_removes_stage(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _, out = build_canned(tmp_path)
+    previous = (out / "index.html").read_text(encoding="utf-8")
+
+    def fail_write(*_args: object, **_kwargs: object) -> None:
+        raise OSError("render write failed")
+
+    monkeypatch.setattr("grepify.site.build._write", fail_write)
+
+    with pytest.raises(OSError, match="render write failed"):
+        build_site(
+            config=FilesystemConfigProvider(tmp_path / "sources"),
+            repository=JsonlSqliteRepository(tmp_path / "data"),
+            layout=DataLayout(tmp_path / "data"),
+            clock=_CLOCK,
+            run_id=_RUN_ID,
+            output_dir=out,
+            protected_roots=(tmp_path / "sources",),
+        )
+
+    assert (out / "index.html").read_text(encoding="utf-8") == previous
+    assert not list(tmp_path.glob(".public.*.tmp"))
