@@ -1,10 +1,11 @@
-"""Trend queries tests (GRP-31): window math + cloud/stats/sources on a canned DB.
+"""Trend queries tests (GRP-31): cloud/stats/sources on a canned DB.
 
 Builds a small JSONL truth via :class:`JsonlSqliteRepository`, rebuilds the
 cache, and drives :class:`TrendQueries` against it - the "canned DB" the AC
-calls for. Covers windowing, alias/mute merge, distinct-item counting (llm +
-fallback rows for the same keyword count once), deltas vs the previous window,
-and determinism (identical results twice in a row).
+calls for. Covers alias/mute merge, distinct-item counting (llm + fallback rows
+for the same keyword count once), deltas vs the previous window, and
+determinism (identical results twice in a row). Window arithmetic itself is
+covered by ``tests/test_windows.py``.
 """
 
 from __future__ import annotations
@@ -29,13 +30,8 @@ from grepify.models import (
 )
 from grepify.paths import DataLayout
 from grepify.repository import JsonlSqliteRepository
-from grepify.site.trends import (
-    TrendQueries,
-    Window,
-    open_cache,
-    previous_window,
-    window_ending_at,
-)
+from grepify.site.trends import TrendQueries, open_cache
+from grepify.windows import window_ending_at
 
 # 07-08 07:00 MDT: the window ends at the most recent Edmonton midnight
 # (2026-07-08T06:00Z), so current is [2026-07-01, 2026-07-08) Edmonton days and
@@ -130,57 +126,6 @@ def _queries(
     _canned_repo(tmp_path)
     conn = open_cache(DataLayout(tmp_path))
     return TrendQueries(conn, _rules(pin=pin, extra_mute=extra_mute))
-
-
-# --- window arithmetic -------------------------------------------------------
-
-
-def test_window_ending_at_and_previous() -> None:
-    window = window_ending_at(_NOW, days=7)
-    # ends at Edmonton midnight (MDT, -06:00), not the raw instant
-    assert window == Window(
-        start="2026-07-01T06:00:00+00:00", end="2026-07-08T06:00:00+00:00", days=7
-    )
-    prev = previous_window(window)
-    assert prev == Window(
-        start="2026-06-24T06:00:00+00:00", end="2026-07-01T06:00:00+00:00", days=7
-    )
-
-
-def test_window_ending_at_is_stable_within_a_local_day() -> None:
-    # Two instants on the same Edmonton day (07:00 vs 23:00 MDT) yield the same
-    # window, so same-day rebuilds produce identical counts (GRP-71 AC).
-    morning = window_ending_at(datetime(2026, 7, 8, 13, 0, tzinfo=UTC), days=7)
-    evening = window_ending_at(datetime(2026, 7, 9, 4, 59, tzinfo=UTC), days=7)
-    assert morning == evening
-
-
-def test_window_construction_across_spring_forward() -> None:
-    # The 7-day window ending Mon 2026-03-09 contains the Sun Mar 8 spring-
-    # forward, so its bounds sit on different UTC offsets (MST -07:00 -> MDT
-    # -06:00) yet stay exactly 7 Edmonton days, as does the previous window.
-    window = window_ending_at(datetime(2026, 3, 9, 13, 0, tzinfo=UTC), days=7)
-    assert window == Window(
-        start="2026-03-02T07:00:00+00:00", end="2026-03-09T06:00:00+00:00", days=7
-    )
-    prev = previous_window(window)
-    assert prev == Window(
-        start="2026-02-23T07:00:00+00:00", end="2026-03-02T07:00:00+00:00", days=7
-    )
-
-
-def test_window_construction_across_fall_back() -> None:
-    # The window ending Mon 2026-11-02 contains the Sun Nov 1 fall-back
-    # (MDT -06:00 -> MST -07:00); both bounds stay Edmonton midnight.
-    window = window_ending_at(datetime(2026, 11, 2, 13, 0, tzinfo=UTC), days=7)
-    assert window == Window(
-        start="2026-10-26T06:00:00+00:00", end="2026-11-02T07:00:00+00:00", days=7
-    )
-
-
-def test_window_ending_at_rejects_nonpositive_days() -> None:
-    with pytest.raises(ValueError, match="positive"):
-        window_ending_at(_NOW, days=0)
 
 
 # --- cloud + deltas ----------------------------------------------------------

@@ -35,8 +35,13 @@ is just a scheduler.
 All storage behind one **`Repository`** interface (v1 = JSONL+SQLite; v2 =
 Postgres). All config behind one **`ConfigProvider`** interface (v1 =
 filesystem-YAML; v2 = DB-backed + checkbox UI). Signatures use domain models and
-builtins only - **no SQLite-specific types leak**, so the pipeline, trend
-queries, and digest assembler never know which backend is active.
+builtins only - **no SQLite-specific types leak**, so the ingest/extract/digest
+pipeline's write path never knows which backend is active.
+
+This swappability covers the **write path only**. `site/trends.py` reads the
+rebuilt cache with `sqlite3` directly, by deliberate v1 design (PRD §5's static
+SSG is thrown away wholesale at the v2 boundary, PRD §15) - it is not behind
+`Repository` and is not part of the v2-proofing guarantee above.
 
 ## LLM
 

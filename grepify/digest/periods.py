@@ -13,6 +13,13 @@ Every function takes the instant as an argument - there is no clock read here.
 dependency so the zone is available on any runner. Same instant in -> same
 period out.
 
+Dependency direction (GRP-72)
+-----------------------------
+:mod:`grepify.site.trends` imports :data:`EDMONTON` and :func:`edmonton_date`
+from here at module level - a deliberate one-way dependency. This module must
+never import anything from :mod:`grepify.site` or :mod:`grepify.windows`, or
+the direction breaks.
+
 Failure modes
 -------------
 Pure computation. A naive (tz-unaware) instant raises ``ValueError`` (a

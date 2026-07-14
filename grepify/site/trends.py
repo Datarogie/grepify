@@ -40,9 +40,9 @@ cutoff. Two invariants:
 Determinism (F-SIT-08 / S8)
 ---------------------------
 - Window bounds are computed from an **injected** instant, never a clock read
-  here. :func:`window_ending_at` takes the instant as an argument and aligns the
-  span to America/Edmonton midnight, so two builds on the same local day produce
-  identical counts (GRP-71).
+  here. :func:`grepify.windows.window_ending_at` takes the instant as an
+  argument and aligns the span to America/Edmonton midnight, so two builds on
+  the same local day produce identical counts (GRP-71).
 - Every ``order by`` carries a tie-breaker, giving a total order; Python folds
   emit results sorted by ``(-count, keyword)`` etc. so output is byte-stable
   regardless of row-visit order.
@@ -55,8 +55,8 @@ Failure modes
   degradation (the build orchestrator owns rebuilding it first).
 - The keyword-detail timeline assumes an Edmonton-aligned window (every
   in-window item maps into ``[0, days)``); a hand-built misaligned window would
-  raise ``IndexError``. Callers use :func:`window_ending_at`, which guarantees
-  alignment.
+  raise ``IndexError``. Callers use :func:`grepify.windows.window_ending_at`,
+  which guarantees alignment.
 - Pure reads otherwise; nothing here writes or touches the network/LLM.
 """
 
@@ -66,59 +66,19 @@ import json
 import sqlite3
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta
+from datetime import date
 
-from grepify.clock import from_iso, to_iso
+from grepify.clock import from_iso
+from grepify.digest.periods import edmonton_date
 from grepify.keywords import KeywordRules
 from grepify.paths import DataLayout
 from grepify.site.urls import keyword_slug
+from grepify.windows import Window, is_rising, previous_window
 
 DEFAULT_CLOUD_LIMIT = 60
 DEFAULT_TOP_SOURCES_LIMIT = 10
 DEFAULT_LATEST_ITEMS_LIMIT = 10
 DEFAULT_LATEST_DIGESTS_LIMIT = 5
-
-
-# --- window arithmetic -------------------------------------------------------
-
-
-@dataclass(frozen=True)
-class Window:
-    """A half-open ``[start, end)`` window of ISO-8601 UTC timestamp strings."""
-
-    start: str
-    end: str
-    days: int
-
-
-def window_ending_at(instant: datetime, *, days: int) -> Window:
-    """Window of ``days`` Edmonton calendar days ending at the local midnight at
-    or before ``instant`` (injected - never a clock read).
-
-    Aligning the end to Edmonton midnight rather than ``instant`` (GRP-71) makes
-    counts identical across same-day rebuilds and makes each sparkline bucket
-    exactly one lived day. ``days <= 0`` raises ``ValueError``.
-    """
-    # Deferred: grepify.digest imports grepify.digest.assemble, which imports
-    # this module, so a module-level import would be circular.
-    from grepify.digest.periods import trailing_days  # noqa: PLC0415
-
-    period = trailing_days(instant, days)
-    return Window(start=period.start, end=period.end, days=days)
-
-
-def previous_window(window: Window) -> Window:
-    """The immediately-preceding window of the same day-length (for deltas).
-
-    Both bounds are resolved in Edmonton local time, so the current and previous
-    windows span the same number of lived days even across a DST transition
-    (keeping deltas/rising ratios comparable, GRP-71).
-    """
-    from grepify.digest.periods import EDMONTON  # noqa: PLC0415
-
-    end_local = from_iso(window.start).astimezone(EDMONTON)
-    start_local = end_local - timedelta(days=window.days)
-    return Window(start=to_iso(start_local), end=window.start, days=window.days)
 
 
 # --- datasets ----------------------------------------------------------------
@@ -343,10 +303,6 @@ class TrendQueries:
         ``settings.digest`` by the caller, never defaulted here, so the cloud
         and the digest prompt agree on the same config-driven thresholds.
         """
-        # Deferred: grepify.digest imports grepify.digest.assemble, which imports
-        # this module, so a module-level import would be circular.
-        from grepify.digest.rising import is_rising  # noqa: PLC0415
-
         current = {kw: len(items) for kw, items in self._merged_counts(window).items()}
         prev_window = previous if previous is not None else previous_window(window)
         prior = {kw: len(items) for kw, items in self._merged_counts(prev_window).items()}
@@ -672,8 +628,6 @@ class TrendQueries:
             item_keywords.setdefault(iid, set()).add(canonical)
             kw_items.setdefault(canonical, set()).add(iid)
 
-        from grepify.digest.periods import edmonton_date  # noqa: PLC0415
-
         start_date = edmonton_date(from_iso(window.start))
         details: dict[str, KeywordDetail] = {}
         for keyword, iid_set in kw_items.items():
@@ -704,8 +658,6 @@ class TrendQueries:
         co_limit: int,
     ) -> KeywordDetail:
         member_items = [items[iid] for iid in iid_set]
-
-        from grepify.digest.periods import edmonton_date  # noqa: PLC0415
 
         timeline = [0] * window.days
         for item in member_items:

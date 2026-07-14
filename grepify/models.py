@@ -162,7 +162,12 @@ class ItemKeyword(_Record):
 
 
 class KeywordAlias(_Record):
-    """User-curated merge map entry (PRD §6 keyword_aliases)."""
+    """User-curated merge map entry (PRD §6 keyword_aliases).
+
+    v2-reserved: in v1, aliases live in ``keywords.yml`` and are applied at
+    trend-query time (:mod:`grepify.keywords`); nothing constructs this model
+    or writes the ``keyword_aliases`` table today.
+    """
 
     alias: str
     canonical: str

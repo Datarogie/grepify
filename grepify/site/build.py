@@ -73,6 +73,7 @@ import jinja2
 from grepify.clock import Clock, to_iso
 from grepify.config.provider import ConfigProvider
 from grepify.config.schemas import SettingsConfig
+from grepify.digest import TEMPLATE_MODEL, digest_id_for
 from grepify.digest.periods import previous_day
 from grepify.health import HealthSnapshot
 from grepify.keywords import KeywordRules
@@ -106,11 +107,10 @@ from grepify.site.trends import (
     ItemSummary,
     KeywordDetail,
     TrendQueries,
-    Window,
     open_cache,
-    window_ending_at,
 )
 from grepify.site.urls import digest_slug, keyword_slug
+from grepify.windows import Window, window_ending_at
 
 EMISSION_DAYS = 90  # trailing-window paginated into public/ (F-SIT-03/04, §9)
 SITE_TITLE = "grepify"
@@ -325,10 +325,6 @@ def _daily_digest_exists(
     consider the daily step done. A template digest (LLM degraded) does not
     count as present, matching the pipeline's own upgrade-on-retry rule.
     """
-    # Deferred: grepify.digest imports grepify.digest.assemble, which imports
-    # this module, so a module-level import would be circular.
-    from grepify.digest import TEMPLATE_MODEL, digest_id_for  # noqa: PLC0415
-
     period_key = previous_day(now).key
     real_ids = {d.digest_id for d in digests if d.model != TEMPLATE_MODEL}
     categories = {g.category for g in groups if g.enabled}
