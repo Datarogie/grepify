@@ -22,10 +22,13 @@ from __future__ import annotations
 
 from typing import Any, Protocol
 
-import httpx
-
 from grepify.errors import LlmError
-from grepify.ingest.http import HttpResponse
+from grepify.ingest.http import (
+    HttpResponse,
+    OutboundHttpClient,
+    OutboundPolicy,
+    OutboundRequestError,
+)
 
 
 class CompletionTransport(Protocol):
@@ -37,18 +40,16 @@ class CompletionTransport(Protocol):
 
 
 class HttpxCompletionTransport:
-    """Production :class:`CompletionTransport`, backed by ``httpx``."""
+    """Production :class:`CompletionTransport`, backed by the central outbound policy."""
+
+    def __init__(self, *, client: OutboundHttpClient | None = None) -> None:
+        self._client = client or OutboundHttpClient(policy=OutboundPolicy(max_redirects=0))
 
     def post_json(
         self, url: str, *, headers: dict[str, str], payload: dict[str, Any], timeout: float
     ) -> HttpResponse:
         try:
-            response = httpx.post(url, headers=headers, json=payload, timeout=timeout)
-        except httpx.HTTPError as exc:
+            return self._client.post_json(url, headers=headers, payload=payload, timeout=timeout)
+        except OutboundRequestError as exc:
             # Never interpolate `headers` (Authorization/API key) into the message.
-            raise LlmError(f"POST {url} failed: {exc}") from exc
-        return HttpResponse(
-            status_code=response.status_code,
-            content=response.content,
-            headers={key.lower(): value for key, value in response.headers.items()},
-        )
+            raise LlmError(f"POST failed: {exc}") from exc
