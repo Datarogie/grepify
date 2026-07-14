@@ -17,13 +17,17 @@ import textwrap
 from datetime import UTC, datetime
 from pathlib import Path
 
+import pytest
+
 from grepify.clock import FixedClock
 from grepify.config.filesystem import FilesystemConfigProvider
+from grepify.errors import ConfigError
 from grepify.health import ErrorClass, HealthSnapshot, SourceHealth
 from grepify.models import ExtractionMethod, FetchStatus, Item, ItemKeyword, SourceKind
+from grepify.path_safety import ContainedPath, ensure_safe_output_dir
 from grepify.paths import DataLayout
 from grepify.repository.jsonl_sqlite import JsonlSqliteRepository
-from grepify.site.build import BuildResult, build_site
+from grepify.site.build import BuildResult, _capture_destination_state, _replace_output, build_site
 
 GOLDEN = Path(__file__).parent / "fixtures" / "site" / "pages"
 _CLOCK = FixedClock(datetime(2026, 7, 8, 13, 0, tzinfo=UTC))  # 07:00 MDT
@@ -424,3 +428,377 @@ def test_rebuild_clears_stale_output(tmp_path: Path) -> None:
     stale.write_text("stale", encoding="utf-8")
     build_canned(tmp_path)  # rebuild into the same tmp_path/public
     assert not stale.exists()
+
+
+def test_build_rejects_unsafe_output_directories(tmp_path: Path) -> None:
+    build_canned(tmp_path)
+    data = tmp_path / "data"
+    conf = tmp_path / "sources"
+    non_directory = tmp_path / "not-a-directory"
+    non_directory.write_text("not a directory", encoding="utf-8")
+    unsafe_paths = [Path("/"), tmp_path, data, conf, tmp_path / ".." / "outside", non_directory]
+
+    for unsafe in unsafe_paths:
+        with pytest.raises(ValueError, match="unsafe output directory"):
+            build_site(
+                config=FilesystemConfigProvider(conf),
+                repository=JsonlSqliteRepository(data),
+                layout=DataLayout(data),
+                clock=_CLOCK,
+                run_id=_RUN_ID,
+                output_dir=unsafe,
+                protected_roots=(conf,),
+            )
+
+
+def test_build_rejects_output_symlink_escape(tmp_path: Path) -> None:
+    build_canned(tmp_path)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "public-link"
+    link.symlink_to(outside, target_is_directory=True)
+
+    with pytest.raises(ValueError, match="unsafe output directory"):
+        build_site(
+            config=FilesystemConfigProvider(tmp_path / "sources"),
+            repository=JsonlSqliteRepository(tmp_path / "data"),
+            layout=DataLayout(tmp_path / "data"),
+            clock=_CLOCK,
+            run_id=_RUN_ID,
+            output_dir=link,
+            protected_roots=(tmp_path / "sources",),
+        )
+    assert outside.exists()
+
+
+def test_failed_build_preserves_previous_output(tmp_path: Path) -> None:
+    _, out = build_canned(tmp_path)
+    previous = (out / "index.html").read_text(encoding="utf-8")
+    (tmp_path / "sources" / "keywords.yml").write_text("aliases: []\n", encoding="utf-8")
+
+    with pytest.raises(ConfigError):
+        build_site(
+            config=FilesystemConfigProvider(tmp_path / "sources"),
+            repository=JsonlSqliteRepository(tmp_path / "data"),
+            layout=DataLayout(tmp_path / "data"),
+            clock=_CLOCK,
+            run_id=_RUN_ID,
+            output_dir=out,
+            protected_roots=(tmp_path / "sources",),
+        )
+
+    assert (out / "index.html").read_text(encoding="utf-8") == previous
+
+
+def test_generated_path_containment_rejects_traversal(tmp_path: Path) -> None:
+    root = ContainedPath.create(tmp_path / "public")
+    with pytest.raises(ValueError, match="escapes output root"):
+        root.resolve(Path("../outside.html"))
+    with pytest.raises(ValueError, match="relative"):
+        root.resolve(Path("/outside.html"))
+
+
+def test_output_parent_of_cwd_is_rejected_with_external_roots(tmp_path: Path) -> None:
+    cwd = tmp_path / "repo" / "work"
+    cwd.mkdir(parents=True)
+    external_data = tmp_path / "external-data"
+    external_config = tmp_path / "external-config"
+
+    with pytest.raises(ValueError, match="unsafe output directory"):
+        ensure_safe_output_dir(
+            cwd.parent, cwd=cwd, protected_roots=(external_data, external_config)
+        )
+
+
+def test_default_public_output_under_cwd_is_safe() -> None:
+    repo_root = Path.cwd()
+    safe = ensure_safe_output_dir(
+        Path("public"),
+        cwd=repo_root,
+        protected_roots=(repo_root / "data", repo_root / "sources"),
+    )
+    assert safe == repo_root / "public"
+
+
+def test_first_replacement_failure_leaves_previous_output(tmp_path: Path) -> None:
+    output = tmp_path / "public"
+    output.mkdir()
+    (output / "index.html").write_text("previous", encoding="utf-8")
+    stage = tmp_path / ".public.stage"
+    stage.mkdir()
+    expected = _capture_destination_state(output)
+
+    def fail_first_replace(_src: Path, _dst: Path) -> None:
+        raise OSError("backup failed")
+
+    with pytest.raises(OSError, match="backup failed"):
+        _replace_output(stage, output, expected_output_state=expected, replace=fail_first_replace)
+
+    assert (output / "index.html").read_text(encoding="utf-8") == "previous"
+    assert not stage.exists()
+
+
+def test_publish_failure_restores_previous_output_when_destination_absent(tmp_path: Path) -> None:
+    output = tmp_path / "public"
+    output.mkdir()
+    (output / "index.html").write_text("previous", encoding="utf-8")
+    stage = tmp_path / ".public.stage"
+    stage.mkdir()
+    expected = _capture_destination_state(output)
+    calls = 0
+
+    def replace_with_publish_failure(src: Path, dst: Path) -> None:
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise OSError("publish failed")
+        src.replace(dst)
+
+    with pytest.raises(OSError, match="publish failed"):
+        _replace_output(
+            stage, output, expected_output_state=expected, replace=replace_with_publish_failure
+        )
+
+    assert (output / "index.html").read_text(encoding="utf-8") == "previous"
+    assert not stage.exists()
+
+
+def test_publish_failure_preserves_backup_when_destination_is_occupied(tmp_path: Path) -> None:
+    output = tmp_path / "public"
+    output.mkdir()
+    (output / "index.html").write_text("previous", encoding="utf-8")
+    stage = tmp_path / ".public.stage"
+    stage.mkdir()
+    expected = _capture_destination_state(output)
+    calls = 0
+
+    def replace_with_publish_conflict(src: Path, dst: Path) -> None:
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            output.mkdir()
+            (output / "index.html").write_text("interloper", encoding="utf-8")
+            raise OSError("publish failed")
+        src.replace(dst)
+
+    with pytest.raises(RuntimeError, match="destination is occupied"):
+        _replace_output(
+            stage, output, expected_output_state=expected, replace=replace_with_publish_conflict
+        )
+
+    backups = list(tmp_path.glob(".public.*.previous"))
+    assert (output / "index.html").read_text(encoding="utf-8") == "interloper"
+    assert len(backups) == 1
+    assert (backups[0] / "index.html").read_text(encoding="utf-8") == "previous"
+    assert stage.exists()
+
+
+def test_staged_render_failure_preserves_output_and_removes_stage(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _, out = build_canned(tmp_path)
+    previous = (out / "index.html").read_text(encoding="utf-8")
+
+    def fail_write(*_args: object, **_kwargs: object) -> None:
+        raise OSError("render write failed")
+
+    monkeypatch.setattr("grepify.site.build._write", fail_write)
+
+    with pytest.raises(OSError, match="render write failed"):
+        build_site(
+            config=FilesystemConfigProvider(tmp_path / "sources"),
+            repository=JsonlSqliteRepository(tmp_path / "data"),
+            layout=DataLayout(tmp_path / "data"),
+            clock=_CLOCK,
+            run_id=_RUN_ID,
+            output_dir=out,
+            protected_roots=(tmp_path / "sources",),
+        )
+
+    assert (out / "index.html").read_text(encoding="utf-8") == previous
+    assert not list(tmp_path.glob(".public.*.tmp"))
+
+
+def test_keyboard_interrupt_during_first_replace_preserves_output(tmp_path: Path) -> None:
+    output = tmp_path / "public"
+    output.mkdir()
+    (output / "index.html").write_text("previous", encoding="utf-8")
+    stage = tmp_path / ".public.stage"
+    stage.mkdir()
+    expected = _capture_destination_state(output)
+
+    def interrupt_first_replace(_src: Path, _dst: Path) -> None:
+        raise KeyboardInterrupt
+
+    with pytest.raises(KeyboardInterrupt):
+        _replace_output(
+            stage, output, expected_output_state=expected, replace=interrupt_first_replace
+        )
+
+    assert (output / "index.html").read_text(encoding="utf-8") == "previous"
+    assert not stage.exists()
+
+
+def test_publish_preserves_broken_symlink_occupant(tmp_path: Path) -> None:
+    output = tmp_path / "public"
+    output.mkdir()
+    (output / "index.html").write_text("previous", encoding="utf-8")
+    stage = tmp_path / ".public.stage"
+    stage.mkdir()
+    expected = _capture_destination_state(output)
+    missing_target = tmp_path / "missing-target"
+
+    def occupy_with_broken_symlink(src: Path, dst: Path) -> None:
+        src.replace(dst)
+        output.symlink_to(missing_target, target_is_directory=True)
+
+    with pytest.raises(RuntimeError, match="destination is occupied"):
+        _replace_output(
+            stage, output, expected_output_state=expected, replace=occupy_with_broken_symlink
+        )
+
+    backups = list(tmp_path.glob(".public.*.previous"))
+    assert output.is_symlink()
+    assert not output.exists()
+    assert output.readlink() == missing_target
+    assert len(backups) == 1
+    assert (backups[0] / "index.html").read_text(encoding="utf-8") == "previous"
+    assert stage.exists()
+
+
+def test_absent_output_created_before_publish_is_preserved(tmp_path: Path) -> None:
+    output = tmp_path / "public"
+    expected = _capture_destination_state(output)
+    stage = tmp_path / ".public.stage"
+    stage.mkdir()
+    (stage / "index.html").write_text("stage", encoding="utf-8")
+    output.mkdir()
+    (output / "index.html").write_text("new occupant", encoding="utf-8")
+
+    with pytest.raises(RuntimeError, match="changed during build"):
+        _replace_output(stage, output, expected_output_state=expected)
+
+    assert (output / "index.html").read_text(encoding="utf-8") == "new occupant"
+    assert not stage.exists()
+
+
+def test_existing_output_replaced_before_publish_is_preserved(tmp_path: Path) -> None:
+    output = tmp_path / "public"
+    output.mkdir()
+    (output / "index.html").write_text("previous", encoding="utf-8")
+    expected = _capture_destination_state(output)
+    stage = tmp_path / ".public.stage"
+    stage.mkdir()
+    (stage / "index.html").write_text("stage", encoding="utf-8")
+    moved_previous = tmp_path / "moved-previous"
+    output.replace(moved_previous)
+    output.mkdir()
+    (output / "index.html").write_text("replacement", encoding="utf-8")
+
+    with pytest.raises(RuntimeError, match="changed during build"):
+        _replace_output(stage, output, expected_output_state=expected)
+
+    assert (output / "index.html").read_text(encoding="utf-8") == "replacement"
+    assert (moved_previous / "index.html").read_text(encoding="utf-8") == "previous"
+    assert not stage.exists()
+
+
+def test_stale_concurrent_publish_refuses_to_overwrite_newer_result(tmp_path: Path) -> None:
+    output = tmp_path / "public"
+    stale_expected = _capture_destination_state(output)
+    newer_expected = _capture_destination_state(output)
+    stale_stage = tmp_path / ".public.stale"
+    stale_stage.mkdir()
+    (stale_stage / "index.html").write_text("stale", encoding="utf-8")
+    newer_stage = tmp_path / ".public.newer"
+    newer_stage.mkdir()
+    (newer_stage / "index.html").write_text("newer", encoding="utf-8")
+
+    _replace_output(newer_stage, output, expected_output_state=newer_expected)
+    with pytest.raises(RuntimeError, match="changed during build"):
+        _replace_output(stale_stage, output, expected_output_state=stale_expected)
+
+    assert (output / "index.html").read_text(encoding="utf-8") == "newer"
+    assert not stale_stage.exists()
+
+
+def test_keyboard_interrupt_during_second_replace_restores_previous_output(tmp_path: Path) -> None:
+    output = tmp_path / "public"
+    output.mkdir()
+    (output / "index.html").write_text("previous", encoding="utf-8")
+    expected = _capture_destination_state(output)
+    stage = tmp_path / ".public.stage"
+    stage.mkdir()
+    calls = 0
+
+    def interrupt_second_replace(src: Path, dst: Path) -> None:
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise KeyboardInterrupt
+        src.replace(dst)
+
+    with pytest.raises(KeyboardInterrupt):
+        _replace_output(
+            stage, output, expected_output_state=expected, replace=interrupt_second_replace
+        )
+
+    assert (output / "index.html").read_text(encoding="utf-8") == "previous"
+    assert not stage.exists()
+
+
+def test_backup_identity_mismatch_preserves_interloper_and_stage_not_published(
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "public"
+    output.mkdir()
+    (output / "index.html").write_text("previous", encoding="utf-8")
+    expected = _capture_destination_state(output)
+    stage = tmp_path / ".public.stage"
+    stage.mkdir()
+    (stage / "index.html").write_text("stage", encoding="utf-8")
+    interloper = tmp_path / "interloper"
+    interloper.mkdir()
+    (interloper / "index.html").write_text("interloper", encoding="utf-8")
+    original_saved = tmp_path / "original-saved"
+
+    def swap_before_backup_rename(src: Path, dst: Path) -> None:
+        if src == output:
+            src.replace(original_saved)
+            interloper.replace(src)
+        src.replace(dst)
+
+    with pytest.raises(RuntimeError, match="backup identity mismatch"):
+        _replace_output(
+            stage, output, expected_output_state=expected, replace=swap_before_backup_rename
+        )
+
+    assert (output / "index.html").read_text(encoding="utf-8") == "interloper"
+    assert (original_saved / "index.html").read_text(encoding="utf-8") == "previous"
+    assert not stage.exists()
+
+
+def test_absent_output_created_during_claim_is_preserved(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    output = tmp_path / "public"
+    expected = _capture_destination_state(output)
+    stage = tmp_path / ".public.stage"
+    stage.mkdir()
+    (stage / "index.html").write_text("stage", encoding="utf-8")
+    original_mkdir = Path.mkdir
+
+    def occupy_before_claim(self: Path, *args: object, **kwargs: object) -> None:
+        if self == output:
+            original_mkdir(self)
+            (self / "index.html").write_text("occupant", encoding="utf-8")
+            raise FileExistsError(str(self))
+        original_mkdir(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "mkdir", occupy_before_claim)
+
+    with pytest.raises(RuntimeError, match="changed during build"):
+        _replace_output(stage, output, expected_output_state=expected)
+
+    assert (output / "index.html").read_text(encoding="utf-8") == "occupant"
+    assert not stage.exists()

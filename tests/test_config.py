@@ -290,3 +290,34 @@ def test_bare_disabled_source_stays_valid_without_evidence(tmp_path: Path) -> No
     )
     report = _provider(tmp_path, {"g.yml": group}).validate()
     assert report.ok, report.errors
+
+
+def test_path_derived_config_identifiers_must_be_slugs(tmp_path: Path) -> None:
+    invalid_values = ["ai/research", "ai\\research", "..", ".hidden", "AI", "ai research", "bad"]
+    for value in invalid_values:
+        bad_category = f"""
+            group: g
+            name: G
+            category: {value!r}
+            sources: []
+        """
+        report = _provider(
+            tmp_path / value.encode("unicode_escape").decode("ascii"), {"g.yml": bad_category}
+        ).validate()
+        assert not report.ok
+        assert any("slug" in e for e in report.errors)
+
+
+def test_group_and_source_identifiers_must_be_slugs(tmp_path: Path) -> None:
+    bad = """
+        group: ../g
+        name: G
+        category: ai
+        sources:
+          - id: bad/source
+            kind: rss
+            url: https://example.com/feed
+    """
+    report = _provider(tmp_path, {"g.yml": bad}).validate()
+    assert not report.ok
+    assert any("slug" in e for e in report.errors)

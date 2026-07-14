@@ -539,6 +539,7 @@ def build(
             run_id=run_id,
             output_dir=output_dir,
             base_path=base_path,
+            protected_roots=(state.config_root,),
         )
     finally:
         repository.close()

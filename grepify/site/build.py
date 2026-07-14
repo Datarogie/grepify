@@ -62,8 +62,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import shutil
 import sqlite3
+import tempfile
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -78,6 +81,7 @@ from grepify.digest.periods import previous_day
 from grepify.health import HealthSnapshot
 from grepify.keywords import KeywordRules
 from grepify.models import DigestKind, SourceGroup
+from grepify.path_safety import ContainedPath, ensure_safe_output_dir
 from grepify.paths import DataLayout
 from grepify.repository.base import Repository
 from grepify.site.next_digest import next_scheduled_run
@@ -118,6 +122,28 @@ STATIC_DIR = Path(__file__).parent / "static"
 _ALL = 10_000_000  # effectively-unbounded limit for the emission query
 
 
+class _BackupIdentityMismatchError(RuntimeError):
+    pass
+
+
+@dataclass(frozen=True)
+class _DestinationState:
+    exists: bool
+    device: int | None = None
+    inode: int | None = None
+    mode: int | None = None
+
+
+@dataclass(frozen=True)
+class _PublishFailure:
+    stage_dir: Path
+    output_dir: Path
+    backup_dir: Path
+    moved_existing: bool
+    replace: Callable[[Path, Path], None]
+    original: BaseException
+
+
 @dataclass(frozen=True)
 class BuildResult:
     """Rollup for the ``build`` CLI's run manifest."""
@@ -137,8 +163,16 @@ def build_site(  # noqa: PLR0913 - distinct collaborators, all required
     run_id: str,
     output_dir: Path,
     base_path: str = "/",
+    protected_roots: tuple[Path, ...] = (),
 ) -> BuildResult:
     """Render the whole site into ``output_dir`` from the cache + config."""
+    safe_output_dir = ensure_safe_output_dir(
+        output_dir, cwd=Path.cwd(), protected_roots=(layout.root, *protected_roots)
+    )
+    expected_output_state = _capture_destination_state(safe_output_dir)
+    stage_dir: Path | None = None
+    build_complete = False
+
     # Populate the `sources` table before the rebuild so top-sources /
     # latest-items resolve display names, not raw source_ids. (`build` runs
     # standalone, so it must load config itself like `ingest` does.)
@@ -169,10 +203,11 @@ def build_site(  # noqa: PLR0913 - distinct collaborators, all required
         emission_since = to_iso(now - timedelta(days=EMISSION_DAYS))
         keyword_window = window_ending_at(now, days=settings.windows.keyword_days)
 
-        _reset_output(output_dir)
-        (output_dir / "static").mkdir(parents=True, exist_ok=True)
-        _write(output_dir / "static" / "style.css", stylesheet)
-        _copy_static(output_dir)
+        stage_dir = _temporary_sibling(safe_output_dir)
+        output = ContainedPath.create(stage_dir)
+        output.join("static").mkdir(parents=True, exist_ok=True)
+        _write(output, Path("static/style.css"), stylesheet)
+        _copy_static(output)
 
         emitted_items = queries.latest_items(limit=_ALL, since=emission_since)
         items_total = _count_items(conn)
@@ -193,13 +228,13 @@ def build_site(  # noqa: PLR0913 - distinct collaborators, all required
         coverage = coverage_rollup(source_rows, quiet_after_days=quiet_after_days)
 
         pages_written = (
-            _write_home(env, meta, output_dir, queries, cloud_window, keyword_pages, settings)
-            + _write_items(env, meta, output_dir, queries, emitted_items)
-            + _write_sources(env, meta, output_dir, config, source_rows, coverage)
+            _write_home(env, meta, output, queries, cloud_window, keyword_pages, settings)
+            + _write_items(env, meta, output, queries, emitted_items)
+            + _write_sources(env, meta, output, config, source_rows, coverage)
             + _write_health(
                 env,
                 meta,
-                output_dir,
+                output,
                 layout,
                 config=config,
                 settings=settings,
@@ -208,14 +243,21 @@ def build_site(  # noqa: PLR0913 - distinct collaborators, all required
                 daily_exists=daily_exists,
                 coverage=coverage,
             )
-            + _write_digests(env, meta, output_dir, digests)
-            + _write_keyword_pages(env, meta, output_dir, keyword_details)
+            + _write_digests(env, meta, output, digests)
+            + _write_keyword_pages(env, meta, output, keyword_details)
         )
+        build_complete = True
     finally:
         conn.close()
+        if not build_complete and stage_dir is not None and stage_dir.exists():
+            shutil.rmtree(stage_dir)
+
+    if stage_dir is None:
+        raise RuntimeError("build did not create a staging directory")
+    _replace_output(stage_dir, safe_output_dir, expected_output_state=expected_output_state)
 
     return BuildResult(
-        output_dir=output_dir,
+        output_dir=safe_output_dir,
         pages_written=pages_written,
         items_emitted=len(emitted_items),
         items_total=items_total,
@@ -228,7 +270,7 @@ def build_site(  # noqa: PLR0913 - distinct collaborators, all required
 def _write_home(  # noqa: PLR0913 - collaborators of one page render, all required
     env: jinja2.Environment,
     meta: SiteMeta,
-    output_dir: Path,
+    output_dir: ContainedPath,
     queries: TrendQueries,
     cloud_window: Window,
     keyword_pages: set[str],
@@ -253,14 +295,14 @@ def _write_home(  # noqa: PLR0913 - collaborators of one page render, all requir
         item_tags=queries.distinct_keywords_for_items(i.item_id for i in latest_items),
         keyword_pages=keyword_pages,
     )
-    _write(output_dir / "index.html", html)
+    _write(output_dir, Path("index.html"), html)
     return 1
 
 
 def _write_items(
     env: jinja2.Environment,
     meta: SiteMeta,
-    output_dir: Path,
+    output_dir: ContainedPath,
     queries: TrendQueries,
     emitted_items: list[ItemSummary],
 ) -> int:
@@ -278,18 +320,18 @@ def _write_items(
         )
         pretty = json.dumps(payload, indent=2, sort_keys=True)
         if page.number == 1:
-            _write(output_dir / "items" / "index.html", html)
-            _write(output_dir / "items" / "page-1.json", pretty)
+            _write(output_dir, Path("items/index.html"), html)
+            _write(output_dir, Path("items/page-1.json"), pretty)
         else:
-            _write(output_dir / "items" / f"page-{page.number}" / "index.html", html)
-            _write(output_dir / "items" / f"page-{page.number}.json", pretty)
+            _write(output_dir, Path("items") / f"page-{page.number}" / "index.html", html)
+            _write(output_dir, Path("items") / f"page-{page.number}.json", pretty)
     return len(pages)
 
 
 def _write_sources(  # noqa: PLR0913 - collaborators of one page render, all required
     env: jinja2.Environment,
     meta: SiteMeta,
-    output_dir: Path,
+    output_dir: ContainedPath,
     config: ConfigProvider,
     source_rows: list[SourceRow],
     coverage: CoverageRollup,
@@ -310,7 +352,7 @@ def _write_sources(  # noqa: PLR0913 - collaborators of one page render, all req
         source_count=len(source_rows),
         coverage=coverage,
     )
-    _write(output_dir / "sources" / "index.html", html)
+    _write(output_dir, Path("sources/index.html"), html)
     return 1
 
 
@@ -336,7 +378,7 @@ def _daily_digest_exists(
 def _write_health(  # noqa: PLR0913 - collaborators of one page render, all required
     env: jinja2.Environment,
     meta: SiteMeta,
-    output_dir: Path,
+    output_dir: ContainedPath,
     layout: DataLayout,
     *,
     config: ConfigProvider,
@@ -359,12 +401,12 @@ def _write_health(  # noqa: PLR0913 - collaborators of one page render, all requ
         category_digests=latest_digest_per_category(digests),
         coverage=coverage,
     )
-    _write(output_dir / "health" / "index.html", html)
+    _write(output_dir, Path("health/index.html"), html)
     return 1
 
 
 def _write_digests(
-    env: jinja2.Environment, meta: SiteMeta, output_dir: Path, digests: list[DigestDetail]
+    env: jinja2.Environment, meta: SiteMeta, output_dir: ContainedPath, digests: list[DigestDetail]
 ) -> int:
     """Digest index (always, a nav destination) + one detail page per digest.
 
@@ -380,7 +422,7 @@ def _write_digests(
         PageContext(meta=meta, active="digests"),
         digests=digests,
     )
-    _write(output_dir / "digest" / "index.html", index_html)
+    _write(output_dir, Path("digest/index.html"), index_html)
 
     for digest in digests:
         detail_html = render_page(
@@ -390,14 +432,14 @@ def _write_digests(
             digest=digest,
         )
         slug = digest_slug(digest.digest_id, digest.kind)
-        _write(output_dir / "digest" / digest.kind / slug / "index.html", detail_html)
+        _write(output_dir, Path("digest") / digest.kind / slug / "index.html", detail_html)
     return 1 + len(digests)
 
 
 def _write_keyword_pages(
     env: jinja2.Environment,
     meta: SiteMeta,
-    output_dir: Path,
+    output_dir: ContainedPath,
     keyword_details: dict[str, KeywordDetail],
 ) -> int:
     """One detail page per keyword above threshold (F-SIT-04), sorted for stable order."""
@@ -409,7 +451,7 @@ def _write_keyword_pages(
             PageContext(meta=meta, active=""),
             detail=detail,
         )
-        _write(output_dir / "keyword" / keyword_slug(keyword) / "index.html", html)
+        _write(output_dir, Path("keyword") / keyword_slug(keyword) / "index.html", html)
     return len(keyword_details)
 
 
@@ -450,12 +492,6 @@ def _count_items(conn: sqlite3.Connection) -> int:
     return int(count)
 
 
-def _reset_output(output_dir: Path) -> None:
-    if output_dir.exists():
-        shutil.rmtree(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-
 ASSET_HASH_LEN = 8  # short content hash for the `?v=` cache-buster
 
 
@@ -478,12 +514,148 @@ def _asset_versions(stylesheet: str) -> dict[str, str]:
     return versions
 
 
-def _copy_static(output_dir: Path) -> None:
+def _temporary_sibling(output_dir: Path) -> Path:
+    output_dir.parent.mkdir(parents=True, exist_ok=True)
+    stage_dir = Path(
+        tempfile.mkdtemp(prefix=f".{output_dir.name}.", suffix=".tmp", dir=output_dir.parent)
+    )
+    stage_dir.chmod(0o700)
+    return stage_dir
+
+
+def _replace_output(
+    stage_dir: Path,
+    output_dir: Path,
+    *,
+    expected_output_state: _DestinationState,
+    replace: Callable[[Path, Path], None] = os.replace,
+) -> None:
+    if not _destination_matches(output_dir, expected_output_state):
+        _remove_owned_stage(stage_dir)
+        raise RuntimeError(f"output destination changed during build: {output_dir}")
+    if not expected_output_state.exists:
+        _publish_into_absent_output(stage_dir, output_dir)
+        return
+
+    backup_dir = Path(
+        tempfile.mkdtemp(prefix=f".{output_dir.name}.", suffix=".previous", dir=output_dir.parent)
+    )
+    backup_dir.rmdir()
+    moved_existing = False
+    try:
+        replace(output_dir, backup_dir)
+        moved_existing = True
+        if _capture_destination_state(backup_dir) != expected_output_state:
+            _handle_backup_identity_mismatch(
+                stage_dir=stage_dir,
+                output_dir=output_dir,
+                backup_dir=backup_dir,
+                replace=replace,
+            )
+        if _path_occupied(output_dir):
+            raise RuntimeError(
+                f"output destination became occupied; previous output preserved at {backup_dir}"
+            )
+        replace(stage_dir, output_dir)
+    except _BackupIdentityMismatchError:
+        raise
+    except BaseException as exc:
+        _handle_publish_failure(
+            _PublishFailure(
+                stage_dir=stage_dir,
+                output_dir=output_dir,
+                backup_dir=backup_dir,
+                moved_existing=moved_existing,
+                replace=replace,
+                original=exc,
+            )
+        )
+        raise
+    if backup_dir.exists():
+        shutil.rmtree(backup_dir)
+
+
+def _publish_into_absent_output(stage_dir: Path, output_dir: Path) -> None:
+    try:
+        output_dir.mkdir()
+    except FileExistsError as exc:
+        _remove_owned_stage(stage_dir)
+        raise RuntimeError(f"output destination changed during build: {output_dir}") from exc
+    try:
+        for child in stage_dir.iterdir():
+            os.replace(child, output_dir / child.name)
+        stage_dir.rmdir()
+    except BaseException:
+        if output_dir.exists():
+            shutil.rmtree(output_dir)
+        _remove_owned_stage(stage_dir)
+        raise
+
+
+def _handle_backup_identity_mismatch(
+    *,
+    stage_dir: Path,
+    output_dir: Path,
+    backup_dir: Path,
+    replace: Callable[[Path, Path], None],
+) -> None:
+    _remove_owned_stage(stage_dir)
+    preserved_at = backup_dir
+    if not _path_occupied(output_dir):
+        replace(backup_dir, output_dir)
+        preserved_at = output_dir
+    raise _BackupIdentityMismatchError(
+        f"output backup identity mismatch; moved entry preserved at {preserved_at}"
+    )
+
+
+def _remove_owned_stage(stage_dir: Path) -> None:
+    if stage_dir.exists():
+        shutil.rmtree(stage_dir)
+
+
+def _handle_publish_failure(failure: _PublishFailure) -> None:
+    if not failure.moved_existing:
+        _remove_owned_stage(failure.stage_dir)
+        return
+    if not _path_occupied(failure.output_dir):
+        failure.replace(failure.backup_dir, failure.output_dir)
+        _remove_owned_stage(failure.stage_dir)
+        return
+    raise RuntimeError(
+        f"output publish failed and destination is occupied; "
+        f"previous output preserved at {failure.backup_dir}"
+    ) from failure.original
+
+
+def _destination_matches(path: Path, expected: _DestinationState) -> bool:
+    return _capture_destination_state(path) == expected
+
+
+def _capture_destination_state(path: Path) -> _DestinationState:
+    try:
+        stat = path.stat(follow_symlinks=False)
+    except FileNotFoundError:
+        return _DestinationState(exists=False)
+    return _DestinationState(
+        exists=True,
+        device=stat.st_dev,
+        inode=stat.st_ino,
+        mode=stat.st_mode,
+    )
+
+
+def _path_occupied(path: Path) -> bool:
+    return _capture_destination_state(path).exists
+
+
+def _copy_static(output_dir: ContainedPath) -> None:
     for asset in sorted(STATIC_DIR.glob("*")):
         if asset.is_file():
-            shutil.copyfile(asset, output_dir / "static" / asset.name)
+            shutil.copyfile(asset, output_dir.join("static", asset.name))
 
 
-def _write(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
+def _write(output_dir: ContainedPath, path: Path, content: str) -> None:
+    destination = output_dir.resolve(path)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(content, encoding="utf-8")
