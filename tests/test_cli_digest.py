@@ -342,3 +342,71 @@ def test_digest_gate_prints_flags(tmp_path: Path) -> None:
     assert result.exit_code == 0
     # 2026-07-08 13:00Z is 07:00 MDT (Wednesday) -> daily due, weekly not
     assert result.stdout.strip().splitlines() == ["daily=true", "weekly=false"]
+
+
+# 2026-07-08 20:00 UTC == 14:00 MDT: a late-in-the-day cron slot, well past the
+# old fixed window, still targeting the same 2026-07-07 daily period as _CLOCK.
+_LATE_CLOCK = FixedClock(datetime(2026, 7, 8, 20, 0, tzinfo=UTC))
+
+
+def test_digest_gate_reflects_existence_not_only_the_clock(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # GRP-63: a late run (14:00 Edmonton) must still see the daily step as due
+    # when nothing has generated yet, then see it as done once it has - the
+    # gate reads truth, not just the clock.
+    monkeypatch.setattr("grepify.cli.build_client", _scripted_build_client([]))
+    cfg = write_config(tmp_path / "sources", groups={"g1.yml": _GROUP}, settings=_SETTINGS)
+    data = tmp_path / "data"
+    _seed(data)
+
+    monkeypatch.setattr("grepify.cli.SystemClock", lambda: _LATE_CLOCK)
+    before = _invoke(cfg, data, "digest-gate")
+    assert before.exit_code == 0
+    assert before.stdout.strip().splitlines() == ["daily=true", "weekly=false"]
+
+    monkeypatch.setenv("LLM_BASE_URL", "https://x/v1")
+    reply = json.dumps({"title": "AI today", "tldr": ["genai up"], "body_md": "A narrative."})
+    monkeypatch.setattr("grepify.cli.build_client", _scripted_build_client([reply]))
+    generated = _invoke(cfg, data, "digest", "--kind", "daily")
+    assert generated.exit_code == 0, generated.stdout
+    assert "1 generated" in generated.stdout
+
+    after = _invoke(cfg, data, "digest-gate")
+    assert after.exit_code == 0
+    assert after.stdout.strip().splitlines() == ["daily=false", "weekly=false"]
+
+
+def test_same_day_double_run_produces_exactly_one_digest(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The production incident (2026-07-13 cron 13:00 -> 15:41 UTC drift): a
+    # morning run misses the old fixed window, then a later run the same day
+    # must generate exactly once, never twice, thanks to the idempotent skip
+    # in grepify.digest.pipeline.
+    monkeypatch.setenv("LLM_BASE_URL", "https://x/v1")
+    cfg = write_config(tmp_path / "sources", groups={"g1.yml": _GROUP}, settings=_SETTINGS)
+    data = tmp_path / "data"
+    _seed(data)
+
+    reply = json.dumps({"title": "AI today", "tldr": ["genai up"], "body_md": "A narrative."})
+    monkeypatch.setattr("grepify.cli.build_client", _scripted_build_client([reply]))
+    first = _invoke(cfg, data, "digest", "--kind", "daily")
+    assert first.exit_code == 0, first.stdout
+    assert "1 generated" in first.stdout
+
+    monkeypatch.setattr("grepify.cli.SystemClock", lambda: _LATE_CLOCK)
+    monkeypatch.setattr("grepify.cli.build_client", _scripted_build_client([]))
+    late_gate = _invoke(cfg, data, "digest-gate")
+    assert late_gate.stdout.strip().splitlines() == ["daily=false", "weekly=false"]
+    second = _invoke(cfg, data, "digest", "--kind", "daily")
+    assert second.exit_code == 0, second.stdout
+    assert "0 generated" in second.stdout
+    assert "1 already present" in second.stdout
+
+    repo = JsonlSqliteRepository(data)
+    try:
+        digests = list(repo.iter_digests())
+    finally:
+        repo.close()
+    assert [d.digest_id for d in digests] == ["daily-ai-2026-07-07"]  # exactly one

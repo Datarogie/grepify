@@ -94,9 +94,14 @@ def _build(tmp_path: Path) -> Path:
 
     data = tmp_path / "data"
     repo = JsonlSqliteRepository(data)
+    # _CLOCK is 2026-07-07 18:00 MDT, so the just-completed Edmonton day (the
+    # period the gate's existence check reads, GRP-63) is 2026-07-06, not
+    # 2026-07-07. Both categories carry a real daily digest for that period so
+    # the check is satisfied and "next run" rolls to tomorrow, matching the
+    # golden fixture below.
     repo.add_digest(
         _digest(
-            "daily-ai-2026-07-07",
+            "daily-ai-2026-07-06",
             kind=DigestKind.DAILY,
             category="ai",
             title="AI moved fast today",
