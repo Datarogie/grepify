@@ -191,6 +191,7 @@ class Windows(_ConfigModel):
     digest_weekly: str = "iso_week"
     keyword_days: int = 30  # trailing window for keyword detail pages (F-SIT-04)
     keyword_min_mentions: int = 3  # a keyword gets a page at >= this many mentions in the window
+    coverage_quiet_days: int = 30  # a live source with no item this recently is quiet (GRP-70)
 
 
 class DigestSettings(_ConfigModel):

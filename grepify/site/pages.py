@@ -24,10 +24,12 @@ mismatched hash widths - a corrupt cache, surfaced loudly.
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any
 
+from grepify.clock import from_iso
 from grepify.health import HealthSnapshot, SourceHealth
 from grepify.ingest.dedup import hamming_distance
 from grepify.models import Source, SourceStatus
@@ -321,3 +323,150 @@ def latest_digest_per_category(digests: Sequence[DigestDetail]) -> list[DigestDe
     for digest in digests:
         best.setdefault(digest.category, digest)
     return [best[category] for category in sorted(best)]
+
+
+# --- coverage (GRP-70: "sources you are no longer hearing from") -------------
+
+
+@dataclass(frozen=True)
+class Recency:
+    """How long ago a source last contributed an item, relative to a build instant.
+
+    ``last_contributed_at`` is ``None`` when the source has never appeared in
+    ``items`` (never fetched, or fetched but never produced an item); ``days``
+    is then ``None`` too rather than some sentinel int, so a caller cannot
+    mistake "never" for a large-but-real day count.
+    """
+
+    last_contributed_at: str | None
+    days: int | None
+
+    @property
+    def label(self) -> str:
+        if self.days is None:
+            return "never"
+        if self.days == 0:
+            return "today"
+        if self.days == 1:
+            return "1 day ago"
+        return f"{self.days} days ago"
+
+
+def source_recency(last_contributed_at: str | None, *, now: datetime) -> Recency:
+    """Whole-day recency of a source's last contributed item, as of ``now``.
+
+    ``last_contributed_at`` (``None`` for a source with zero cached items)
+    comes from :meth:`~grepify.site.trends.TrendQueries.last_contributed_at`.
+    A timestamp later than ``now`` (clock skew, an odd fixture) floors to zero
+    days rather than a nonsensical negative count.
+    """
+    if last_contributed_at is None:
+        return Recency(last_contributed_at=None, days=None)
+    days = max((now.date() - from_iso(last_contributed_at).date()).days, 0)
+    return Recency(last_contributed_at=last_contributed_at, days=days)
+
+
+@dataclass(frozen=True)
+class SourceRow:
+    """One source's row on the sources page: config joined with contribution
+    recency (GRP-70).
+
+    ``quiet`` is a live (enabled) source that has not contributed in
+    ``coverage_quiet_days`` (or ever) - it is always ``False`` for a
+    dead/paywalled source, since #100's lifecycle classes already explain
+    that silence; a "quiet" flag on top would double up two distinct causes
+    under one word. This is unrelated to :attr:`HealthRow.quiet` (T6
+    best-effort/Reddit flag suppression) despite the shared name - that one
+    scopes a fetch-error flag, this one scopes item recency.
+    """
+
+    source_id: str
+    group_id: str
+    name: str
+    kind: str
+    status: SourceStatus
+    url: str
+    active_url: str | None
+    message: str | None
+    evidence: str | None
+    recency: Recency
+    quiet: bool
+
+    @property
+    def is_degraded(self) -> bool:
+        return self.status is SourceStatus.DEGRADED
+
+
+def build_source_rows(
+    sources: Iterable[Source],
+    last_contributed: Mapping[str, str],
+    *,
+    now: datetime,
+    quiet_after_days: int,
+) -> list[SourceRow]:
+    """Per-source coverage row for the sources page (GRP-70).
+
+    ``last_contributed`` is all-time (:meth:`TrendQueries.last_contributed_at`),
+    not the trailing-90d emission window, so a slow-but-real feed is not
+    penalized for the build's emission cutoff. Sorted by ``source_id`` for
+    byte-stable output.
+    """
+    rows: list[SourceRow] = []
+    for source in sorted(sources, key=lambda s: s.source_id):
+        recency = source_recency(last_contributed.get(source.source_id), now=now)
+        quiet = source.status.is_enabled and (
+            recency.days is None or recency.days >= quiet_after_days
+        )
+        rows.append(
+            SourceRow(
+                source_id=source.source_id,
+                group_id=source.group_id,
+                name=source.name,
+                kind=source.kind.value,
+                status=source.status,
+                url=source.url,
+                active_url=source.active_url,
+                message=source.message,
+                evidence=source.evidence,
+                recency=recency,
+                quiet=quiet,
+            )
+        )
+    return rows
+
+
+@dataclass(frozen=True)
+class CoverageRollup:
+    """The coverage rollup shared by the health + sources pages (GRP-70): how
+    many live sources have gone quiet, out of how many live sources total.
+
+    Scoped to live sources only - a dead/paywalled source is excluded from
+    both ``quiet_names`` and the live total, never counted as quiet (see
+    :class:`SourceRow`).
+    """
+
+    quiet_names: tuple[str, ...]
+    live_count: int
+    quiet_after_days: int
+
+    @property
+    def quiet_count(self) -> int:
+        return len(self.quiet_names)
+
+    @property
+    def has_quiet(self) -> bool:
+        return self.quiet_count > 0
+
+
+def coverage_rollup(rows: Sequence[SourceRow], *, quiet_after_days: int) -> CoverageRollup:
+    """Fold :class:`SourceRow`\\ s into the one-line coverage rollup (GRP-70).
+
+    Names are sorted for byte-stable rendering; ``live_count`` recounts
+    ``status.is_enabled`` directly rather than trusting ``len(rows)`` so this
+    stays correct even if a caller passes a pre-filtered subset.
+    """
+    live = [row for row in rows if row.status.is_enabled]
+    quiet_names = tuple(sorted(row.name for row in live if row.quiet))
+    return CoverageRollup(
+        quiet_names=quiet_names, live_count=len(live), quiet_after_days=quiet_after_days
+    )

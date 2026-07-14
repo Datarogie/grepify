@@ -3,24 +3,29 @@
 {% block content %}
 <h1>Sources</h1>
 <p class="muted">{{ source_count }} sources across {{ grouped | length }} groups</p>
+{% if coverage.has_quiet %}
+
+<p class="status-quiet">{{ coverage.quiet_count }} of {{ coverage.live_count }} live sources have not contributed in {{ coverage.quiet_after_days }}+ days: {{ coverage.quiet_names | join(", ") }}</p>
+{% endif %}
 
 {% for group, sources in grouped %}
 <h2>{{ group.name }} <span class="muted">({{ group.category }}{% if not group.enabled %}, disabled{% endif %})</span></h2>
 {% if sources %}
 <table>
-<thead><tr><th>Source</th><th>Kind</th><th>Status</th><th>Feed</th></tr></thead>
+<thead><tr><th>Source</th><th>Kind</th><th>Status</th><th>Last contributed</th><th>Feed</th></tr></thead>
 <tbody>
 {% for s in sources %}
 <tr>
 <td>{{ s.name }}</td>
 <td>{{ s.kind }}</td>
 <td class="status-{{ 'ok' if s.status == 'active' else 'warn' }}">{{ s.status }}{% if s.status == 'degraded' and s.active_url %} (via fallback){% endif %}</td>
+<td{% if s.quiet %} class="status-quiet"{% endif %}>{{ s.recency.label }}</td>
 <td><a href="{{ s.url }}" rel="noopener noreferrer">feed</a></td>
 </tr>
 {% if s.status == 'paywalled' and s.message %}
-<tr class="source-note"><td colspan="4" class="muted">{{ s.message }}</td></tr>
+<tr class="source-note"><td colspan="5" class="muted">{{ s.message }}</td></tr>
 {% elif s.status == 'dead' and s.evidence %}
-<tr class="source-note"><td colspan="4" class="muted">Unfetchable after the full ladder. {{ s.evidence }}</td></tr>
+<tr class="source-note"><td colspan="5" class="muted">Unfetchable after the full ladder. {{ s.evidence }}</td></tr>
 {% endif %}
 {% endfor %}
 </tbody>

@@ -358,3 +358,81 @@ def test_no_snapshot_reports_absent() -> None:
     view = build_health_view(None, [_src("a", SourceStatus.ACTIVE)])
     assert view.has_snapshot is False
     assert {r.source_id for r in view.live} == {"a"}
+
+
+# --- coverage: last-contributed recency + quiet rollup (GRP-70) --------------
+
+from datetime import UTC, datetime  # noqa: E402
+
+from grepify.site.pages import build_source_rows, coverage_rollup, source_recency  # noqa: E402
+
+_NOW = datetime(2026, 7, 8, tzinfo=UTC)
+
+
+def test_source_recency_never_contributed() -> None:
+    recency = source_recency(None, now=_NOW)
+    assert recency.days is None
+    assert recency.label == "never"
+
+
+def test_source_recency_today_and_yesterday_labels() -> None:
+    assert source_recency("2026-07-08T00:00:00+00:00", now=_NOW).label == "today"
+    assert source_recency("2026-07-07T00:00:00+00:00", now=_NOW).label == "1 day ago"
+    assert source_recency("2026-06-08T00:00:00+00:00", now=_NOW).label == "30 days ago"
+
+
+def test_source_recency_clamps_future_timestamp_to_zero() -> None:
+    # A last-contributed timestamp after `now` (clock skew, an odd fixture)
+    # must not render as a negative day count.
+    recency = source_recency("2026-07-09T00:00:00+00:00", now=_NOW)
+    assert recency.days == 0
+    assert recency.label == "today"
+
+
+def test_build_source_rows_quiet_after_threshold_or_never() -> None:
+    sources = [
+        _src("fresh", SourceStatus.ACTIVE),
+        _src("stale", SourceStatus.ACTIVE),
+        _src("silent", SourceStatus.ACTIVE),  # never in last_contributed
+    ]
+    last_contributed = {
+        "fresh": "2026-07-07T00:00:00+00:00",  # 1 day ago
+        "stale": "2026-05-01T00:00:00+00:00",  # far past the 30d threshold
+    }
+    rows = build_source_rows(sources, last_contributed, now=_NOW, quiet_after_days=30)
+    by_id = {r.source_id: r for r in rows}
+    assert by_id["fresh"].quiet is False
+    assert by_id["stale"].quiet is True
+    assert by_id["silent"].quiet is True
+    assert by_id["silent"].recency.label == "never"
+
+
+def test_build_source_rows_never_flags_a_disabled_source_as_quiet() -> None:
+    # A dead/paywalled source's silence is already explained by its lifecycle
+    # class (GRP-66) - it must never also read as coverage-quiet.
+    sources = [_src("dead", SourceStatus.DEAD, evidence="e")]
+    rows = build_source_rows(sources, {}, now=_NOW, quiet_after_days=30)
+    assert rows[0].quiet is False
+
+
+def test_coverage_rollup_counts_live_only() -> None:
+    sources = [
+        _src("live-fresh", SourceStatus.ACTIVE),
+        _src("live-quiet", SourceStatus.ACTIVE),
+        _src("dead-quiet", SourceStatus.DEAD, evidence="e"),
+    ]
+    last_contributed = {"live-fresh": "2026-07-07T00:00:00+00:00"}
+    rows = build_source_rows(sources, last_contributed, now=_NOW, quiet_after_days=30)
+    rollup = coverage_rollup(rows, quiet_after_days=30)
+    assert rollup.live_count == 2  # the dead source is excluded from the denominator
+    assert rollup.quiet_names == ("LIVE-QUIET",)  # make_source upper-cases the id as name
+    assert rollup.has_quiet is True
+
+
+def test_coverage_rollup_empty_when_nothing_quiet() -> None:
+    sources = [_src("a", SourceStatus.ACTIVE)]
+    last_contributed = {"a": "2026-07-08T00:00:00+00:00"}
+    rows = build_source_rows(sources, last_contributed, now=_NOW, quiet_after_days=30)
+    rollup = coverage_rollup(rows, quiet_after_days=30)
+    assert rollup.has_quiet is False
+    assert rollup.quiet_names == ()

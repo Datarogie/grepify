@@ -470,6 +470,21 @@ class TrendQueries:
             for did, kind, cat, title, ps, pe, created in rows
         ]
 
+    def last_contributed_at(self) -> dict[str, str]:
+        """Most-recent ``published_at`` per source, over every cached item (GRP-70).
+
+        All-time, not window-bound: a real feed with a single item eight months
+        back still has a genuine last-contributed date, and bounding this to the
+        trailing-90d emission window (``build.EMISSION_DAYS``) would misreport it
+        as never-contributed. A source absent from the returned mapping has zero
+        items in the cache ever, not zero recently - the coverage page renders
+        that as "never".
+        """
+        rows = self._conn.execute(
+            "select source_id, max(published_at) from items group by source_id"
+        )
+        return dict(rows)
+
     def distinct_keywords_for_items(self, item_ids: Iterable[str]) -> dict[str, list[str]]:
         """``item_id -> sorted canonical keywords`` for a set of items (merge+mute).
 

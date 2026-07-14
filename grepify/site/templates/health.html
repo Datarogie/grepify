@@ -2,6 +2,10 @@
 {% block title %}grepify - health{% endblock %}
 {% block content %}
 <h1>Health</h1>
+{% if coverage.live_count %}
+
+<p class="{{ 'status-quiet' if coverage.has_quiet else 'muted' }}">{{ coverage.quiet_count }} of {{ coverage.live_count }} live sources contributed nothing in {{ coverage.quiet_after_days }} days.</p>
+{% endif %}
 
 <h2>Next scheduled digest</h2>
 <p>Next digest run: <strong>{{ next_run.date_label }} {{ next_run.time_label }}</strong> America/Edmonton (UTC{{ next_run.utc_offset_label }}){% if next_run.is_weekly %} - also the weekly digest{% endif %}.</p>
