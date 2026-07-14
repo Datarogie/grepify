@@ -1,56 +1,61 @@
 {
-  "run_id": "20260713T222935Z-d42ad5",
-  "generated_at": "2026-07-13T22:32:25+00:00",
+  "run_id": "20260714T025013Z-81dce7",
+  "generated_at": "2026-07-14T02:54:25+00:00",
   "sources": [
     {
       "source_id": "ahead-of-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:46+00:00",
+      "last_started_at": "2026-07-14T02:51:07+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "ai-accelerator-institute",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:35+00:00",
+      "last_started_at": "2026-07-14T02:50:13+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "ai-business",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:35+00:00",
+      "last_started_at": "2026-07-14T02:50:19+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "ai-insider",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:36+00:00",
+      "last_started_at": "2026-07-14T02:50:19+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "ai-news",
-      "attempts": 37,
-      "last_status": "error",
-      "last_started_at": "2026-07-13T22:29:36+00:00",
-      "last_error": "ai-news: unparseable feed: SAXParseException('not well-formed (invalid token)')",
-      "error_class": "unparseable",
-      "consecutive_failures": 1,
-      "flagged": false
+      "attempts": 38,
+      "last_status": "ok",
+      "last_started_at": "2026-07-14T02:50:26+00:00",
+      "last_error": null,
+      "error_class": null,
+      "consecutive_failures": 0,
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "ai-techpark",
@@ -60,47 +65,52 @@
       "last_error": "ai-techpark: HTTP 403",
       "error_class": "http_4xx",
       "consecutive_failures": 18,
-      "flagged": true
+      "flagged": true,
+      "last_rung": null
     },
     {
       "source_id": "ai-time-journal",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "empty",
-      "last_started_at": "2026-07-13T22:29:37+00:00",
+      "last_started_at": "2026-07-14T02:50:27+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "ai2-people",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:53+00:00",
+      "last_started_at": "2026-07-14T02:51:21+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "aihub",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:47+00:00",
+      "last_started_at": "2026-07-14T02:51:08+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "aiiot-artificial-intelligence",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:53+00:00",
+      "last_started_at": "2026-07-14T02:51:21+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "aim-ai",
@@ -110,7 +120,8 @@
       "last_error": "aim-ai: unparseable feed: SAXParseException('syntax error')",
       "error_class": "unparseable",
       "consecutive_failures": 18,
-      "flagged": true
+      "flagged": true,
+      "last_rung": null
     },
     {
       "source_id": "aimodels",
@@ -120,87 +131,96 @@
       "last_error": "aimodels: HTTP 403",
       "error_class": "http_4xx",
       "consecutive_failures": 18,
-      "flagged": true
+      "flagged": true,
+      "last_rung": null
     },
     {
       "source_id": "analytics-vidhya",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:54+00:00",
+      "last_started_at": "2026-07-14T02:51:22+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "ars-technica-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:37+00:00",
+      "last_started_at": "2026-07-14T02:50:28+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "artificial-intelligence-blog",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:37+00:00",
+      "last_started_at": "2026-07-14T02:50:32+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "artificial-intelligence-plus",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:55+00:00",
+      "last_started_at": "2026-07-14T02:51:27+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "artificial-lawyer",
-      "attempts": 37,
-      "last_status": "error",
-      "last_started_at": "2026-07-13T22:29:38+00:00",
-      "last_error": "artificial-lawyer: HTTP 415",
-      "error_class": "http_4xx",
-      "consecutive_failures": 1,
-      "flagged": false
+      "attempts": 38,
+      "last_status": "ok",
+      "last_started_at": "2026-07-14T02:50:33+00:00",
+      "last_error": null,
+      "error_class": null,
+      "consecutive_failures": 0,
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "aws-ai-news",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:39+00:00",
+      "last_started_at": "2026-07-14T02:50:34+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "bair-blog",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:49+00:00",
+      "last_started_at": "2026-07-14T02:51:11+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "bdan-ai",
-      "attempts": 37,
-      "last_status": "error",
-      "last_started_at": "2026-07-13T22:29:39+00:00",
-      "last_error": "bdan-ai: HTTP 415",
-      "error_class": "http_4xx",
-      "consecutive_failures": 1,
-      "flagged": false
+      "attempts": 38,
+      "last_status": "ok",
+      "last_started_at": "2026-07-14T02:50:34+00:00",
+      "last_error": null,
+      "error_class": null,
+      "consecutive_failures": 0,
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "benn-substack",
@@ -210,7 +230,8 @@
       "last_error": "benn-substack: HTTP 403",
       "error_class": "http_4xx",
       "consecutive_failures": 18,
-      "flagged": true
+      "flagged": true,
+      "last_rung": null
     },
     {
       "source_id": "clarifai-blog",
@@ -220,217 +241,250 @@
       "last_error": "clarifai-blog: HTTP 404",
       "error_class": "http_4xx",
       "consecutive_failures": 16,
-      "flagged": true
+      "flagged": true,
+      "last_rung": null
     },
     {
       "source_id": "cogito-tech-blog",
-      "attempts": 37,
-      "last_status": "error",
-      "last_started_at": "2026-07-13T22:29:57+00:00",
-      "last_error": "cogito-tech-blog: unparseable feed: SAXParseException('not well-formed (invalid token)')",
-      "error_class": "unparseable",
-      "consecutive_failures": 1,
-      "flagged": false
+      "attempts": 38,
+      "last_status": "ok",
+      "last_started_at": "2026-07-14T02:51:30+00:00",
+      "last_error": null,
+      "error_class": null,
+      "consecutive_failures": 0,
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "computerworld-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:39+00:00",
+      "last_started_at": "2026-07-14T02:50:35+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "copyleaks-blog",
-      "attempts": 27,
-      "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:58+00:00",
-      "last_error": null,
-      "error_class": null,
-      "consecutive_failures": 0,
-      "flagged": false
+      "attempts": 28,
+      "last_status": "error",
+      "last_started_at": "2026-07-14T02:51:31+00:00",
+      "last_error": "copyleaks-blog: all acquisition rungs failed: copyleaks-blog: HTTP 403; copyleaks-blog: HTTP 403; copyleaks-blog: HTTP 403; copyleaks-blog: HTTP 403; copyleaks-blog: autodiscovery GET https://copyleaks.com/ HTTP 403",
+      "error_class": "http_4xx",
+      "consecutive_failures": 1,
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "crunchbase-ai-news",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:40+00:00",
+      "last_started_at": "2026-07-14T02:50:35+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "datarobot-blog",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:58+00:00",
+      "last_started_at": "2026-07-14T02:51:33+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
+    },
+    {
+      "source_id": "dbt-developer-blog",
+      "attempts": 1,
+      "last_status": "ok",
+      "last_started_at": "2026-07-14T02:52:06+00:00",
+      "last_error": null,
+      "error_class": null,
+      "consecutive_failures": 0,
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "deepcognition-ai-blog",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:58+00:00",
+      "last_started_at": "2026-07-14T02:51:33+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "dlabs-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:58+00:00",
+      "last_started_at": "2026-07-14T02:51:34+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "edmonton-journal-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:40+00:00",
+      "last_started_at": "2026-07-14T02:50:35+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "fast-company-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:40+00:00",
+      "last_started_at": "2026-07-14T02:50:36+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "federal-news-network-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:40+00:00",
+      "last_started_at": "2026-07-14T02:50:36+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "france-24-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:41+00:00",
+      "last_started_at": "2026-07-14T02:50:36+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "ft-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:41+00:00",
+      "last_started_at": "2026-07-14T02:50:41+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "fusemachines-insights",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:03+00:00",
+      "last_started_at": "2026-07-14T02:51:38+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "geekwire-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:41+00:00",
+      "last_started_at": "2026-07-14T02:50:41+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "getdbt-roundup",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:15+00:00",
+      "last_started_at": "2026-07-14T02:52:05+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "google-ai-blog",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:04+00:00",
+      "last_started_at": "2026-07-14T02:51:40+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "google-research",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:49+00:00",
+      "last_started_at": "2026-07-14T02:51:11+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "government-technology-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:41+00:00",
+      "last_started_at": "2026-07-14T02:50:42+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "gptzero-news",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:05+00:00",
+      "last_started_at": "2026-07-14T02:51:40+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "hpc-wire-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:42+00:00",
+      "last_started_at": "2026-07-14T02:50:43+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "infoworld-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:05+00:00",
+      "last_started_at": "2026-07-14T02:51:41+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "inside-ai-news",
@@ -440,47 +494,52 @@
       "last_error": "GET https://insideainews.com/feed/ failed: [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:1000)",
       "error_class": "tls",
       "consecutive_failures": 18,
-      "flagged": true
+      "flagged": true,
+      "last_rung": null
     },
     {
       "source_id": "interconnects",
-      "attempts": 24,
+      "attempts": 25,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:14+00:00",
+      "last_started_at": "2026-07-14T02:52:01+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "just-ai-news",
-      "attempts": 37,
-      "last_status": "error",
-      "last_started_at": "2026-07-13T22:29:42+00:00",
-      "last_error": "just-ai-news: unparseable feed: SAXParseException('not well-formed (invalid token)')",
-      "error_class": "unparseable",
-      "consecutive_failures": 1,
-      "flagged": false
-    },
-    {
-      "source_id": "kavita-ganesans-blog",
-      "attempts": 37,
-      "last_status": "error",
-      "last_started_at": "2026-07-13T22:30:05+00:00",
-      "last_error": "kavita-ganesans-blog: unparseable feed: SAXParseException('not well-formed (invalid token)')",
-      "error_class": "unparseable",
-      "consecutive_failures": 1,
-      "flagged": false
-    },
-    {
-      "source_id": "kdnugget",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:06+00:00",
+      "last_started_at": "2026-07-14T02:50:43+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
+    },
+    {
+      "source_id": "kavita-ganesans-blog",
+      "attempts": 38,
+      "last_status": "ok",
+      "last_started_at": "2026-07-14T02:51:41+00:00",
+      "last_error": null,
+      "error_class": null,
+      "consecutive_failures": 0,
+      "flagged": false,
+      "last_rung": "direct"
+    },
+    {
+      "source_id": "kdnugget",
+      "attempts": 38,
+      "last_status": "ok",
+      "last_started_at": "2026-07-14T02:51:41+00:00",
+      "last_error": null,
+      "error_class": null,
+      "consecutive_failures": 0,
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "knowtechie-ai",
@@ -490,197 +549,217 @@
       "last_error": "GET https://knowtechie.com/category/ai/feed/ failed: [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:1000)",
       "error_class": "tls",
       "consecutive_failures": 18,
-      "flagged": true
+      "flagged": true,
+      "last_rung": null
     },
     {
       "source_id": "kore-ai-blog",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:06+00:00",
+      "last_started_at": "2026-07-14T02:51:42+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "la-biblia-de-la-ia",
-      "attempts": 37,
-      "last_status": "error",
-      "last_started_at": "2026-07-13T22:29:42+00:00",
-      "last_error": "la-biblia-de-la-ia: HTTP 415",
-      "error_class": "http_4xx",
-      "consecutive_failures": 1,
-      "flagged": false
+      "attempts": 38,
+      "last_status": "ok",
+      "last_started_at": "2026-07-14T02:50:44+00:00",
+      "last_error": null,
+      "error_class": null,
+      "consecutive_failures": 0,
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "latent-space",
-      "attempts": 24,
+      "attempts": 25,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:14+00:00",
+      "last_started_at": "2026-07-14T02:52:05+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "live-science-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:50+00:00",
+      "last_started_at": "2026-07-14T02:51:12+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "locally-optimistic",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:15+00:00",
+      "last_started_at": "2026-07-14T02:52:06+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "machine-learning-mastery",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:06+00:00",
+      "last_started_at": "2026-07-14T02:51:46+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "machine-learning-mastery-blog",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:06+00:00",
+      "last_started_at": "2026-07-14T02:51:46+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "marketing-artificial-intelligence-institute-blog",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:43+00:00",
+      "last_started_at": "2026-07-14T02:50:55+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "marktechpost",
-      "attempts": 37,
-      "last_status": "error",
-      "last_started_at": "2026-07-13T22:30:06+00:00",
-      "last_error": "marktechpost: unparseable feed: SAXParseException('not well-formed (invalid token)')",
-      "error_class": "unparseable",
-      "consecutive_failures": 1,
-      "flagged": false
+      "attempts": 38,
+      "last_status": "ok",
+      "last_started_at": "2026-07-14T02:51:46+00:00",
+      "last_error": null,
+      "error_class": null,
+      "consecutive_failures": 0,
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "microsoft-ai-news",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:43+00:00",
+      "last_started_at": "2026-07-14T02:51:03+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "mint-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:43+00:00",
+      "last_started_at": "2026-07-14T02:51:03+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "mit-ai-technology-review",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:43+00:00",
+      "last_started_at": "2026-07-14T02:51:03+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "mit-news",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:52+00:00",
+      "last_started_at": "2026-07-14T02:51:17+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "nanonets-blog",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:07+00:00",
+      "last_started_at": "2026-07-14T02:51:48+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "nvidia-blog",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:07+00:00",
+      "last_started_at": "2026-07-14T02:51:50+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "one-useful-thing",
-      "attempts": 24,
+      "attempts": 25,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:14+00:00",
+      "last_started_at": "2026-07-14T02:52:01+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "openai-news",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:07+00:00",
+      "last_started_at": "2026-07-14T02:51:55+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "oreilly-ai-ml",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:07+00:00",
+      "last_started_at": "2026-07-14T02:51:54+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "qudata",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:10+00:00",
+      "last_started_at": "2026-07-14T02:51:56+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "r-agi",
@@ -690,7 +769,8 @@
       "last_error": "r-agi: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 20,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-aiassisted",
@@ -700,7 +780,8 @@
       "last_error": "r-aiassisted: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 20,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-aicuriosity",
@@ -710,7 +791,8 @@
       "last_error": "r-aicuriosity: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 20,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-aitooltesting",
@@ -720,7 +802,8 @@
       "last_error": "r-aitooltesting: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 20,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-anthropic",
@@ -730,7 +813,8 @@
       "last_error": "r-anthropic: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 20,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-artificial",
@@ -740,7 +824,8 @@
       "last_error": "r-artificial: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 20,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-artificialinteligence",
@@ -750,7 +835,8 @@
       "last_error": "r-artificialinteligence: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 20,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-bard",
@@ -760,7 +846,8 @@
       "last_error": "r-bard: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 20,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-chatgpt",
@@ -770,7 +857,8 @@
       "last_error": "r-chatgpt: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 20,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-chatgptcoding",
@@ -780,7 +868,8 @@
       "last_error": "r-chatgptcoding: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 20,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-chatgptpro",
@@ -790,7 +879,8 @@
       "last_error": "r-chatgptpro: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 20,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-chatgptpromptgenius",
@@ -800,7 +890,8 @@
       "last_error": "r-chatgptpromptgenius: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 20,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-claudeai",
@@ -810,7 +901,8 @@
       "last_error": "r-claudeai: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 20,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-claudecode",
@@ -820,7 +912,8 @@
       "last_error": "r-claudecode: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 20,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-codex",
@@ -830,7 +923,8 @@
       "last_error": "r-codex: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 20,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-dataengineering",
@@ -840,7 +934,8 @@
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-deepseek",
@@ -850,7 +945,8 @@
       "last_error": "r-deepseek: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 8,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-geminiai",
@@ -860,7 +956,8 @@
       "last_error": "r-geminiai: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 20,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-generativeai",
@@ -870,7 +967,8 @@
       "last_error": "r-generativeai: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 20,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-google-antigravity",
@@ -880,7 +978,8 @@
       "last_error": "r-google-antigravity: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 20,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-localllama",
@@ -890,7 +989,8 @@
       "last_error": "r-localllama: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 20,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-machinelearning",
@@ -900,7 +1000,8 @@
       "last_error": "r-machinelearning: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 20,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-mistralai",
@@ -910,7 +1011,8 @@
       "last_error": "r-mistralai: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 20,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-openai",
@@ -920,7 +1022,8 @@
       "last_error": "r-openai: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 18,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-perplexityai",
@@ -930,7 +1033,8 @@
       "last_error": "r-perplexityai: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 20,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-singularity",
@@ -940,7 +1044,8 @@
       "last_error": "r-singularity: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 20,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "r-vibecoding",
@@ -950,67 +1055,74 @@
       "last_error": "r-vibecoding: reddit json blocked and .rss fallback returned HTTP 429",
       "error_class": "http_4xx",
       "consecutive_failures": 20,
-      "flagged": false
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "robot-writers-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:43+00:00",
+      "last_started_at": "2026-07-14T02:51:04+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "saal-insights",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:10+00:00",
+      "last_started_at": "2026-07-14T02:51:57+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "sas-ai-blog",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:11+00:00",
+      "last_started_at": "2026-07-14T02:51:57+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "science-news-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:52+00:00",
+      "last_started_at": "2026-07-14T02:51:20+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "sciencedaily-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:52+00:00",
+      "last_started_at": "2026-07-14T02:51:21+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "scripps-news-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:44+00:00",
+      "last_started_at": "2026-07-14T02:51:05+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "shaip-blog",
@@ -1020,87 +1132,107 @@
       "last_error": "shaip-blog: unparseable feed: SAXParseException('not well-formed (invalid token)')",
       "error_class": "unparseable",
       "consecutive_failures": 18,
-      "flagged": true
+      "flagged": true,
+      "last_rung": null
     },
     {
       "source_id": "simon-willison",
-      "attempts": 24,
+      "attempts": 25,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:14+00:00",
+      "last_started_at": "2026-07-14T02:52:01+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
+    },
+    {
+      "source_id": "snowflake-engineering",
+      "attempts": 1,
+      "last_status": "error",
+      "last_started_at": "2026-07-14T02:52:07+00:00",
+      "last_error": "snowflake-engineering: all acquisition rungs failed: snowflake-engineering: HTTP 404; snowflake-engineering: HTTP 404; snowflake-engineering: HTTP 404; snowflake-engineering: unparseable feed: SAXParseException('not well-formed (invalid token)')",
+      "error_class": "http_4xx",
+      "consecutive_failures": 1,
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "spritle-blog",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:12+00:00",
+      "last_started_at": "2026-07-14T02:51:59+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "techcrunch-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:45+00:00",
+      "last_started_at": "2026-07-14T02:51:05+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "techspective",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:45+00:00",
+      "last_started_at": "2026-07-14T02:51:05+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "the-guardian-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:45+00:00",
+      "last_started_at": "2026-07-14T02:51:06+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "the-new-york-times-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:45+00:00",
+      "last_started_at": "2026-07-14T02:51:06+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "the-rundown-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:45+00:00",
+      "last_started_at": "2026-07-14T02:51:06+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "the-verge-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:46+00:00",
+      "last_started_at": "2026-07-14T02:51:07+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "theodo-data-and-ai-blog",
@@ -1110,157 +1242,173 @@
       "last_error": "GET https://data-ai.theodo.com/en/technical-blog/rss.xml failed: [Errno 101] Network is unreachable",
       "error_class": "connection",
       "consecutive_failures": 18,
-      "flagged": true
+      "flagged": true,
+      "last_rung": null
     },
     {
       "source_id": "towards-data-science",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:12+00:00",
+      "last_started_at": "2026-07-14T02:51:59+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "vectra-ai-blog",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:12+00:00",
+      "last_started_at": "2026-07-14T02:51:59+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "venturebeat-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:46+00:00",
+      "last_started_at": "2026-07-14T02:51:07+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "viact-blog",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:12+00:00",
+      "last_started_at": "2026-07-14T02:51:59+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "wired-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:29:46+00:00",
+      "last_started_at": "2026-07-14T02:51:07+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "yatter-blog",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:13+00:00",
+      "last_started_at": "2026-07-14T02:52:00+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "yt-ben-ai",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:44+00:00",
+      "last_started_at": "2026-07-14T02:52:55+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "yt-dylan-davis",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:31:00+00:00",
+      "last_started_at": "2026-07-14T02:53:10+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "yt-futurepedia",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:31:16+00:00",
+      "last_started_at": "2026-07-14T02:53:24+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "yt-greg-isenberg",
-      "attempts": 37,
-      "last_status": "ok",
-      "last_started_at": "2026-07-13T22:31:31+00:00",
-      "last_error": null,
-      "error_class": null,
-      "consecutive_failures": 0,
-      "flagged": false
+      "attempts": 38,
+      "last_status": "error",
+      "last_started_at": "2026-07-14T02:53:40+00:00",
+      "last_error": "yt-greg-isenberg: HTTP 404",
+      "error_class": "http_4xx",
+      "consecutive_failures": 1,
+      "flagged": false,
+      "last_rung": null
     },
     {
       "source_id": "yt-jack-roberts",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:16+00:00",
+      "last_started_at": "2026-07-14T02:52:12+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "yt-jeff-su",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:30:30+00:00",
+      "last_started_at": "2026-07-14T02:52:37+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "yt-kevin-stratvert",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:31:44+00:00",
+      "last_started_at": "2026-07-14T02:53:40+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "yt-lex-fridman",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:31:58+00:00",
+      "last_started_at": "2026-07-14T02:53:55+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     },
     {
       "source_id": "yt-theprimeagen",
-      "attempts": 37,
+      "attempts": 38,
       "last_status": "ok",
-      "last_started_at": "2026-07-13T22:32:12+00:00",
+      "last_started_at": "2026-07-14T02:54:11+00:00",
       "last_error": null,
       "error_class": null,
       "consecutive_failures": 0,
-      "flagged": false
+      "flagged": false,
+      "last_rung": "direct"
     }
   ]
 }
