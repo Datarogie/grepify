@@ -37,8 +37,10 @@ from grepify.site.trends import (
     window_ending_at,
 )
 
-# window ends 2026-07-08 → current [2026-07-01, 2026-07-08); previous [2026-06-24, 2026-07-01)
-_NOW = datetime(2026, 7, 8, tzinfo=UTC)
+# 07-08 07:00 MDT: the window ends at the most recent Edmonton midnight
+# (2026-07-08T06:00Z), so current is [2026-07-01, 2026-07-08) Edmonton days and
+# previous is [2026-06-24, 2026-07-01) - the same items as before alignment.
+_NOW = datetime(2026, 7, 8, 13, 0, tzinfo=UTC)
 
 
 def _item(item_id: str, *, source_id: str, published_at: str) -> Item:
@@ -135,13 +137,50 @@ def _queries(
 
 def test_window_ending_at_and_previous() -> None:
     window = window_ending_at(_NOW, days=7)
+    # ends at Edmonton midnight (MDT, -06:00), not the raw instant
     assert window == Window(
-        start="2026-07-01T00:00:00+00:00", end="2026-07-08T00:00:00+00:00", days=7
+        start="2026-07-01T06:00:00+00:00", end="2026-07-08T06:00:00+00:00", days=7
     )
     prev = previous_window(window)
     assert prev == Window(
-        start="2026-06-24T00:00:00+00:00", end="2026-07-01T00:00:00+00:00", days=7
+        start="2026-06-24T06:00:00+00:00", end="2026-07-01T06:00:00+00:00", days=7
     )
+
+
+def test_window_ending_at_is_stable_within_a_local_day() -> None:
+    # Two instants on the same Edmonton day (07:00 vs 23:00 MDT) yield the same
+    # window, so same-day rebuilds produce identical counts (GRP-71 AC).
+    morning = window_ending_at(datetime(2026, 7, 8, 13, 0, tzinfo=UTC), days=7)
+    evening = window_ending_at(datetime(2026, 7, 9, 4, 59, tzinfo=UTC), days=7)
+    assert morning == evening
+
+
+def test_window_construction_across_spring_forward() -> None:
+    # The 7-day window ending Mon 2026-03-09 contains the Sun Mar 8 spring-
+    # forward, so its bounds sit on different UTC offsets (MST -07:00 -> MDT
+    # -06:00) yet stay exactly 7 Edmonton days, as does the previous window.
+    window = window_ending_at(datetime(2026, 3, 9, 13, 0, tzinfo=UTC), days=7)
+    assert window == Window(
+        start="2026-03-02T07:00:00+00:00", end="2026-03-09T06:00:00+00:00", days=7
+    )
+    prev = previous_window(window)
+    assert prev == Window(
+        start="2026-02-23T07:00:00+00:00", end="2026-03-02T07:00:00+00:00", days=7
+    )
+
+
+def test_window_construction_across_fall_back() -> None:
+    # The window ending Mon 2026-11-02 contains the Sun Nov 1 fall-back
+    # (MDT -06:00 -> MST -07:00); both bounds stay Edmonton midnight.
+    window = window_ending_at(datetime(2026, 11, 2, 13, 0, tzinfo=UTC), days=7)
+    assert window == Window(
+        start="2026-10-26T06:00:00+00:00", end="2026-11-02T07:00:00+00:00", days=7
+    )
+
+
+def test_window_ending_at_rejects_nonpositive_days() -> None:
+    with pytest.raises(ValueError, match="positive"):
+        window_ending_at(_NOW, days=0)
 
 
 # --- cloud + deltas ----------------------------------------------------------

@@ -26,7 +26,7 @@ from grepify.repository.jsonl_sqlite import JsonlSqliteRepository
 from grepify.site.build import BuildResult, build_site
 
 GOLDEN = Path(__file__).parent / "fixtures" / "site" / "pages"
-_CLOCK = FixedClock(datetime(2026, 7, 8, tzinfo=UTC))
+_CLOCK = FixedClock(datetime(2026, 7, 8, 13, 0, tzinfo=UTC))  # 07:00 MDT
 _RUN_ID = "20260709T120000Z-testrun"
 
 _SETTINGS = textwrap.dedent(
