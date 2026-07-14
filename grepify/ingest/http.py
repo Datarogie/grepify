@@ -9,15 +9,26 @@ from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, Protocol
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from urllib.parse import SplitResult, parse_qsl, urlencode, urlsplit, urlunsplit
 
 import httpcore
 import httpx
 
 from grepify.errors import FetchError
 
-_SENSITIVE_QUERY_NAMES = frozenset(
-    {"token", "key", "api_key", "apikey", "access_token", "auth", "signature", "sig"}
+_SENSITIVE_QUERY_PARTS = frozenset(
+    {
+        "auth",
+        "authorization",
+        "credential",
+        "key",
+        "password",
+        "secret",
+        "session",
+        "sig",
+        "signature",
+        "token",
+    }
 )
 _SENSITIVE_HEADERS = frozenset({"authorization", "proxy-authorization", "cookie"})
 _DEFAULT_PORTS = {"http": 80, "https": 443}
@@ -129,7 +140,7 @@ class _PolicyNetworkBackend(httpcore.NetworkBackend):
                 )
             except Exception as exc:
                 errors.append(exc)
-        raise OutboundRequestError(OutboundErrorKind.RESPONSE_FAILURE, host) from errors[-1]
+        raise OutboundRequestError(OutboundErrorKind.RESPONSE_FAILURE, host)
 
 
 class _PolicyTransport(httpx.HTTPTransport):
@@ -183,20 +194,20 @@ class OutboundHttpClient:
             if self._transport_factory is not None
             else _PolicyTransport(resolver=bound_resolver, ssl_context=ssl_context)
         )
+        failure: tuple[OutboundErrorKind, str] | None
         try:
             with httpx.Client(
                 transport=transport, follow_redirects=False, trust_env=False
             ) as client:
                 for hop in range(self._policy.max_redirects + 1):
                     bound_resolver.validate(current.host, current.port)
-                    if method == "POST":
-                        response = client.post(
-                            current.raw, headers=dict(safe_headers), json=json, timeout=timeout
-                        )
-                    else:
-                        response = client.get(
-                            current.raw, headers=dict(safe_headers), timeout=timeout
-                        )
+                    request_kwargs: dict[str, Any] = {
+                        "headers": dict(safe_headers),
+                        "timeout": timeout,
+                    }
+                    if json is not None:
+                        request_kwargs["json"] = json
+                    response = client.request(method, current.raw, **request_kwargs)
                     if response.status_code not in {301, 302, 303, 307, 308}:
                         return _to_response(response)
                     location = response.headers.get("location")
@@ -223,14 +234,15 @@ class OutboundHttpClient:
                     if nxt.origin != current.origin:
                         safe_headers = _strip_cross_origin_headers(safe_headers)
                     current = nxt
-        except httpx.TimeoutException as exc:
-            raise OutboundRequestError(
-                OutboundErrorKind.NETWORK_TIMEOUT, _redact_url(current.raw)
-            ) from exc
-        except httpx.HTTPError as exc:
-            raise OutboundRequestError(
-                OutboundErrorKind.RESPONSE_FAILURE, _redact_url(current.raw)
-            ) from exc
+        except httpx.TimeoutException:
+            failure = (OutboundErrorKind.NETWORK_TIMEOUT, _redact_url(current.raw))
+        except httpx.HTTPError:
+            failure = (OutboundErrorKind.RESPONSE_FAILURE, _redact_url(current.raw))
+        else:
+            failure = None
+        if failure is not None:
+            kind, message = failure
+            raise OutboundRequestError(kind, message)
         raise OutboundRequestError(OutboundErrorKind.REDIRECT_LIMIT, _redact_url(current.raw))
 
 
@@ -248,9 +260,10 @@ def _validate_url(url: str, policy: OutboundPolicy) -> ValidatedUrl:
             OutboundErrorKind.INVALID_HOST, "URL contains control characters"
         )
     parts = urlsplit(url)
-    if parts.scheme not in {"https", "http"}:
+    scheme = parts.scheme.lower()
+    if scheme not in {"https", "http"}:
         raise OutboundRequestError(OutboundErrorKind.UNSUPPORTED_SCHEME, _redact_url(url))
-    if parts.scheme == "http":
+    if scheme == "http":
         host_for_policy = _normalize_host(parts.hostname or "")
         if host_for_policy not in policy.http.allowed_hosts:
             raise OutboundRequestError(
@@ -265,13 +278,21 @@ def _validate_url(url: str, policy: OutboundPolicy) -> ValidatedUrl:
     if not host:
         raise OutboundRequestError(OutboundErrorKind.INVALID_HOST, "missing host")
     try:
-        port = parts.port or _DEFAULT_PORTS[parts.scheme]
+        port = parts.port or _DEFAULT_PORTS[scheme]
     except ValueError as exc:
         raise OutboundRequestError(OutboundErrorKind.INVALID_HOST, "malformed port") from exc
     if port not in _ALLOWED_PORTS:
         raise OutboundRequestError(OutboundErrorKind.INVALID_HOST, "unsupported port")
     _validate_literal_or_dns_name(host)
-    return ValidatedUrl(url, parts.scheme, host, port, (parts.scheme, host, port))
+    canonical = _canonical_url(parts, scheme=scheme, host=host, port=port)
+    return ValidatedUrl(canonical, scheme, host, port, (scheme, host, port))
+
+
+def _canonical_url(parts: SplitResult, *, scheme: str, host: str, port: int) -> str:
+    netloc = f"[{host}]" if ":" in host else host
+    if port != _DEFAULT_PORTS[scheme]:
+        netloc = f"{netloc}:{port}"
+    return urlunsplit((scheme, netloc, parts.path, parts.query, ""))
 
 
 def _normalize_host(host: str) -> str:
@@ -385,6 +406,12 @@ def safe_url_for_log(url: str) -> str:
     return _redact_url(url)
 
 
+def _is_sensitive_query_name(name: str) -> bool:
+    normalized = name.lower().replace("-", "_")
+    compact = normalized.replace("_", "")
+    return any(part in normalized or part in compact for part in _SENSITIVE_QUERY_PARTS)
+
+
 def _redact_url(url: str) -> str:
     try:
         parts = urlsplit(url)
@@ -392,7 +419,7 @@ def _redact_url(url: str) -> str:
         return "<malformed-url>"
     query = urlencode(
         [
-            (k, "REDACTED" if k.lower() in _SENSITIVE_QUERY_NAMES else v)
+            (k, "REDACTED" if _is_sensitive_query_name(k) else v)
             for k, v in parse_qsl(parts.query, keep_blank_values=True)
         ]
     )
@@ -409,9 +436,16 @@ def _redact_url(url: str) -> str:
 def get_or_raise(
     transport: Transport, url: str, *, headers: dict[str, str], timeout: float, source_id: str
 ) -> HttpResponse:
+    response: HttpResponse | None = None
+    failed = False
     try:
-        return transport.get(url, headers=headers, timeout=timeout)
+        response = transport.get(url, headers=headers, timeout=timeout)
     except FetchError:
         raise
-    except Exception as exc:
-        raise FetchError(f"{source_id}: fetch failed") from exc
+    except Exception:
+        failed = True
+    if failed:
+        raise FetchError(f"{source_id}: fetch failed")
+    if response is None:
+        raise FetchError(f"{source_id}: fetch failed")
+    return response

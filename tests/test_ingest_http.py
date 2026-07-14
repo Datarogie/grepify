@@ -552,3 +552,132 @@ def test_empty_resolver_result_is_typed_dns_failure_before_request() -> None:
 
     assert exc.value.kind is OutboundErrorKind.DNS_FAILURE
     assert sent == []
+
+
+def _chain_values(exc: BaseException) -> list[BaseException]:
+    values: list[BaseException] = []
+    current: BaseException | None = exc
+    while current is not None:
+        values.append(current)
+        current = current.__cause__ or current.__context__
+    return values
+
+
+def test_redaction_covers_credential_query_name_patterns() -> None:
+    client = OutboundHttpClient(
+        resolver=resolver("8.8.8.8"),
+        transport_factory=lambda _: httpx.MockTransport(
+            lambda request: (_ for _ in ()).throw(httpx.ConnectError("boom"))
+        ),
+    )
+    url = (
+        "https://example.com/feed?secret=s1&client_secret=s2&password=s3"
+        "&credential=s4&refresh_token=s5&session=s6&authorization=s7"
+        "&X-Amz-Credential=s8&X-Amz-Signature=s9&X-Amz-Security-Token=s10"
+        "&X-Goog-Credential=s11&X-Goog-Signature=s12&safe=visible"
+    )
+
+    with pytest.raises(OutboundRequestError) as exc:
+        client.get(url, headers={}, timeout=1)
+
+    text = str(exc.value)
+    for secret in [f"s{i}" for i in range(1, 13)]:
+        assert secret not in text
+    assert text.count("REDACTED") == 12
+    assert "safe=visible" in text
+
+
+def test_httpx_exception_chain_does_not_expose_secret_request_url() -> None:
+    secret_url = "https://example.com/feed?token=" + "secret" + "&X-Amz-Signature=aws-secret"
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        leaked_request = httpx.Request("GET", secret_url)
+        raise httpx.ConnectError(f"failed for {secret_url}", request=leaked_request)
+
+    client = OutboundHttpClient(
+        resolver=resolver("8.8.8.8"),
+        transport_factory=lambda _: httpx.MockTransport(handler),
+    )
+
+    with pytest.raises(OutboundRequestError) as exc:
+        client.get(secret_url, headers={}, timeout=1)
+
+    for chain_exc in _chain_values(exc.value):
+        assert "secret" not in str(chain_exc)
+        assert "secret" not in repr(chain_exc)
+        assert not isinstance(chain_exc, httpx.HTTPError)
+        request = getattr(chain_exc, "request", None)
+        if request is not None:
+            assert "secret" not in str(request.url)
+    assert exc.value.__cause__ is None
+    assert exc.value.__context__ is None
+
+
+def test_get_or_raise_does_not_export_exception_context_with_secret_url() -> None:
+    class BadTransport:
+        def get(self, url: str, *, headers: dict[str, str], timeout: float) -> Any:
+            raise RuntimeError("https://example.com/feed?password=secret")
+
+    with pytest.raises(FetchError) as exc:
+        get_or_raise(
+            BadTransport(),
+            "https://example.com/feed?password=secret",
+            headers={},
+            timeout=1,
+            source_id="s",
+        )
+
+    assert "secret" not in str(exc.value)
+    assert exc.value.__cause__ is None
+    assert exc.value.__context__ is None
+
+
+def test_canonical_url_is_sent_after_host_and_default_port_normalization() -> None:
+    sent: list[str] = []
+    resolved: list[str] = []
+
+    def fake_resolver(host: str, port: int) -> list[ipaddress.IPv4Address | ipaddress.IPv6Address]:
+        resolved.append(f"{host}:{port}")
+        return [ipaddress.ip_address("8.8.8.8")]
+
+    client = OutboundHttpClient(
+        resolver=fake_resolver,
+        transport_factory=lambda _: httpx.MockTransport(
+            lambda request: sent.append(str(request.url)) or httpx.Response(200)
+        ),
+    )
+
+    client.get("https://BÜCHER.example.:443/feed#fragment", headers={}, timeout=1)
+
+    assert resolved == ["xn--bcher-kva.example:443"]
+    assert sent == ["https://xn--bcher-kva.example/feed"]
+
+
+def test_canonicalized_idna_host_binds_to_validated_ip_without_second_dns(
+    monkeypatch: Any,
+) -> None:
+    resolved: list[str] = []
+    connected: list[str] = []
+
+    def fake_resolver(host: str, port: int) -> list[ipaddress.IPv4Address | ipaddress.IPv6Address]:
+        resolved.append(f"{host}:{port}")
+        return [ipaddress.ip_address("8.8.8.8")]
+
+    class DummyBackend:
+        def connect_tcp(self, host: str, port: int, *args: Any) -> object:
+            connected.append(f"{host}:{port}")
+            return object()
+
+    validated = http_mod._validate_url(
+        "https://BÜCHER.example.:443/feed#fragment", OutboundPolicy()
+    )
+    bound = http_mod._BoundResolver(fake_resolver)
+    bound.validate(validated.host, validated.port)
+    backend = _PolicyNetworkBackend(bound)
+    monkeypatch.setattr(backend, "_backend", DummyBackend())
+
+    backend.connect_tcp(validated.host, validated.port)
+
+    assert validated.raw == "https://xn--bcher-kva.example/feed"
+    assert resolved == ["xn--bcher-kva.example:443"]
+    assert connected == ["8.8.8.8:443"]
