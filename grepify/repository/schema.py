@@ -94,7 +94,8 @@ create table fetch_log (
   status         text not null check (status in ('ok','empty','error','skipped')),
   items_new      integer not null default 0,
   error          text,
-  duration_ms    integer
+  duration_ms    integer,
+  rung           text
 );
 
 create table llm_log (

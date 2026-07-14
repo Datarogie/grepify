@@ -26,7 +26,7 @@ propagates unchanged for the orchestrator to isolate.
 
 from __future__ import annotations
 
-from grepify.ingest.base import Fetcher, RawItem
+from grepify.ingest.base import Fetcher, FetchOutcome, RawItem
 from grepify.models import Source, SourceKind
 
 
@@ -59,6 +59,14 @@ class FetcherRegistry:
         :class:`KeyError`.
         """
         return self.get(source.kind).fetch(source)
+
+    def acquire(self, source: Source) -> FetchOutcome:
+        """Dispatch ``source`` and return its :class:`~grepify.ingest.base.FetchOutcome`.
+
+        Same dispatch/isolation contract as :meth:`fetch`, but the fetcher walks
+        its acquisition ladder and reports which rung served (ADR 0002 §1).
+        """
+        return self.get(source.kind).acquire(source)
 
     def registered_kinds(self) -> frozenset[SourceKind]:
         """The kinds with a registered fetcher (for coverage checks / diagnostics)."""

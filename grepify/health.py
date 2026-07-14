@@ -68,7 +68,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from grepify.models import FetchLogEntry, FetchStatus
+from grepify.models import FetchLogEntry, FetchStatus, Rung
 from grepify.paths import DataLayout
 
 CONSECUTIVE_FAILURE_THRESHOLD = 5  # F-ING-08
@@ -150,6 +150,7 @@ class SourceHealth(BaseModel):
     error_class: ErrorClass | None = None
     consecutive_failures: int
     flagged: bool
+    last_rung: Rung | None = None
 
 
 class HealthSnapshot(BaseModel):
@@ -219,6 +220,7 @@ def _source_health(source_id: str, history: list[FetchLogEntry], *, quiet: bool)
         error_class=classify_error(last.error),
         consecutive_failures=consecutive,
         flagged=consecutive >= CONSECUTIVE_FAILURE_THRESHOLD and not quiet,
+        last_rung=last.rung,
     )
 
 

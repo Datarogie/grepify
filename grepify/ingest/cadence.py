@@ -79,19 +79,26 @@ def split_by_cadence(
     now: datetime,
     last_real_attempt: Mapping[str, datetime],
     min_interval_hours: Mapping[SourceKind, int],
+    per_source_min_interval_hours: Mapping[str, int] | None = None,
 ) -> CadenceDecision:
     """Split ``sources`` into those due for a fetch attempt this run and those
     to skip for cadence (T6).
 
-    A source is due when its kind's configured interval is ``<= 0`` (or
-    unconfigured), when it has no recorded real attempt yet, or when at least
-    that many hours have elapsed since its last real attempt. Everything else
-    is skipped this run.
+    A source is due when its effective interval is ``<= 0``, when it has no
+    recorded real attempt yet, or when at least that many hours have elapsed
+    since its last real attempt. Everything else is skipped this run.
+
+    The effective interval is the ``per_source_min_interval_hours`` override for
+    that source if present, else its kind's ``min_interval_hours``. The
+    per-source override is how the slow ``dead`` re-check (ADR 0002 §2) reuses
+    this same machinery: a dead source carries a long interval so the ladder
+    re-probes it only occasionally instead of every run.
     """
+    per_source = per_source_min_interval_hours or {}
     due: list[Source] = []
     skipped: list[Source] = []
     for source in sources:
-        interval = min_interval_hours.get(source.kind, 0)
+        interval = per_source.get(source.source_id, min_interval_hours.get(source.kind, 0))
         last = last_real_attempt.get(source.source_id)
         if interval <= 0 or last is None or now - last >= timedelta(hours=interval):
             due.append(source)

@@ -318,8 +318,8 @@ class JsonlSqliteRepository(Repository):
     def _insert_fetch_log(self, conn: sqlite3.Connection) -> None:
         conn.executemany(
             "insert into fetch_log "
-            "(source_id, run_id, started_at, status, items_new, error, duration_ms) "
-            "values (?, ?, ?, ?, ?, ?, ?)",
+            "(source_id, run_id, started_at, status, items_new, error, duration_ms, rung) "
+            "values (?, ?, ?, ?, ?, ?, ?, ?)",
             [
                 (
                     e.source_id,
@@ -329,6 +329,7 @@ class JsonlSqliteRepository(Repository):
                     e.items_new,
                     e.error,
                     e.duration_ms,
+                    e.rung.value if e.rung is not None else None,
                 )
                 for e in self.iter_fetch_log()
             ],

@@ -71,6 +71,7 @@ from grepify.site.next_digest import next_scheduled_run
 from grepify.site.pages import (
     ITEMS_PER_PAGE,
     Page,
+    build_health_view,
     build_pages,
     item_json,
     latest_digest_per_category,
@@ -171,7 +172,15 @@ def build_site(  # noqa: PLR0913 - distinct collaborators, all required
             + _write_items(env, meta, output_dir, queries, emitted_items)
             + _write_sources(env, meta, output_dir, config)
             + _write_health(
-                env, meta, output_dir, layout, digests=digests, now=now, daily_exists=daily_exists
+                env,
+                meta,
+                output_dir,
+                layout,
+                config=config,
+                settings=settings,
+                digests=digests,
+                now=now,
+                daily_exists=daily_exists,
             )
             + _write_digests(env, meta, output_dir, digests)
             + _write_keyword_pages(env, meta, output_dir, keyword_details)
@@ -303,15 +312,21 @@ def _write_health(  # noqa: PLR0913 - collaborators of one page render, all requ
     output_dir: Path,
     layout: DataLayout,
     *,
+    config: ConfigProvider,
+    settings: SettingsConfig,
     digests: list[DigestDetail],
     now: datetime,
     daily_exists: bool,
 ) -> int:
+    sources = config.sources()
+    quiet_kinds = set(settings.ingest.quiet_kinds)
+    quiet_ids = {s.source_id for s in sources if s.kind in quiet_kinds}
+    view = build_health_view(_load_health(layout), sources, quiet_source_ids=quiet_ids)
     html = render_page(
         env,
         "health.html",
         PageContext(meta=meta, active="health"),
-        health=_load_health(layout),
+        health_view=view,
         next_run=next_scheduled_run(now, daily_exists=daily_exists),
         category_digests=latest_digest_per_category(digests),
     )

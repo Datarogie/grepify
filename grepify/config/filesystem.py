@@ -43,7 +43,7 @@ from pydantic import BaseModel, ValidationError
 from grepify.config.provider import ConfigProvider, ValidationReport
 from grepify.config.schemas import GroupFile, KeywordsConfig, SettingsConfig, SourceSpec
 from grepify.errors import ConfigError
-from grepify.models import Source, SourceGroup, SourceKind
+from grepify.models import Source, SourceGroup, SourceKind, SourceStatus
 
 _M = TypeVar("_M", bound=BaseModel)
 
@@ -176,6 +176,22 @@ class FilesystemConfigProvider(ConfigProvider):
         coverage_error = self._kind_coverage_error(path, gf, spec, registered_kinds)
         if coverage_error is not None:
             errors.append(coverage_error)
+        errors.extend(self._lifecycle_errors(path, spec))
+        return errors
+
+    def _lifecycle_errors(self, path: Path, spec: SourceSpec) -> list[str]:
+        """Offline lifecycle checks (ADR 0002): a ``dead`` source needs
+        ``evidence`` and a ``paywalled`` source needs a reader-facing
+        ``message`` (it renders on the sources page). Structural rules
+        (gone-rejection, status/enabled agreement) are enforced by the schema
+        model validators before this runs."""
+        errors: list[str] = []
+        if spec.effective_status is SourceStatus.DEAD and not spec.evidence:
+            errors.append(f"{path.name}: dead source {spec.id!r} must carry an 'evidence' note")
+        if spec.effective_status is SourceStatus.PAYWALLED and not spec.message:
+            errors.append(
+                f"{path.name}: paywalled source {spec.id!r} must carry a reader-facing 'message'"
+            )
         return errors
 
     def _kind_coverage_error(
@@ -207,9 +223,13 @@ class FilesystemConfigProvider(ConfigProvider):
             url=spec.canonical_url,
             url_hash=spec.url_hash,
             group_id=gf.group,
-            enabled=spec.enabled,
+            enabled=spec.effective_enabled,
             added_at=spec.added_at or "",
             config_json=spec.config_json,
+            status=spec.effective_status,
+            evidence=spec.evidence,
+            message=spec.message,
+            active_url=spec.active_url,
         )
 
     def _group_paths(self) -> list[Path]:
