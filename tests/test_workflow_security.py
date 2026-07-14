@@ -115,9 +115,22 @@ def test_github_token_is_step_scoped_for_artifact_download_and_data_push() -> No
     )
     run = push_step["run"]
     assert "extraheader" in run
-    assert "x-access-token" not in run
+    assert "AUTHORIZATION: basic ${auth_payload}" in run
+    assert "AUTHORIZATION: bearer" not in run
+    assert (
+        "auth_payload=\"$(printf 'x-access-token:%s' \"$GITHUB_TOKEN\" | base64 | tr -d '\\n')\""
+        in run
+    )
     assert 'remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"' in run
-    assert "unset GITHUB_TOKEN auth_header" in run
+    assert "x-access-token:${GITHUB_TOKEN}" not in run
+    assert "credential.helper" not in run
+    assert "git config --global" not in run
+    assert "git -C data config http" not in run
+    assert run.count('-c http.https://github.com/.extraheader="$auth_header"') == 3
+    assert "ls-remote --exit-code --heads origin data" in run
+    assert "fetch --depth=1 origin data" in run
+    assert "push origin HEAD:data" in run
+    assert "unset GITHUB_TOKEN auth_payload auth_header" in run
 
 
 def test_artifact_archive_download_strips_credentials_across_redirect() -> None:
@@ -227,7 +240,7 @@ def test_gitlab_pages_production_runs_are_default_branch_guarded() -> None:
             assert "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH" in expression
 
 
-def test_failure_notification_excludes_issue_112() -> None:
+def test_failure_notification_uses_exact_title_without_issue_112_coupling() -> None:
     workflow = load_workflow(WORKFLOW_DIR / "pipeline.yml")
     notify_step = next(
         step
@@ -235,4 +248,5 @@ def test_failure_notification_excludes_issue_112() -> None:
         if job == "notify-failure" and step.get("name") == "Notify on failure"
     )
     script = notify_step["with"]["script"]
-    assert "issue.number !== 112" in script
+    assert "issue.title === title" in script
+    assert "112" not in script

@@ -330,7 +330,8 @@ jobs:
           set -euo pipefail
           git init data
           git -C data remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
-          auth_header="AUTHORIZATION: bearer ${GITHUB_TOKEN}"
+          auth_payload="$(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 | tr -d '\n')"
+          auth_header="AUTHORIZATION: basic ${auth_payload}"
           if git -C data -c http.https://github.com/.extraheader="$auth_header" ls-remote --exit-code --heads origin data >/dev/null 2>&1; then
             git -C data -c http.https://github.com/.extraheader="$auth_header" fetch --depth=1 origin data
             git -C data checkout -B data FETCH_HEAD
@@ -345,11 +346,12 @@ jobs:
           git -C data add -A
           if git -C data diff --cached --quiet; then
             echo "nothing to commit"
+            unset GITHUB_TOKEN auth_payload auth_header
             exit 0
           fi
           git -C data commit -m "chore(data): pipeline run [skip ci]"
           git -C data -c http.https://github.com/.extraheader="$auth_header" push origin HEAD:data
-          unset GITHUB_TOKEN auth_header
+          unset GITHUB_TOKEN auth_payload auth_header
 
   build-site:
     needs: [run-pipeline, data-update]
@@ -444,7 +446,7 @@ jobs:
             const { data: found } = await github.rest.search.issuesAndPullRequests({
               q: `repo:${context.repo.owner}/${context.repo.repo} type:issue state:open in:title "${title}"`,
             });
-            const existing = found.items.find((issue) => issue.title === title && issue.number !== 112);
+            const existing = found.items.find((issue) => issue.title === title);
             if (existing) {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
