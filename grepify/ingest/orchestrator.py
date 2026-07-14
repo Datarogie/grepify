@@ -85,6 +85,7 @@ from dataclasses import dataclass, field
 from grepify.clock import Clock, to_iso
 from grepify.config.provider import ConfigProvider
 from grepify.errors import FetchError
+from grepify.ingest.base import AcquisitionError
 from grepify.ingest.cadence import last_real_attempt_at, split_by_cadence
 from grepify.ingest.normalize import dedup_within_batch, normalize_batch
 from grepify.ingest.reddit import RedditFetcher
@@ -310,6 +311,10 @@ def _run_source(
             items_new=items_new,
             rung=outcome.rung,
             acquisition_trace=outcome.acquisition_trace,
+        )
+    except AcquisitionError as exc:
+        return _finish(
+            attempt, FetchStatus.ERROR, error=str(exc), acquisition_trace=exc.acquisition_trace
         )
     except FetchError as exc:
         return _finish(attempt, FetchStatus.ERROR, error=str(exc))

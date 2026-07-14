@@ -681,3 +681,30 @@ def test_canonicalized_idna_host_binds_to_validated_ip_without_second_dns(
     assert validated.raw == "https://xn--bcher-kva.example/feed"
     assert resolved == ["xn--bcher-kva.example:443"]
     assert connected == ["8.8.8.8:443"]
+
+
+class _CountingStream(httpx.SyncByteStream):
+    def __init__(self, chunks: list[bytes]) -> None:
+        self.chunks = chunks
+        self.read_count = 0
+
+    def __iter__(self):
+        for chunk in self.chunks:
+            self.read_count += 1
+            yield chunk
+
+
+def test_max_bytes_aborts_stream_without_buffering_full_body() -> None:
+    stream = _CountingStream([b"abcd"] * 100)
+    client = OutboundHttpClient(
+        resolver=resolver("8.8.8.8"),
+        transport_factory=lambda _: httpx.MockTransport(
+            lambda r: httpx.Response(200, stream=stream)
+        ),
+    )
+
+    with pytest.raises(OutboundRequestError) as exc:
+        client.get("https://example.com/feed", headers={}, timeout=1, max_bytes=10)
+
+    assert exc.value.kind is OutboundErrorKind.RESPONSE_FAILURE
+    assert stream.read_count == 3

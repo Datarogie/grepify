@@ -8,6 +8,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
+from grepify.errors import FetchError
 from grepify.ingest.http import HttpResponse
 from grepify.models import Item, ItemKeyword, Source, SourceKind
 
@@ -42,11 +43,15 @@ class ScriptedTransport:
         self.script: list[HttpResponse | Exception] = list(script)
         self.calls: list[tuple[str, dict[str, str]]] = []
 
-    def get(self, url: str, *, headers: dict[str, str], timeout: float) -> HttpResponse:
+    def get(
+        self, url: str, *, headers: dict[str, str], timeout: float, max_bytes: int | None = None
+    ) -> HttpResponse:
         self.calls.append((url, dict(headers)))
         outcome = self.script.pop(0)
         if isinstance(outcome, Exception):
             raise outcome
+        if max_bytes is not None and len(outcome.content) > max_bytes:
+            raise FetchError("response body exceeded size limit")
         return outcome
 
 

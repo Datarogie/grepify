@@ -339,7 +339,7 @@ def test_oversized_feed_rejected_before_parse() -> None:
     transport = ScriptedTransport(
         [HttpResponse(status_code=200, content=b"x" * 2_000_001, headers={})]
     )
-    with pytest.raises(FetchError, match="too large"):
+    with pytest.raises(FetchError, match="size limit"):
         RssFetcher(transport).fetch(make_source("s1"))
 
 

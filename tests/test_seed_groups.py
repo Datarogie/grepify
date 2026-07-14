@@ -110,7 +110,7 @@ def test_dead_and_reprobe_sources_present_not_omitted() -> None:
     assert by_id["benn-substack"].status is SourceStatus.DEGRADED
     assert by_id["benn-substack"].enabled is True
     assert by_id["benn-substack"].evidence is not None
-    assert by_id["benn-substack"].active_url == "https://substack.com/feed/@benn"
+    assert by_id["benn-substack"].active_url is None
     assert by_id["dbt-developer-blog"].enabled is True
     assert by_id["snowflake-engineering"].enabled is True
 

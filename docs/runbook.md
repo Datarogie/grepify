@@ -499,15 +499,16 @@ query values.
 
 Provider notes:
 
-- Substack feeds are treated as `substack`, not generic WordPress. The RSS
+- Substack-hosted feeds are treated as `substack_hosted`, not generic WordPress. The RSS
   fetcher does not try WordPress-shaped `/feed/atom/` or `?feed=rss2` alternates
-  for Substack hosts. If direct Substack is blocked from the GitHub-hosted
-  runner, only homepage autodiscovery and an explicitly pinned `active_url`
-  fallback are attempted.
+  for `*.substack.com` hosts. If direct Substack is blocked from the GitHub-hosted
+  runner, only homepage autodiscovery and a separately validated, explicitly
+  pinned `active_url` fallback are attempted. Benn currently has no active
+  fallback because no GitHub-hosted runner validation has been completed.
 - `benn-substack` is `degraded`, not `dead`: the strongest current evidence is
   a runner-specific 403 against a publicly live publication. Its canonical
   identity remains `https://benn.substack.com/feed`; any fallback is just
-  transport evidence.
+  transport evidence. No fallback should be represented as active until a hosted-runner diagnostic proves it returns valid Benn-owned RSS/Atom and preserves canonical publisher URLs.
 - Reddit remains JSON-first with `.rss` fallback. HTTP 403 falls back
   immediately; HTTP 429 records `rate_limited` and honors bounded
   `Retry-After` values before the RSS fallback.

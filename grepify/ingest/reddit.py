@@ -52,7 +52,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from grepify.clock import to_iso
 from grepify.errors import FetchError
-from grepify.ingest.base import Fetcher, FetchOutcome, RawItem
+from grepify.ingest.base import AcquisitionError, Fetcher, FetchOutcome, RawItem
 from grepify.ingest.feedutil import clean_title, parse_feed_bytes, raw_item_from_feed_entry
 from grepify.ingest.http import (
     HttpResponse,
@@ -68,6 +68,7 @@ _USER_AGENT = "grepify-ingest/0.1 (personal feed aggregator; +https://github.com
 _ITEM_CAP = 50  # F-ING-06
 _MAX_ATTEMPTS = 3
 _BACKOFF_BASE_SECONDS = 1.0
+_MAX_RESPONSE_BYTES = 2_000_000
 _RETRYABLE_STATUSES = frozenset({429, 500, 502, 503, 504})
 
 
@@ -143,7 +144,19 @@ class RedditFetcher(Fetcher):
                 items[:_ITEM_CAP], Rung.DIRECT, acquisition_trace=_trace_json(trace)
             )
         fallback_url = _rss_fallback_url(source.url)
-        items = self._fetch_rss_fallback(source, fallback_url, headers=headers)
+        try:
+            items = self._fetch_rss_fallback(source, fallback_url, headers=headers)
+        except FetchError as exc:
+            trace.append(
+                {
+                    "provider": "reddit",
+                    "method": "rss",
+                    "url": safe_url_for_log(fallback_url),
+                    "outcome": "error",
+                    "reason": _coarse_error(str(exc)),
+                }
+            )
+            raise AcquisitionError(str(exc), acquisition_trace=_trace_json(trace)) from exc
         trace.append(
             {
                 "provider": "reddit",
@@ -174,6 +187,7 @@ class RedditFetcher(Fetcher):
                     headers=headers,
                     timeout=self._timeout,
                     source_id=source_id,
+                    max_bytes=_MAX_RESPONSE_BYTES,
                 )
             except FetchError as exc:
                 trace.append(
@@ -230,6 +244,7 @@ class RedditFetcher(Fetcher):
             headers=headers,
             timeout=self._timeout,
             source_id=source.source_id,
+            max_bytes=_MAX_RESPONSE_BYTES,
         )
         if not (200 <= response.status_code < 300):
             raise FetchError(

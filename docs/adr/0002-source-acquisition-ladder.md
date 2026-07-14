@@ -402,12 +402,15 @@ Proposed split (gated on Kyle's sign-off here):
 
 ### #119 provider-aware refinement
 
-The generic RSS ladder is now provider-aware. WordPress-shaped alternates remain
-available for generic RSS/WordPress-like feeds, but Substack hosts skip those
+The generic RSS ladder is now host-aware for Substack-owned hosts. WordPress-shaped alternates remain
+available for generic RSS/WordPress-like feeds, but `*.substack.com` hosts skip those
 rung-1 variants because they are unsupported guesses for that provider. A
-Substack source can still recover through the direct feed, same-host homepage
-feed autodiscovery, or a human-pinned `active_url` that is passed through the
-central outbound URL/redirect policy before any request.
+Substack-hosted source can still recover through the direct feed, same-host homepage
+feed autodiscovery, or a human-pinned `active_url` after that fallback is
+validated from GitHub-hosted runner egress and passed through the central
+outbound URL/redirect policy before any request. Custom-domain Substack
+publications are not inferred from redirects or page content; they remain generic
+RSS unless a future typed provider hint is added.
 
 The lifecycle implication is important: runner-specific 403s do not prove that
 a publication is dead. Such sources should be `degraded` when they are publicly

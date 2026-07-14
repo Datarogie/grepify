@@ -46,7 +46,7 @@ from dataclasses import dataclass
 from urllib.parse import urlsplit
 
 from grepify.errors import FetchError
-from grepify.ingest.base import Fetcher, FetchOutcome, RawItem
+from grepify.ingest.base import AcquisitionError, Fetcher, FetchOutcome, RawItem
 from grepify.ingest.feedutil import parse_feed_bytes, raw_item_from_feed_entry
 from grepify.ingest.http import HttpxTransport, Transport, get_or_raise, safe_url_for_log
 from grepify.ingest.ladder import alt_endpoint_urls, discover_feed_url, site_root
@@ -126,12 +126,15 @@ class RssFetcher(Fetcher):
             attempts.append(_trace(rung, url, "served", None, item_count=len(items)))
             return FetchOutcome(items, rung, url, _trace_json(attempts))
 
-        raise FetchError(f"{source.source_id}: all acquisition rungs failed: {'; '.join(errors)}")
+        raise AcquisitionError(
+            f"{source.source_id}: all acquisition rungs failed: {'; '.join(errors)}",
+            acquisition_trace=_trace_json(attempts),
+        )
 
     def _static_candidates(self, source: Source) -> list[tuple[Rung, str]]:
         """Rungs 0 and 1: the direct feed then same-publisher alternates."""
         candidates: list[tuple[Rung, str]] = [(Rung.DIRECT, source.url)]
-        if _provider_for_url(source.url) != "substack":
+        if _provider_for_url(source.url) != "substack_hosted":
             candidates += [(Rung.ALT_ENDPOINT, url) for url in alt_endpoint_urls(source.url)]
         return candidates
 
@@ -158,6 +161,7 @@ class RssFetcher(Fetcher):
                 headers={"user-agent": _USER_AGENT},
                 timeout=self._timeout,
                 source_id=source.source_id,
+                max_bytes=_MAX_RESPONSE_BYTES,
             )
         except FetchError as exc:
             errors.append(str(exc))
@@ -197,10 +201,8 @@ class RssFetcher(Fetcher):
             headers=headers,
             timeout=self._timeout,
             source_id=source.source_id,
+            max_bytes=_MAX_RESPONSE_BYTES,
         )
-
-        if len(response.content) > _MAX_RESPONSE_BYTES:
-            raise FetchError(f"{source.source_id}: response too large")
         if response.status_code == 304:
             return []
         if not (200 <= response.status_code < 300):
@@ -218,8 +220,9 @@ class RssFetcher(Fetcher):
 
 
 def _provider_for_url(url: str) -> str:
+    """Classify only trusted URL host shapes; never infer providers from redirects/content."""
     host = (urlsplit(url).hostname or "").lower().rstrip(".")
-    return "substack" if host.endswith(".substack.com") else "generic_rss"
+    return "substack_hosted" if host.endswith(".substack.com") else "generic_rss"
 
 
 def _coarse_error(exc: FetchError) -> str:

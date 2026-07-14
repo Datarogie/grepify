@@ -17,8 +17,7 @@ sources:
     name: benn.substack.com (Benn Stancil)
     url: https://benn.substack.com/feed
     status: degraded
-    evidence: "#119 2026-07-14: publicly live Substack, but GitHub-hosted runner direct feed receives HTTP 403. Keep enabled as runner-blocked/degraded and use the provider-aware ladder plus this explicit pinned same-publisher fallback if it validates."
-    active_url: https://substack.com/feed/@benn
+    evidence: "#119 2026-07-14: publicly live Substack, but GitHub-hosted runner direct feed receives HTTP 403. Keep enabled as runner-blocked/degraded; no fallback is active until a GitHub-hosted runner validates it returns Benn-owned RSS/Atom and preserves canonical publisher identity."
     added_at: "2026-07-08"
   - id: getdbt-roundup
     kind: rss
