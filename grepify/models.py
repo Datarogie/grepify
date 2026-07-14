@@ -80,6 +80,7 @@ class Rung(StrEnum):
     DIRECT = "direct"
     ALT_ENDPOINT = "alt_endpoint"
     AUTODISCOVERY = "autodiscovery"
+    SUBSTACK_ARCHIVE = "substack_archive"
     MIRROR = "mirror"
     THIRD_PARTY = "third_party"
 

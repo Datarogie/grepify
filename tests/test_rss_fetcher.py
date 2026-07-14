@@ -290,3 +290,88 @@ def test_mirror_rung_uses_transport_policy_before_request() -> None:
         "https://example.com/?feed=rss2",
         "https://example.com/",
     ]
+
+
+def test_acquire_falls_back_to_generic_substack_archive() -> None:
+    archive_html = b"""
+    <html><body>
+      <a href="/p/to-weigh-a-watermelon">To weigh a watermelon</a>
+      <a href="https://benn.substack.com/p/be-a-winner-or-join-one?utm_source=archive">
+        Be a winner, or join one?
+      </a>
+      <a href="https://example.com/p/not-this-publication">Off-site post</a>
+    </body></html>
+    """
+    transport = ScriptedTransport(
+        [
+            _fail(403),
+            _fail(404),
+            _fail(404),
+            _fail(404),
+            _html(archive_html),
+        ]
+    )
+
+    outcome = RssFetcher(transport).acquire(
+        make_source("benn-substack", url="https://benn.substack.com/feed")
+    )
+
+    assert outcome.rung is Rung.SUBSTACK_ARCHIVE
+    assert outcome.resolved_url == "https://benn.substack.com/archive"
+    assert [item.title for item in outcome.items] == [
+        "To weigh a watermelon",
+        "Be a winner, or join one?",
+    ]
+    assert [item.url for item in outcome.items] == [
+        "https://benn.substack.com/p/to-weigh-a-watermelon",
+        "https://benn.substack.com/p/be-a-winner-or-join-one",
+    ]
+    assert transport.calls[-1][0] == "https://benn.substack.com/archive"
+
+
+def test_substack_archive_fallback_is_generic_for_substack_feed_hosts() -> None:
+    transport = ScriptedTransport(
+        [
+            _fail(403),
+            _fail(404),
+            _fail(404),
+            _fail(404),
+            _html(b'<a href="/p/post-one">Post One</a>'),
+        ]
+    )
+
+    outcome = RssFetcher(transport).acquire(
+        make_source("other-substack", url="https://examplepub.substack.com/feed")
+    )
+
+    assert outcome.rung is Rung.SUBSTACK_ARCHIVE
+    assert outcome.resolved_url == "https://examplepub.substack.com/archive"
+    assert outcome.items[0].url == "https://examplepub.substack.com/p/post-one"
+
+
+def test_substack_archive_ignores_off_host_links_and_fails_when_empty() -> None:
+    transport = ScriptedTransport(
+        [
+            _fail(403),
+            _fail(404),
+            _fail(404),
+            _fail(404),
+            _html(b'<a href="https://evil.example/p/post">Bad</a>'),
+            _html(b"<html>no feed autodiscovery</html>"),
+        ]
+    )
+
+    with pytest.raises(FetchError, match="all acquisition rungs failed") as exc:
+        RssFetcher(transport).acquire(
+            make_source("benn-substack", url="https://benn.substack.com/feed")
+        )
+
+    assert "evil.example" not in str(exc.value)
+    assert [call[0] for call in transport.calls] == [
+        "https://benn.substack.com/feed",
+        "https://benn.substack.com/feed/",
+        "https://benn.substack.com/feed/atom/",
+        "https://benn.substack.com/?feed=rss2",
+        "https://benn.substack.com/archive",
+        "https://benn.substack.com/",
+    ]
