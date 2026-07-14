@@ -27,7 +27,7 @@ from grepify.models import ExtractionMethod, FetchStatus, Item, ItemKeyword, Sou
 from grepify.path_safety import ContainedPath, ensure_safe_output_dir
 from grepify.paths import DataLayout
 from grepify.repository.jsonl_sqlite import JsonlSqliteRepository
-from grepify.site.build import BuildResult, _replace_output, build_site
+from grepify.site.build import BuildResult, _capture_destination_state, _replace_output, build_site
 
 GOLDEN = Path(__file__).parent / "fixtures" / "site" / "pages"
 _CLOCK = FixedClock(datetime(2026, 7, 8, 13, 0, tzinfo=UTC))  # 07:00 MDT
@@ -526,12 +526,13 @@ def test_first_replacement_failure_leaves_previous_output(tmp_path: Path) -> Non
     (output / "index.html").write_text("previous", encoding="utf-8")
     stage = tmp_path / ".public.stage"
     stage.mkdir()
+    expected = _capture_destination_state(output)
 
     def fail_first_replace(_src: Path, _dst: Path) -> None:
         raise OSError("backup failed")
 
     with pytest.raises(OSError, match="backup failed"):
-        _replace_output(stage, output, replace=fail_first_replace)
+        _replace_output(stage, output, expected_output_state=expected, replace=fail_first_replace)
 
     assert (output / "index.html").read_text(encoding="utf-8") == "previous"
     assert not stage.exists()
@@ -543,6 +544,7 @@ def test_publish_failure_restores_previous_output_when_destination_absent(tmp_pa
     (output / "index.html").write_text("previous", encoding="utf-8")
     stage = tmp_path / ".public.stage"
     stage.mkdir()
+    expected = _capture_destination_state(output)
     calls = 0
 
     def replace_with_publish_failure(src: Path, dst: Path) -> None:
@@ -553,7 +555,9 @@ def test_publish_failure_restores_previous_output_when_destination_absent(tmp_pa
         src.replace(dst)
 
     with pytest.raises(OSError, match="publish failed"):
-        _replace_output(stage, output, replace=replace_with_publish_failure)
+        _replace_output(
+            stage, output, expected_output_state=expected, replace=replace_with_publish_failure
+        )
 
     assert (output / "index.html").read_text(encoding="utf-8") == "previous"
     assert not stage.exists()
@@ -565,6 +569,7 @@ def test_publish_failure_preserves_backup_when_destination_is_occupied(tmp_path:
     (output / "index.html").write_text("previous", encoding="utf-8")
     stage = tmp_path / ".public.stage"
     stage.mkdir()
+    expected = _capture_destination_state(output)
     calls = 0
 
     def replace_with_publish_conflict(src: Path, dst: Path) -> None:
@@ -577,7 +582,9 @@ def test_publish_failure_preserves_backup_when_destination_is_occupied(tmp_path:
         src.replace(dst)
 
     with pytest.raises(RuntimeError, match="destination is occupied"):
-        _replace_output(stage, output, replace=replace_with_publish_conflict)
+        _replace_output(
+            stage, output, expected_output_state=expected, replace=replace_with_publish_conflict
+        )
 
     backups = list(tmp_path.glob(".public.*.previous"))
     assert (output / "index.html").read_text(encoding="utf-8") == "interloper"
@@ -618,12 +625,15 @@ def test_keyboard_interrupt_during_first_replace_preserves_output(tmp_path: Path
     (output / "index.html").write_text("previous", encoding="utf-8")
     stage = tmp_path / ".public.stage"
     stage.mkdir()
+    expected = _capture_destination_state(output)
 
     def interrupt_first_replace(_src: Path, _dst: Path) -> None:
         raise KeyboardInterrupt
 
     with pytest.raises(KeyboardInterrupt):
-        _replace_output(stage, output, replace=interrupt_first_replace)
+        _replace_output(
+            stage, output, expected_output_state=expected, replace=interrupt_first_replace
+        )
 
     assert (output / "index.html").read_text(encoding="utf-8") == "previous"
     assert not stage.exists()
@@ -635,6 +645,7 @@ def test_publish_preserves_broken_symlink_occupant(tmp_path: Path) -> None:
     (output / "index.html").write_text("previous", encoding="utf-8")
     stage = tmp_path / ".public.stage"
     stage.mkdir()
+    expected = _capture_destination_state(output)
     missing_target = tmp_path / "missing-target"
 
     def occupy_with_broken_symlink(src: Path, dst: Path) -> None:
@@ -642,7 +653,9 @@ def test_publish_preserves_broken_symlink_occupant(tmp_path: Path) -> None:
         output.symlink_to(missing_target, target_is_directory=True)
 
     with pytest.raises(RuntimeError, match="destination is occupied"):
-        _replace_output(stage, output, replace=occupy_with_broken_symlink)
+        _replace_output(
+            stage, output, expected_output_state=expected, replace=occupy_with_broken_symlink
+        )
 
     backups = list(tmp_path.glob(".public.*.previous"))
     assert output.is_symlink()
@@ -651,3 +664,84 @@ def test_publish_preserves_broken_symlink_occupant(tmp_path: Path) -> None:
     assert len(backups) == 1
     assert (backups[0] / "index.html").read_text(encoding="utf-8") == "previous"
     assert stage.exists()
+
+
+def test_absent_output_created_before_publish_is_preserved(tmp_path: Path) -> None:
+    output = tmp_path / "public"
+    expected = _capture_destination_state(output)
+    stage = tmp_path / ".public.stage"
+    stage.mkdir()
+    (stage / "index.html").write_text("stage", encoding="utf-8")
+    output.mkdir()
+    (output / "index.html").write_text("new occupant", encoding="utf-8")
+
+    with pytest.raises(RuntimeError, match="changed during build"):
+        _replace_output(stage, output, expected_output_state=expected)
+
+    assert (output / "index.html").read_text(encoding="utf-8") == "new occupant"
+    assert not stage.exists()
+
+
+def test_existing_output_replaced_before_publish_is_preserved(tmp_path: Path) -> None:
+    output = tmp_path / "public"
+    output.mkdir()
+    (output / "index.html").write_text("previous", encoding="utf-8")
+    expected = _capture_destination_state(output)
+    stage = tmp_path / ".public.stage"
+    stage.mkdir()
+    (stage / "index.html").write_text("stage", encoding="utf-8")
+    moved_previous = tmp_path / "moved-previous"
+    output.replace(moved_previous)
+    output.mkdir()
+    (output / "index.html").write_text("replacement", encoding="utf-8")
+
+    with pytest.raises(RuntimeError, match="changed during build"):
+        _replace_output(stage, output, expected_output_state=expected)
+
+    assert (output / "index.html").read_text(encoding="utf-8") == "replacement"
+    assert (moved_previous / "index.html").read_text(encoding="utf-8") == "previous"
+    assert not stage.exists()
+
+
+def test_stale_concurrent_publish_refuses_to_overwrite_newer_result(tmp_path: Path) -> None:
+    output = tmp_path / "public"
+    stale_expected = _capture_destination_state(output)
+    newer_expected = _capture_destination_state(output)
+    stale_stage = tmp_path / ".public.stale"
+    stale_stage.mkdir()
+    (stale_stage / "index.html").write_text("stale", encoding="utf-8")
+    newer_stage = tmp_path / ".public.newer"
+    newer_stage.mkdir()
+    (newer_stage / "index.html").write_text("newer", encoding="utf-8")
+
+    _replace_output(newer_stage, output, expected_output_state=newer_expected)
+    with pytest.raises(RuntimeError, match="changed during build"):
+        _replace_output(stale_stage, output, expected_output_state=stale_expected)
+
+    assert (output / "index.html").read_text(encoding="utf-8") == "newer"
+    assert not stale_stage.exists()
+
+
+def test_keyboard_interrupt_during_second_replace_restores_previous_output(tmp_path: Path) -> None:
+    output = tmp_path / "public"
+    output.mkdir()
+    (output / "index.html").write_text("previous", encoding="utf-8")
+    expected = _capture_destination_state(output)
+    stage = tmp_path / ".public.stage"
+    stage.mkdir()
+    calls = 0
+
+    def interrupt_second_replace(src: Path, dst: Path) -> None:
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise KeyboardInterrupt
+        src.replace(dst)
+
+    with pytest.raises(KeyboardInterrupt):
+        _replace_output(
+            stage, output, expected_output_state=expected, replace=interrupt_second_replace
+        )
+
+    assert (output / "index.html").read_text(encoding="utf-8") == "previous"
+    assert not stage.exists()

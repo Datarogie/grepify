@@ -123,6 +123,14 @@ _ALL = 10_000_000  # effectively-unbounded limit for the emission query
 
 
 @dataclass(frozen=True)
+class _DestinationState:
+    exists: bool
+    device: int | None = None
+    inode: int | None = None
+    mode: int | None = None
+
+
+@dataclass(frozen=True)
 class _PublishFailure:
     stage_dir: Path
     output_dir: Path
@@ -157,6 +165,7 @@ def build_site(  # noqa: PLR0913 - distinct collaborators, all required
     safe_output_dir = ensure_safe_output_dir(
         output_dir, cwd=Path.cwd(), protected_roots=(layout.root, *protected_roots)
     )
+    expected_output_state = _capture_destination_state(safe_output_dir)
     stage_dir: Path | None = None
     build_complete = False
 
@@ -241,7 +250,7 @@ def build_site(  # noqa: PLR0913 - distinct collaborators, all required
 
     if stage_dir is None:
         raise RuntimeError("build did not create a staging directory")
-    _replace_output(stage_dir, safe_output_dir)
+    _replace_output(stage_dir, safe_output_dir, expected_output_state=expected_output_state)
 
     return BuildResult(
         output_dir=safe_output_dir,
@@ -511,8 +520,16 @@ def _temporary_sibling(output_dir: Path) -> Path:
 
 
 def _replace_output(
-    stage_dir: Path, output_dir: Path, replace: Callable[[Path, Path], None] = os.replace
+    stage_dir: Path,
+    output_dir: Path,
+    *,
+    expected_output_state: _DestinationState,
+    replace: Callable[[Path, Path], None] = os.replace,
 ) -> None:
+    if not _destination_matches(output_dir, expected_output_state):
+        if stage_dir.exists():
+            shutil.rmtree(stage_dir)
+        raise RuntimeError(f"output destination changed during build: {output_dir}")
     backup_dir = Path(
         tempfile.mkdtemp(prefix=f".{output_dir.name}.", suffix=".previous", dir=output_dir.parent)
     )
@@ -559,12 +576,25 @@ def _handle_publish_failure(failure: _PublishFailure) -> None:
     ) from failure.original
 
 
-def _path_occupied(path: Path) -> bool:
+def _destination_matches(path: Path, expected: _DestinationState) -> bool:
+    return _capture_destination_state(path) == expected
+
+
+def _capture_destination_state(path: Path) -> _DestinationState:
     try:
-        path.stat(follow_symlinks=False)
+        stat = path.stat(follow_symlinks=False)
     except FileNotFoundError:
-        return False
-    return True
+        return _DestinationState(exists=False)
+    return _DestinationState(
+        exists=True,
+        device=stat.st_dev,
+        inode=stat.st_ino,
+        mode=stat.st_mode,
+    )
+
+
+def _path_occupied(path: Path) -> bool:
+    return _capture_destination_state(path).exists
 
 
 def _copy_static(output_dir: ContainedPath) -> None:
