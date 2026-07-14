@@ -22,9 +22,12 @@ name: pipeline
 # also keeps checkouts cheap (PRD §9 CI-minutes budget).
 on:
   schedule:
-    # 3x/day, spread across the day; the ~05:00-08:00 America/Edmonton slot
-    # (see grepify.digest.gating / `make digest-gate`) is whichever of these
-    # lands there given DST.
+    # 3x/day, spread across the day. The digest gate (grepify.digest.gating /
+    # `make digest-gate`, GRP-63) opens at 05:00 America/Edmonton with no
+    # closing hour: whichever of these runs lands first at or after that
+    # opening generates the day's digest, and any later run that same day is a
+    # no-op retry if it already has (a slipped cron - DST drift, GitHub delay -
+    # no longer silently skips the day).
     - cron: "0 13,19,1 * * *"
   workflow_dispatch:
     inputs:
