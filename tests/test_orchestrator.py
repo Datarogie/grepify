@@ -10,12 +10,15 @@ from grepify.config.filesystem import FilesystemConfigProvider
 from grepify.errors import FetchError
 from grepify.ingest.base import Fetcher, RawItem
 from grepify.ingest.fake import FakeFetcher
+from grepify.ingest.http import HttpResponse
 from grepify.ingest.orchestrator import ITEM_CAP_DEFAULT, IngestServices, run_ingest
 from grepify.ingest.reddit import _ITEM_CAP as _REDDIT_CLIENT_SIDE_CAP
+from grepify.ingest.reddit import RedditFetcher
 from grepify.ingest.registry import FetcherRegistry
+from grepify.ingest.rss import RssFetcher
 from grepify.models import FetchStatus, Source, SourceKind
 from grepify.repository import JsonlSqliteRepository
-from tests.conftest import write_config
+from tests.conftest import ScriptedTransport, write_config
 
 _GROUPS = {
     "g1.yml": """
@@ -362,3 +365,104 @@ def test_cadence_skip_is_logged_to_fetch_log(tmp_path: Path) -> None:
     # A skip has no attempt to time; it is routed through the same _record
     # helper as a real attempt, so duration_ms stays a fixed zero.
     assert entries[-1].duration_ms == 0
+
+
+def test_rss_complete_failure_persists_sanitized_acquisition_trace(tmp_path: Path) -> None:
+    groups = {
+        "g.yml": """
+            group: g
+            name: G
+            category: ai
+            sources:
+              - id: rss-fail
+                kind: rss
+                url: https://example.com/feed?token=secret
+        """
+    }
+    cfg_root = write_config(tmp_path / "sources", groups=groups)
+    reg = FetcherRegistry()
+    reg.register(
+        RssFetcher(
+            ScriptedTransport(
+                [
+                    HttpResponse(status_code=403, content=b"body secret cookie", headers={}),
+                    HttpResponse(status_code=404, content=b"body", headers={}),
+                    HttpResponse(status_code=404, content=b"body", headers={}),
+                    HttpResponse(status_code=404, content=b"body", headers={}),
+                    HttpResponse(status_code=503, content=b"body", headers={}),
+                ]
+            )
+        )
+    )
+    repo = JsonlSqliteRepository(tmp_path / "data")
+    services = IngestServices(
+        config=FilesystemConfigProvider(cfg_root),
+        repository=repo,
+        registry=reg,
+        clock=FixedClock(datetime(2026, 7, 8, 12, 0, tzinfo=UTC)),
+    )
+
+    summary = run_ingest(services, run_id="run-1")
+
+    assert summary.sources_error == 1
+    entry = next(repo.iter_fetch_log())
+    assert entry.status is FetchStatus.ERROR
+    assert entry.acquisition_trace is not None
+    assert entry.error is not None and "all acquisition rungs failed" in entry.error
+    trace = entry.acquisition_trace
+    assert trace.count('"outcome":"error"') == 5
+    assert '"method":"direct"' in trace
+    assert '"method":"alt_endpoint"' in trace
+    assert '"method":"autodiscovery"' in trace
+    assert "secret" not in trace
+    assert "cookie" not in trace.lower()
+    assert "body" not in trace
+    assert "REDACTED" in trace
+
+
+def test_reddit_complete_failure_persists_sanitized_acquisition_trace(tmp_path: Path) -> None:
+    groups = {
+        "g.yml": """
+            group: g
+            name: G
+            category: ai
+            sources:
+              - id: reddit-fail
+                kind: reddit
+                subreddit: dataengineering
+        """
+    }
+    cfg_root = write_config(tmp_path / "sources", groups=groups)
+    reg = FetcherRegistry()
+    reg.register(
+        RedditFetcher(
+            ScriptedTransport(
+                [
+                    HttpResponse(status_code=403, content=b"json body cookie", headers={}),
+                    HttpResponse(status_code=503, content=b"rss body cookie", headers={}),
+                ]
+            ),
+            sleep=lambda _seconds: None,
+        )
+    )
+    repo = JsonlSqliteRepository(tmp_path / "data")
+    services = IngestServices(
+        config=FilesystemConfigProvider(cfg_root),
+        repository=repo,
+        registry=reg,
+        clock=FixedClock(datetime(2026, 7, 8, 12, 0, tzinfo=UTC)),
+    )
+
+    summary = run_ingest(services, run_id="run-1")
+
+    assert summary.sources_error == 1
+    entry = next(repo.iter_fetch_log())
+    assert entry.status is FetchStatus.ERROR
+    assert entry.acquisition_trace is not None
+    assert entry.error is not None and "fallback returned HTTP 503" in entry.error
+    trace = entry.acquisition_trace
+    assert '"method":"json"' in trace
+    assert '"method":"rss"' in trace
+    assert "json body" not in trace
+    assert "rss body" not in trace
+    assert "cookie" not in trace.lower()

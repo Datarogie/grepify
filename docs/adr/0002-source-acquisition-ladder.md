@@ -399,3 +399,25 @@ Proposed split (gated on Kyle's sign-off here):
    or also keep a short `docs/` ledger of removed sources?
 
 <!-- PRD diff is proposed in the PR description, not applied here (CLAUDE.md: docs/prd.md is source of truth). -->
+
+### #119 provider-aware refinement
+
+The generic RSS ladder is now host-aware for Substack-owned hosts. WordPress-shaped alternates remain
+available for generic RSS/WordPress-like feeds, but `*.substack.com` hosts skip those
+rung-1 variants because they are unsupported guesses for that provider. A
+Substack-hosted source can still recover through the direct feed, same-host homepage
+feed autodiscovery, or a human-pinned `active_url` after that fallback is
+validated from GitHub-hosted runner egress and passed through the central
+outbound URL/redirect policy before any request. Custom-domain Substack
+publications are not inferred from redirects or page content; they remain generic
+RSS unless a future typed provider hint is added.
+
+The lifecycle implication is important: runner-specific 403s do not prove that
+a publication is dead. Such sources should be `degraded` when they are publicly
+live but blocked or served only via fallback. `dead` remains reserved for
+full-ladder failures where the source is not recoverable after bounded,
+reviewable acquisition attempts.
+
+Reddit stays JSON-first and best-effort. JSON 403 falls through to `.rss`
+without retry bursts; 429 is treated as rate limiting, records sanitized
+`Retry-After` evidence, and uses bounded provider backoff before trying RSS.

@@ -302,15 +302,8 @@ def test_acquire_falls_back_to_generic_substack_archive() -> None:
       <a href="https://example.com/p/not-this-publication">Off-site post</a>
     </body></html>
     """
-    transport = ScriptedTransport(
-        [
-            _fail(403),
-            _fail(404),
-            _fail(404),
-            _fail(404),
-            _html(archive_html),
-        ]
-    )
+    # Substack-hosted, so no WordPress-shaped alternates: direct 403 then archive.
+    transport = ScriptedTransport([_fail(403), _html(archive_html)])
 
     outcome = RssFetcher(transport).acquire(
         make_source("benn-substack", url="https://benn.substack.com/feed")
@@ -326,19 +319,16 @@ def test_acquire_falls_back_to_generic_substack_archive() -> None:
         "https://benn.substack.com/p/to-weigh-a-watermelon",
         "https://benn.substack.com/p/be-a-winner-or-join-one",
     ]
-    assert transport.calls[-1][0] == "https://benn.substack.com/archive"
+    assert [call[0] for call in transport.calls] == [
+        "https://benn.substack.com/feed",
+        "https://benn.substack.com/archive",
+    ]
+    assert outcome.acquisition_trace is not None
+    assert "substack_archive" in outcome.acquisition_trace
 
 
 def test_substack_archive_fallback_is_generic_for_substack_feed_hosts() -> None:
-    transport = ScriptedTransport(
-        [
-            _fail(403),
-            _fail(404),
-            _fail(404),
-            _fail(404),
-            _html(b'<a href="/p/post-one">Post One</a>'),
-        ]
-    )
+    transport = ScriptedTransport([_fail(403), _html(b'<a href="/p/post-one">Post One</a>')])
 
     outcome = RssFetcher(transport).acquire(
         make_source("other-substack", url="https://examplepub.substack.com/feed")
@@ -353,9 +343,6 @@ def test_substack_archive_ignores_off_host_links_and_fails_when_empty() -> None:
     transport = ScriptedTransport(
         [
             _fail(403),
-            _fail(404),
-            _fail(404),
-            _fail(404),
             _html(b'<a href="https://evil.example/p/post">Bad</a>'),
             _html(b"<html>no feed autodiscovery</html>"),
         ]
@@ -369,9 +356,83 @@ def test_substack_archive_ignores_off_host_links_and_fails_when_empty() -> None:
     assert "evil.example" not in str(exc.value)
     assert [call[0] for call in transport.calls] == [
         "https://benn.substack.com/feed",
-        "https://benn.substack.com/feed/",
-        "https://benn.substack.com/feed/atom/",
-        "https://benn.substack.com/?feed=rss2",
         "https://benn.substack.com/archive",
         "https://benn.substack.com/",
     ]
+
+
+def test_substack_direct_success_stays_direct_without_generic_wordpress_alts() -> None:
+    transport = ScriptedTransport([fixture_response("rss", "valid.xml")])
+    source = make_source("getdbt-roundup", url="https://roundup.getdbt.com/feed")
+    outcome = RssFetcher(transport).acquire(source)
+    assert outcome.rung is Rung.DIRECT
+    assert transport.calls == [("https://roundup.getdbt.com/feed", transport.calls[0][1])]
+
+
+def test_substack_403_uses_explicit_pinned_fallback_and_preserves_identity() -> None:
+    source = make_source("benn-substack", url="https://benn.substack.com/feed").model_copy(
+        update={"active_url": "https://substack.com/feed/@benn"}
+    )
+    # Direct 403, archive page with no post links, homepage with no feed link,
+    # then the pinned mirror serves.
+    transport = ScriptedTransport(
+        [
+            _fail(403),
+            _html(b"<html>no posts</html>"),
+            _html(b"<html>no feed</html>"),
+            fixture_response("rss", "valid.xml"),
+        ]
+    )
+    outcome = RssFetcher(transport).acquire(source)
+    assert outcome.rung is Rung.MIRROR
+    assert outcome.resolved_url == "https://substack.com/feed/@benn"
+    assert source.url == "https://benn.substack.com/feed"
+    assert [call[0] for call in transport.calls] == [
+        "https://benn.substack.com/feed",
+        "https://benn.substack.com/archive",
+        "https://benn.substack.com/",
+        "https://substack.com/feed/@benn",
+    ]
+    assert outcome.acquisition_trace is not None
+    assert "403" not in outcome.acquisition_trace
+    assert "runner_blocked_or_forbidden" in outcome.acquisition_trace
+
+
+def test_substack_all_methods_failing_is_bounded() -> None:
+    source = make_source("benn-substack", url="https://benn.substack.com/feed").model_copy(
+        update={"active_url": "https://substack.com/feed/@benn"}
+    )
+    transport = ScriptedTransport(
+        [_fail(403), _fail(403), _html(b"<html>no feed</html>"), _fail(403)]
+    )
+    with pytest.raises(FetchError, match="all acquisition rungs failed"):
+        RssFetcher(transport).acquire(source)
+    assert len(transport.calls) == 4
+
+
+def test_oversized_feed_rejected_before_parse() -> None:
+    transport = ScriptedTransport(
+        [HttpResponse(status_code=200, content=b"x" * 2_000_001, headers={})]
+    )
+    with pytest.raises(FetchError, match="size limit"):
+        RssFetcher(transport).fetch(make_source("s1"))
+
+
+def test_acquisition_trace_redacts_sensitive_query_values() -> None:
+    source = make_source("s1", url="https://example.com/feed?token=secret").model_copy(
+        update={"active_url": "https://example.com/mirror.xml?api_key=secret"}
+    )
+    transport = ScriptedTransport(
+        [
+            _fail(403),
+            _fail(404),
+            _fail(404),
+            _fail(404),
+            _html(b"no"),
+            fixture_response("rss", "valid.xml"),
+        ]
+    )
+    outcome = RssFetcher(transport).acquire(source)
+    assert outcome.acquisition_trace is not None
+    assert "secret" not in outcome.acquisition_trace
+    assert "REDACTED" in outcome.acquisition_trace

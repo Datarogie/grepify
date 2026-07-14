@@ -85,6 +85,7 @@ from dataclasses import dataclass, field
 from grepify.clock import Clock, to_iso
 from grepify.config.provider import ConfigProvider
 from grepify.errors import FetchError
+from grepify.ingest.base import AcquisitionError
 from grepify.ingest.cadence import last_real_attempt_at, split_by_cadence
 from grepify.ingest.normalize import dedup_within_batch, normalize_batch
 from grepify.ingest.reddit import RedditFetcher
@@ -120,6 +121,8 @@ class SourceResult:
     duration_ms: int
     error: str | None = None
     rung: Rung | None = None
+    resolved_url: str | None = None
+    acquisition_trace: str | None = None
 
 
 @dataclass(frozen=True)
@@ -246,6 +249,8 @@ def _record(repository: Repository, entry: FetchLogEntry) -> SourceResult:
         duration_ms=entry.duration_ms or 0,
         error=entry.error,
         rung=entry.rung,
+        resolved_url=entry.resolved_url,
+        acquisition_trace=entry.acquisition_trace,
     )
 
 
@@ -296,7 +301,11 @@ def _run_source(
         raw_items = outcome.items[:item_cap]
         if not raw_items:
             return _finish(
-                attempt, FetchStatus.EMPTY, rung=outcome.rung, resolved_url=outcome.resolved_url
+                attempt,
+                FetchStatus.EMPTY,
+                rung=outcome.rung,
+                resolved_url=outcome.resolved_url,
+                acquisition_trace=outcome.acquisition_trace,
             )
         fetched_at = to_iso(services.clock.now())
         items = dedup_within_batch(normalize_batch(raw_items, source, fetched_at=fetched_at))
@@ -307,6 +316,11 @@ def _run_source(
             items_new=items_new,
             rung=outcome.rung,
             resolved_url=outcome.resolved_url,
+            acquisition_trace=outcome.acquisition_trace,
+        )
+    except AcquisitionError as exc:
+        return _finish(
+            attempt, FetchStatus.ERROR, error=str(exc), acquisition_trace=exc.acquisition_trace
         )
     except FetchError as exc:
         return _finish(attempt, FetchStatus.ERROR, error=str(exc))
@@ -327,6 +341,7 @@ def _finish(  # noqa: PLR0913 - records the fetch-log column set
     error: str | None = None,
     rung: Rung | None = None,
     resolved_url: str | None = None,
+    acquisition_trace: str | None = None,
 ) -> SourceResult:
     return _record(
         attempt.repository,
@@ -340,5 +355,6 @@ def _finish(  # noqa: PLR0913 - records the fetch-log column set
             duration_ms=int((time.monotonic() - attempt.t0) * 1000),
             rung=rung,
             resolved_url=resolved_url,
+            acquisition_trace=acquisition_trace,
         ),
     )

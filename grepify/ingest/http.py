@@ -92,7 +92,9 @@ class Resolver(Protocol):
 
 
 class Transport(Protocol):
-    def get(self, url: str, *, headers: dict[str, str], timeout: float) -> HttpResponse: ...
+    def get(
+        self, url: str, *, headers: dict[str, str], timeout: float, max_bytes: int | None = None
+    ) -> HttpResponse: ...
 
 
 class _BoundResolver:
@@ -167,15 +169,17 @@ class OutboundHttpClient:
         self._resolver = resolver or _resolve_public_addresses
         self._transport_factory = transport_factory
 
-    def get(self, url: str, *, headers: Mapping[str, str], timeout: float) -> HttpResponse:
-        return self._request("GET", url, headers=headers, timeout=timeout)
+    def get(
+        self, url: str, *, headers: Mapping[str, str], timeout: float, max_bytes: int | None = None
+    ) -> HttpResponse:
+        return self._request("GET", url, headers=headers, timeout=timeout, max_bytes=max_bytes)
 
     def post_json(
         self, url: str, *, headers: Mapping[str, str], payload: Mapping[str, Any], timeout: float
     ) -> HttpResponse:
         return self._request("POST", url, headers=headers, json=dict(payload), timeout=timeout)
 
-    def _request(
+    def _request(  # noqa: PLR0913
         self,
         method: str,
         url: str,
@@ -183,6 +187,7 @@ class OutboundHttpClient:
         headers: Mapping[str, str],
         timeout: float,
         json: Mapping[str, Any] | None = None,
+        max_bytes: int | None = None,
     ) -> HttpResponse:
         current = _validate_url(url, self._policy)
         seen = {current.raw}
@@ -207,9 +212,9 @@ class OutboundHttpClient:
                     }
                     if json is not None:
                         request_kwargs["json"] = json
-                    response = client.request(method, current.raw, **request_kwargs)
-                    if response.status_code not in {301, 302, 303, 307, 308}:
-                        return _to_response(response)
+                    with client.stream(method, current.raw, **request_kwargs) as response:
+                        if response.status_code not in {301, 302, 303, 307, 308}:
+                            return _to_response(response, _read_limited(response, max_bytes))
                     location = response.headers.get("location")
                     if not location:
                         raise OutboundRequestError(
@@ -250,8 +255,10 @@ class HttpxTransport:
     def __init__(self, *, client: OutboundHttpClient | None = None) -> None:
         self._client = client or OutboundHttpClient()
 
-    def get(self, url: str, *, headers: dict[str, str], timeout: float) -> HttpResponse:
-        return self._client.get(url, headers=headers, timeout=timeout)
+    def get(
+        self, url: str, *, headers: dict[str, str], timeout: float, max_bytes: int | None = None
+    ) -> HttpResponse:
+        return self._client.get(url, headers=headers, timeout=timeout, max_bytes=max_bytes)
 
 
 def _validate_url(url: str, policy: OutboundPolicy) -> ValidatedUrl:
@@ -394,10 +401,23 @@ def _strip_cross_origin_headers(headers: Mapping[str, str]) -> dict[str, str]:
     return {k: v for k, v in headers.items() if k.lower() not in _SENSITIVE_HEADERS}
 
 
-def _to_response(response: httpx.Response) -> HttpResponse:
+def _read_limited(response: httpx.Response, max_bytes: int | None) -> bytes:
+    chunks: list[bytes] = []
+    total = 0
+    for chunk in response.iter_bytes():
+        total += len(chunk)
+        if max_bytes is not None and total > max_bytes:
+            raise OutboundRequestError(
+                OutboundErrorKind.RESPONSE_FAILURE, "response body exceeded size limit"
+            )
+        chunks.append(chunk)
+    return b"".join(chunks)
+
+
+def _to_response(response: httpx.Response, content: bytes) -> HttpResponse:
     return HttpResponse(
         status_code=response.status_code,
-        content=response.content,
+        content=content,
         headers={key.lower(): value for key, value in response.headers.items()},
     )
 
@@ -433,13 +453,19 @@ def _redact_url(url: str) -> str:
     return urlunsplit((parts.scheme, netloc, parts.path, query, ""))
 
 
-def get_or_raise(
-    transport: Transport, url: str, *, headers: dict[str, str], timeout: float, source_id: str
+def get_or_raise(  # noqa: PLR0913
+    transport: Transport,
+    url: str,
+    *,
+    headers: dict[str, str],
+    timeout: float,
+    source_id: str,
+    max_bytes: int | None = None,
 ) -> HttpResponse:
     response: HttpResponse | None = None
     failed = False
     try:
-        response = transport.get(url, headers=headers, timeout=timeout)
+        response = transport.get(url, headers=headers, timeout=timeout, max_bytes=max_bytes)
     except FetchError:
         raise
     except Exception:
