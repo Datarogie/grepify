@@ -6,7 +6,7 @@
 .DEFAULT_GOAL := help
 UV ?= uv
 
-.PHONY: help install install-pipeline fmt lint typecheck test check audit \
+.PHONY: help install install-pipeline fmt lint typecheck test check audit workflow-security \
         ingest extract trends digest digest-daily digest-weekly build validate health doctor backfill \
         digest-gate data-branch datasize commit-data site eval
 
@@ -35,6 +35,9 @@ test: ## Run the test suite
 	$(UV) run pytest
 
 check: lint typecheck test ## Full DoD gate: lint + typecheck + test
+
+workflow-security: ## Validate GitHub Actions pinning, permissions, secrets, and trust-boundary invariants
+	$(UV) run pytest tests/test_workflow_security.py
 
 audit: ## Dependency vulnerability scan against uv.lock (GRP-58); secret-free, run as its own CI step
 	@tmp=$$(mktemp) && \

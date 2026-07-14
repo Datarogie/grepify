@@ -1,33 +1,12 @@
 name: pipeline
 
-# GRP-06: cron pipeline - ingest -> extract -> (gated) digest -> build+deploy.
-# Combines PRD F-OPS-02's "pipeline" and "deploy" workflows into one job: the
-# Pages deploy needs the artifact this same run just built, and PRD §5's
-# architecture diagram already draws build+deploy as one arrow.
-#
-# Data-branch design (repo ruleset revision): `main` now requires PRs with no
-# bypass, so the pipeline's JSONL truth commits can't land there. This job
-# checks out `main` for code as usual, then checks out a dedicated `data`
-# branch as a worktree at ./data (scripts/ensure-data-branch.sh, bootstraps it
-# on first run) and commits/pushes only that branch, with the default
-# GITHUB_TOKEN. See docs/process.md for the full design.
-#
-# Never triggered by `push`, so it cannot self-retrigger via the data commit
-# it makes (belt-and-suspenders with `[skip ci]` on that commit + validate's
-# `push: branches: [main]` scoping - pushes to `data` can't reach `validate`
-# at all, see validate.yml). `concurrency` serializes overlapping cron/manual
-# runs so they can't race on the data commit (PRD §5) - a second, independent
-# guard from `fetch-depth: 1`'s shallow-clone rebase path in commit_data,
-# which stays correct even without the concurrency group. `fetch-depth: 1`
-# also keeps checkouts cheap (PRD §9 CI-minutes budget).
+# GRP-06/GRP-64: scheduled/manual production pipeline with explicit trust
+# boundaries. Validation/build jobs are read-only; only data-update can push the
+# data branch; only deploy-pages receives Pages/OIDC; only notify-failure can
+# write issues. workflow_dispatch production runs are guarded to the repository
+# default branch before any production credentials or write permissions are used.
 on:
   schedule:
-    # 3x/day, spread across the day. The digest gate (grepify.digest.gating /
-    # `make digest-gate`, GRP-63) opens at 05:00 America/Edmonton with no
-    # closing hour: whichever of these runs lands first at or after that
-    # opening generates the day's digest, and any later run that same day is a
-    # no-op retry if it already has (a slipped cron - DST drift, GitHub delay -
-    # no longer silently skips the day).
     - cron: "0 13,19,1 * * *"
   workflow_dispatch:
     inputs:
@@ -36,7 +15,7 @@ on:
         type: boolean
         default: false
       run_remediation:
-        description: "One-off O1 data remediation (docs/prev1-hardening.md): run `grepify maintain renormalize` against the data branch before ingest, cleaning pre-#19 HTML-contaminated keyword rows. Idempotent - safe to leave off by default."
+        description: "One-off O1 data remediation (docs/prev1-hardening.md): run `grepify maintain renormalize` against the data branch before ingest."
         type: boolean
         default: false
 
@@ -44,96 +23,134 @@ concurrency:
   group: pipeline
   cancel-in-progress: false
 
-permissions:
-  contents: write
-  pages: write
-  id-token: write
-  issues: write
+permissions: {}
 
 jobs:
-  run:
+  guard-production-ref:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Require default branch for manual production runs
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.ref_name }}" != "${{ github.event.repository.default_branch }}" ]; then
+            echo "workflow_dispatch production runs must be started from ${{ github.event.repository.default_branch }}." >&2
+            exit 1
+          fi
+
+  validate-source:
+    needs: guard-production-ref
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
     steps:
       - name: Checkout main (code)
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 1
-
-      - uses: astral-sh/setup-uv@v7
+          persist-credentials: false
+      - name: Set up uv
+        uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c # v7.0.0
         with:
           python-version: "3.12"
           enable-cache: true
-
       - name: Install
-        # The cron pipeline needs the E5 optional extra (youtube-transcript-api
-        # for transcripts); `make check`/`validate` stay on the lean `make
-        # install` (PRD §13 - transcripts are a best-effort enrichment, kept out
-        # of the core install).
         run: make install-pipeline
+      - name: Validate config
+        run: make validate
 
-      - name: Configure git identity for data commits
+  prepare-data:
+    needs: validate-source
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout main (code)
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Set up uv
+        uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c # v7.0.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - name: Install
+        run: make install-pipeline
+      - name: Checkout data branch read-only
         run: |
-          git config user.name "grepify-bot"
-          git config user.email "grepify-bot@users.noreply.github.com"
-
-      - name: Checkout data branch (worktree at ./data)
-        run: make data-branch
-
-      # GRP-63: sum items/keywords JSONL + transcripts under the data worktree
-      # every run, before ingest/extract spend any network/LLM budget. Warns
-      # (exit 0) at 100 MB, fails the step (and the run) at 200 MB; the line is
-      # always appended to the job summary via `tee`, pass or fail, so the
-      # current size is visible on every run regardless of outcome.
+          if git ls-remote --exit-code --heads origin data >/dev/null 2>&1; then
+            git fetch --depth=1 origin data
+            git worktree add --detach data FETCH_HEAD
+          else
+            mkdir data
+          fi
       - name: Data-size guardrail (GRP-63)
         run: |
           set -o pipefail
           make datasize | tee -a "$GITHUB_STEP_SUMMARY"
-
       - name: Digest gate
         id: gate
         run: make digest-gate >> "$GITHUB_OUTPUT"
+      - name: Record gate outputs
+        run: |
+          mkdir -p pipeline-state
+          printf 'daily=%s\nweekly=%s\n' '${{ steps.gate.outputs.daily }}' '${{ steps.gate.outputs.weekly }}' > pipeline-state/gate.env
+      - name: Upload prepared data snapshot
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: prepared-data
+          path: |
+            data
+            pipeline-state/gate.env
 
-      # O1 (docs/prev1-hardening.md): one-off cleanup of keyword rows
-      # extracted before #19's HTML-strip fix. Runs before ingest so today's
-      # ingest/extract/digest steps see corrected data. Idempotent - a clean
-      # corpus rewrites and re-extracts nothing.
+  run-pipeline:
+    needs: prepare-data
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    outputs:
+      truth_ok: ${{ steps.truth.outputs.ok }}
+    steps:
+      - name: Checkout main (code)
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Download prepared data snapshot
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: prepared-data
+      - name: Preserve last committed truth snapshot
+        run: |
+          mkdir -p data
+          cp -a data data-original
+      - name: Set up uv
+        uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c # v7.0.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - name: Install
+        run: make install-pipeline
       - name: Remediate HTML-contaminated keywords (O1, one-off)
         if: github.event.inputs.run_remediation == 'true'
         env:
           LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
         run: make maintain-renormalize
-
-      # GRP-64: Ingest/Extract/the digest steps below are continue-on-error so
-      # a systemic failure here (ConfigError/RepositoryError/DataQualityError -
-      # per-source fetch failures and LLM outages already degrade internally
-      # without raising, see docs/runbook.md) does not skip Build/Deploy. The
-      # site still redeploys from the last committed `data`-branch truth; the
-      # "Check upstream pipeline health" step below turns this back into a red,
-      # notified run instead of hiding it.
       - name: Ingest
-        # Transcripts need no secret (F-ING-03, absence-tolerant); a transcript
-        # blocked from CI IPs simply leaves transcript_ref null.
         id: ingest
         continue-on-error: true
         run: make ingest
-
-      # Feed triage (#39): capture per-source status + error-class every run,
-      # so new breakage is caught going forward (docs/feed-triage.md). Runs
-      # after Ingest so `fetch_log` is fresh; `make doctor` reads the data
-      # branch worktree at ./data (grepify doctor defaults --data-root data).
-      # Read-only and network/secret-free: it never touches the LLM secrets and
-      # exits 0, so it never breaks a deploy.
       - name: Feed triage report (doctor)
         run: |
           echo '### Feed triage (doctor)' >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           make doctor >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
-
       - name: Extract
         id: extract
         continue-on-error: true
@@ -141,36 +158,28 @@ jobs:
           LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
         run: make extract
-
-      # Per-category digests (GRP-41/42). The gate (GRP-45, America/Edmonton +
-      # DST-aware) fires daily on the morning run and weekly on Monday morning.
-      # These are the only digest steps that touch the LLM secrets (never the
-      # `validate` workflow, PRD §5); an LLM that is down/over budget degrades
-      # to a template digest inside the command (PRD §9/§13). A manual
-      # `workflow_dispatch` with `force_digest=true` runs both regardless of the
-      # gate, so a digest can be produced on demand for testing.
+      - name: Read digest gate outputs
+        id: gatefile
+        run: |
+          . pipeline-state/gate.env
+          echo "daily=$daily" >> "$GITHUB_OUTPUT"
+          echo "weekly=$weekly" >> "$GITHUB_OUTPUT"
       - name: Daily digest
         id: daily_digest
         continue-on-error: true
-        if: steps.gate.outputs.daily == 'true' || github.event.inputs.force_digest == 'true'
+        if: github.event.inputs.force_digest == 'true' || steps.gatefile.outputs.daily == 'true'
         env:
           LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
         run: make digest-daily
-
       - name: Weekly digest
         id: weekly_digest
         continue-on-error: true
-        if: steps.gate.outputs.weekly == 'true' || github.event.inputs.force_digest == 'true'
+        if: github.event.inputs.force_digest == 'true' || steps.gatefile.outputs.weekly == 'true'
         env:
           LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
         run: make digest-weekly
-
-      # GRP-64: the only place that inspects the continue-on-error outcomes
-      # above. `ok=false` means at least one of them failed (not skipped) -
-      # commit-data must not run (no partial truth committed) and the data
-      # worktree must be rolled back before Build reads it.
       - name: Check upstream pipeline health
         id: truth
         if: always()
@@ -186,58 +195,250 @@ jobs:
           else
             echo "ok=true" >> "$GITHUB_OUTPUT"
           fi
-
-      - name: Commit pipeline data (to the `data` branch)
-        if: steps.truth.outputs.ok == 'true'
-        run: make commit-data
-
-      # No partial truth reaches Build: discard whatever Ingest/Extract/digest
-      # left on disk and rebuild from the data branch's last committed state.
-      - name: Reset data worktree to last committed truth
+      - name: Reset data directory to last committed truth
         if: steps.truth.outputs.ok != 'true'
         run: |
-          git -C data reset --hard HEAD
-          git -C data clean -fd
+          rm -rf data
+          cp -a data-original data
+      - name: Upload pipeline data result
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: pipeline-data-result
+          path: data
 
-      # GRP-35: `make build` now renders the real site into `public/` (site =
-      # main code + data-branch state, rebuilt from JSONL truth in the worktree
-      # at ./data). GREPIFY_BASE_PATH is the project-Pages sub-path
-      # (https://<owner>.github.io/<repo>/), derived from the repo name so a
-      # fork deploys correctly with no code change (cloneability, PRD §5).
+  data-update:
+    needs: run-pipeline
+    if: needs.run-pipeline.outputs.truth_ok == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - name: Download pipeline data result
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          import stat
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+          import zipfile
+          from pathlib import Path
+
+          REDIRECT_STATUSES = {302, 303, 307, 308}
+          ALLOWED_ARCHIVE_HOST_SUFFIXES = (".blob.core.windows.net", ".actions.githubusercontent.com")
+          ALLOWED_ARCHIVE_HOSTS = {
+              "objects.githubusercontent.com",
+              "github-releases.githubusercontent.com",
+              "productionresultssa.blob.core.windows.net",
+          }
+
+
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  return None
+
+
+          def validate_signed_archive_url(location):
+              if not location:
+                  raise SystemExit("artifact archive redirect did not include a Location header")
+              parsed = urllib.parse.urlparse(location)
+              if parsed.scheme != "https":
+                  raise SystemExit("artifact archive redirect must use https")
+              if parsed.username or parsed.password:
+                  raise SystemExit("artifact archive redirect must not include userinfo")
+              if not parsed.hostname or not parsed.netloc:
+                  raise SystemExit("artifact archive redirect has malformed authority")
+              host = parsed.hostname.lower().rstrip(".")
+              if host not in ALLOWED_ARCHIVE_HOSTS and not host.endswith(ALLOWED_ARCHIVE_HOST_SUFFIXES):
+                  raise SystemExit("artifact archive redirect host is not in the allowed GitHub storage set")
+              return location
+
+
+          def safe_member_path(destination, member_name):
+              member = Path(member_name)
+              if member.is_absolute() or ".." in member.parts:
+                  raise SystemExit(f"unsafe artifact path: {member_name}")
+              if any(part == ".git" for part in member.parts):
+                  raise SystemExit(f"artifact must not contain .git metadata: {member_name}")
+              target = (destination / member).resolve()
+              destination_resolved = destination.resolve()
+              if target != destination_resolved and destination_resolved not in target.parents:
+                  raise SystemExit(f"artifact path escapes destination: {member_name}")
+              return target
+
+
+          def safe_extract_zip(archive_path, destination):
+              destination.mkdir(parents=True, exist_ok=True)
+              with zipfile.ZipFile(archive_path) as zip_file:
+                  members = zip_file.infolist()
+                  for info in members:
+                      mode = info.external_attr >> 16
+                      if stat.S_ISLNK(mode) or stat.S_ISCHR(mode) or stat.S_ISBLK(mode) or stat.S_ISFIFO(mode):
+                          raise SystemExit(f"artifact member has unsafe file type: {info.filename}")
+                      safe_member_path(destination, info.filename)
+                  for info in members:
+                      target = safe_member_path(destination, info.filename)
+                      if info.is_dir():
+                          target.mkdir(parents=True, exist_ok=True)
+                          continue
+                      target.parent.mkdir(parents=True, exist_ok=True)
+                      with zip_file.open(info) as src, target.open("wb") as dst:
+                          dst.write(src.read())
+
+
+          run_id = os.environ["GITHUB_RUN_ID"]
+          repo = os.environ["GITHUB_REPOSITORY"]
+          token = os.environ["GH_TOKEN"]
+          req = urllib.request.Request(
+              f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/artifacts",
+              headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"},
+          )
+          with urllib.request.urlopen(req, timeout=30) as response:
+              artifacts = json.load(response)["artifacts"]
+          matches = [artifact for artifact in artifacts if artifact["name"] == "pipeline-data-result"]
+          if not matches:
+              raise SystemExit("pipeline-data-result artifact not found")
+          download_url = matches[0]["archive_download_url"]
+          api_req = urllib.request.Request(
+              download_url,
+              headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"},
+          )
+          opener = urllib.request.build_opener(NoRedirect)
+          try:
+              opener.open(api_req, timeout=30)
+          except urllib.error.HTTPError as exc:
+              if exc.code not in REDIRECT_STATUSES:
+                  raise SystemExit(f"unexpected artifact archive redirect status: {exc.code}") from exc
+              signed_url = validate_signed_archive_url(exc.headers.get("Location"))
+          else:
+              raise SystemExit("artifact archive endpoint did not redirect")
+          archive_req = urllib.request.Request(signed_url)
+          with urllib.request.urlopen(archive_req, timeout=60) as response, open("artifact.zip", "wb") as out:
+              out.write(response.read())
+          safe_extract_zip(Path("artifact.zip"), Path("data-result"))
+          PY
+      - name: Commit pipeline data (to the `data` branch)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git init data
+          git -C data remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          auth_payload="$(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 | tr -d '\n')"
+          auth_header="AUTHORIZATION: basic ${auth_payload}"
+          if git -C data -c http.https://github.com/.extraheader="$auth_header" ls-remote --exit-code --heads origin data >/dev/null 2>&1; then
+            git -C data -c http.https://github.com/.extraheader="$auth_header" fetch --depth=1 origin data
+            git -C data checkout -B data FETCH_HEAD
+            find data -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          else
+            git -C data checkout --orphan data
+            git -C data rm -rf . >/dev/null 2>&1 || true
+          fi
+          cp -a data-result/. data/
+          git -C data config user.name "grepify-bot"
+          git -C data config user.email "grepify-bot@users.noreply.github.com"
+          git -C data add -A
+          if git -C data diff --cached --quiet; then
+            echo "nothing to commit"
+            unset GITHUB_TOKEN auth_payload auth_header
+            exit 0
+          fi
+          git -C data commit -m "chore(data): pipeline run [skip ci]"
+          git -C data -c http.https://github.com/.extraheader="$auth_header" push origin HEAD:data
+          unset GITHUB_TOKEN auth_payload auth_header
+
+  build-site:
+    needs: [run-pipeline, data-update]
+    if: always() && needs.run-pipeline.result != 'cancelled' && (needs.data-update.result == 'success' || needs.data-update.result == 'skipped')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout main (code)
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Download pipeline data result
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: pipeline-data-result
+          path: data
+      - name: Set up uv
+        uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c # v7.0.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - name: Install
+        run: make install-pipeline
       - name: Build site
         env:
           GREPIFY_BASE_PATH: "/${{ github.event.repository.name }}/"
         run: make build
-
-      - name: Configure Pages
-        uses: actions/configure-pages@v6
-
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v5
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: public
 
+  deploy-pages:
+    needs: build-site
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure Pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       - name: Deploy to Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
 
-      # GRP-64: Build/Deploy above already ran from last-committed truth even
-      # though Ingest/Extract/a digest step failed - this is the step that
-      # turns that back into a red, nonzero-exit job now that they're done, so
-      # the failure is not silently swallowed by continue-on-error.
-      - name: Fail run on upstream ingest/extract/digest failure
-        if: steps.truth.outputs.ok != 'true'
-        run: exit 1
+  final-status:
+    needs: [guard-production-ref, validate-source, prepare-data, run-pipeline, data-update, build-site, deploy-pages]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout main (code)
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Evaluate production final status
+        env:
+          TRUTH_OK: ${{ needs.run-pipeline.outputs.truth_ok }}
+          GUARD_RESULT: ${{ needs.guard-production-ref.result }}
+          VALIDATE_RESULT: ${{ needs.validate-source.result }}
+          PREPARE_RESULT: ${{ needs.prepare-data.result }}
+          RUN_PIPELINE_RESULT: ${{ needs.run-pipeline.result }}
+          DATA_UPDATE_RESULT: ${{ needs.data-update.result }}
+          BUILD_RESULT: ${{ needs.build-site.result }}
+          DEPLOY_RESULT: ${{ needs.deploy-pages.result }}
+        run: python scripts/pipeline_final_status.py
 
-      # GRP-74: a scheduled run's failure email otherwise goes to whoever last
-      # touched the `cron:` line above, which silently drifts with every edit
-      # to that line and depends on that person's own notification settings.
-      # This step gives systemic failure a stable, repo-visible landing spot
-      # instead: one pinned issue, found by title via GITHUB_TOKEN (no new
-      # secret), commented on for repeat failures rather than duplicated.
+  notify-failure:
+    needs: [final-status]
+    if: failure() && github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      issues: write
+    steps:
       - name: Notify on failure
-        if: failure()
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           script: |
             const title = "pipeline failing";
