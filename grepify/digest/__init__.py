@@ -11,7 +11,8 @@ site build (E4 pages) consume:
 - Pipeline (GRP-41/42) - :func:`run_digest_pipeline` (catch-up + idempotent) +
   :class:`DigestRunResult`, :func:`period_for`, :func:`periods_for`.
 - Period math (GRP-41/42) - :func:`previous_day`, :func:`previous_iso_week`,
-  :func:`recent_days`, :class:`Period`, :data:`EDMONTON`.
+  :func:`recent_days`, :func:`trailing_days`, :func:`edmonton_date`,
+  :class:`Period`, :data:`EDMONTON`.
 - Cron gating (GRP-45) - :func:`digest_gate` + :class:`DigestGate`,
   :func:`format_gate`.
 
@@ -40,9 +41,11 @@ from grepify.digest.generate import (
 from grepify.digest.periods import (
     EDMONTON,
     Period,
+    edmonton_date,
     previous_day,
     previous_iso_week,
     recent_days,
+    trailing_days,
 )
 from grepify.digest.pipeline import (
     DigestRunResult,
@@ -66,6 +69,7 @@ __all__ = [
     "build_messages",
     "digest_gate",
     "digest_id_for",
+    "edmonton_date",
     "format_gate",
     "generate_digest",
     "is_rising",
@@ -75,4 +79,5 @@ __all__ = [
     "previous_iso_week",
     "recent_days",
     "run_digest_pipeline",
+    "trailing_days",
 ]

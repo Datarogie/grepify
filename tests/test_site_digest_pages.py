@@ -20,7 +20,7 @@ from grepify.repository.jsonl_sqlite import JsonlSqliteRepository
 from grepify.site.build import build_site
 from grepify.site.urls import digest_slug, keyword_slug
 
-_CLOCK = FixedClock(datetime(2026, 7, 8, tzinfo=UTC))
+_CLOCK = FixedClock(datetime(2026, 7, 8, 13, 0, tzinfo=UTC))  # 07:00 MDT
 _RUN_ID = "20260709T120000Z-testrun"
 
 _SETTINGS = textwrap.dedent(

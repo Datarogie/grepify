@@ -16,13 +16,14 @@ period out.
 Failure modes
 -------------
 Pure computation. A naive (tz-unaware) instant raises ``ValueError`` (a
-programming error); everything else is arithmetic that never raises.
+programming error), as does a non-positive ``trailing_days`` span; everything
+else is arithmetic that never raises.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from grepify.clock import to_iso
@@ -106,3 +107,32 @@ def previous_iso_week(instant: datetime) -> Period:
         key=f"{iso_year}-W{iso_week:02d}",
         days=7,
     )
+
+
+def trailing_days(instant: datetime, days: int) -> Period:
+    """The ``days`` Edmonton days ending at the most recent local midnight.
+
+    The half-open trend window (GRP-71): its end is the Edmonton midnight at or
+    before ``instant`` (not ``instant`` itself), so counts are stable across
+    same-day rebuilds and each day in the span is one lived Edmonton day.
+    ``key`` is the start date; ``days <= 0`` raises ``ValueError``.
+    """
+    if days <= 0:
+        raise ValueError("trailing window days must be positive")
+    end = _midnight(_local_date(instant))
+    start = end - timedelta(days=days)
+    return Period(
+        start=to_iso(start),
+        end=to_iso(end),
+        key=start.strftime("%Y-%m-%d"),
+        days=days,
+    )
+
+
+def edmonton_date(instant: datetime) -> date:
+    """The Edmonton calendar date ``instant`` falls on (DST-aware).
+
+    Trend sparkline buckets key on the *lived* Edmonton day, so an item near the
+    UTC rollover lands in the correct bucket rather than a neighbouring one.
+    """
+    return _local_date(instant).date()
