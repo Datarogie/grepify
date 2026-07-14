@@ -124,16 +124,36 @@ uv run grepify --config-root sources --data-root ./_data doctor
 
 **What you see:** Actions -> the `pipeline` run has a red X on one step.
 
+**GRP-64: a red `Ingest`/`Extract`/`Daily digest`/`Weekly digest` no longer
+skips Build/Deploy.** Those four steps run with `continue-on-error: true` -
+`Commit pipeline data` is skipped for that run (no partial truth committed),
+the `./data` worktree is rolled back to its last committed state, and `Build
+site`/`Deploy to Pages` still run from that truth, so the site redeploys. A
+`Check upstream pipeline health` step then fails the job on purpose so the run
+still shows red and `Notify on failure` still fires - the deploy succeeding
+does not hide the underlying failure. `.gitlab-ci.yml` mirrors this with
+`allow_failure: exit_codes: 64` on the single `pages` job (GitLab's classic
+Pages deploy is tied to that job's own success, so there is no separate
+deploy step to keep independent the way GitHub Actions has one).
+
 **Diagnosis (phone):**
 1. Open the run in the GitHub app. Identify **which step** is red - the fix
    differs completely by step:
    - `Ingest` red -> almost never; ingest tolerates per-source failures. A red
-     ingest is a `ConfigError`/`RepositoryError`, not a dead feed.
+     ingest is a `ConfigError`/`RepositoryError`, not a dead feed. Build/Deploy
+     still ran (see above); fix the root cause on its own timeline.
    - `Extract` red -> a `DataQualityError` (assertion) or a config/storage
-     fault, not an LLM outage (LLM outages degrade, see below).
+     fault, not an LLM outage (LLM outages degrade, see below). Build/Deploy
+     still ran.
    - `Daily/Weekly digest` red -> config/storage; LLM problems degrade.
+     Build/Deploy still ran.
+   - `Check upstream pipeline health` red -> not a bug by itself; it is the
+     step that turns one of the three rows above into a red run. Go fix
+     whichever of `Ingest`/`Extract`/`Daily digest`/`Weekly digest` actually
+     failed.
    - `Commit pipeline data` red -> [commit conflicts](#data-branch-commit-conflicts).
-   - `Build site` red -> [build failure](#build-failure).
+   - `Build site` red -> [build failure](#build-failure); this one still
+     blocks `Deploy to Pages`.
    - `Deploy to Pages` red -> [Pages deploy](#pages-deploy-failure).
    - `Install` / `Checkout` red -> transient infra; re-run first.
 2. Expand the step log and read the exception type. Match it to the taxonomy
@@ -383,6 +403,11 @@ occurred.
 
 **What you see:** the run is green through `Build site` but `Deploy to Pages`
 is red, or the run is fully green yet the live site did not change.
+
+**Not this symptom (GRP-64):** a run that is red only at `Check upstream
+pipeline health` (with `Build site`/`Deploy to Pages` green above it) is
+expected - the site deployed from existing committed truth while an
+ingest/extract/digest step failed. See [Red pipeline run](#red-pipeline-run).
 
 **Diagnosis (phone):**
 1. Open the `Configure Pages` / `Upload Pages artifact` / `Deploy to Pages`

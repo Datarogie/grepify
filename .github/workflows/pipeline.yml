@@ -107,9 +107,18 @@ jobs:
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
         run: make maintain-renormalize
 
+      # GRP-64: Ingest/Extract/the digest steps below are continue-on-error so
+      # a systemic failure here (ConfigError/RepositoryError/DataQualityError -
+      # per-source fetch failures and LLM outages already degrade internally
+      # without raising, see docs/runbook.md) does not skip Build/Deploy. The
+      # site still redeploys from the last committed `data`-branch truth; the
+      # "Check upstream pipeline health" step below turns this back into a red,
+      # notified run instead of hiding it.
       - name: Ingest
         # Transcripts need no secret (F-ING-03, absence-tolerant); a transcript
         # blocked from CI IPs simply leaves transcript_ref null.
+        id: ingest
+        continue-on-error: true
         run: make ingest
 
       # Feed triage (#39): capture per-source status + error-class every run,
@@ -126,6 +135,8 @@ jobs:
           echo '```' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Extract
+        id: extract
+        continue-on-error: true
         env:
           LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
@@ -139,6 +150,8 @@ jobs:
       # `workflow_dispatch` with `force_digest=true` runs both regardless of the
       # gate, so a digest can be produced on demand for testing.
       - name: Daily digest
+        id: daily_digest
+        continue-on-error: true
         if: steps.gate.outputs.daily == 'true' || github.event.inputs.force_digest == 'true'
         env:
           LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
@@ -146,14 +159,45 @@ jobs:
         run: make digest-daily
 
       - name: Weekly digest
+        id: weekly_digest
+        continue-on-error: true
         if: steps.gate.outputs.weekly == 'true' || github.event.inputs.force_digest == 'true'
         env:
           LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
         run: make digest-weekly
 
+      # GRP-64: the only place that inspects the continue-on-error outcomes
+      # above. `ok=false` means at least one of them failed (not skipped) -
+      # commit-data must not run (no partial truth committed) and the data
+      # worktree must be rolled back before Build reads it.
+      - name: Check upstream pipeline health
+        id: truth
+        if: always()
+        env:
+          INGEST: ${{ steps.ingest.outcome }}
+          EXTRACT: ${{ steps.extract.outcome }}
+          DAILY_DIGEST: ${{ steps.daily_digest.outcome }}
+          WEEKLY_DIGEST: ${{ steps.weekly_digest.outcome }}
+        run: |
+          if [ "$INGEST" = "failure" ] || [ "$EXTRACT" = "failure" ] ||
+             [ "$DAILY_DIGEST" = "failure" ] || [ "$WEEKLY_DIGEST" = "failure" ]; then
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Commit pipeline data (to the `data` branch)
+        if: steps.truth.outputs.ok == 'true'
         run: make commit-data
+
+      # No partial truth reaches Build: discard whatever Ingest/Extract/digest
+      # left on disk and rebuild from the data branch's last committed state.
+      - name: Reset data worktree to last committed truth
+        if: steps.truth.outputs.ok != 'true'
+        run: |
+          git -C data reset --hard HEAD
+          git -C data clean -fd
 
       # GRP-35: `make build` now renders the real site into `public/` (site =
       # main code + data-branch state, rebuilt from JSONL truth in the worktree
@@ -176,6 +220,14 @@ jobs:
       - name: Deploy to Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      # GRP-64: Build/Deploy above already ran from last-committed truth even
+      # though Ingest/Extract/a digest step failed - this is the step that
+      # turns that back into a red, nonzero-exit job now that they're done, so
+      # the failure is not silently swallowed by continue-on-error.
+      - name: Fail run on upstream ingest/extract/digest failure
+        if: steps.truth.outputs.ok != 'true'
+        run: exit 1
 
       # GRP-74: a scheduled run's failure email otherwise goes to whoever last
       # touched the `cron:` line above, which silently drifts with every edit
