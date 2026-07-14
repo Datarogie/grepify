@@ -38,6 +38,7 @@ from typing import Any
 import jinja2
 
 from grepify.site.markdown import render_markdown
+from grepify.site.published_url import safe_published_url
 from grepify.site.sparkline import sparkline_svg
 from grepify.site.tokens import CLOUD_BUCKETS, LIGHT_STYLE_TOKENS, STYLE_TOKENS
 from grepify.site.urls import digest_slug, keyword_slug
@@ -147,6 +148,7 @@ def create_environment() -> jinja2.Environment:
     env.globals["digest_slug"] = digest_slug
     env.globals["keyword_slug"] = keyword_slug
     env.globals["render_markdown"] = render_markdown
+    env.globals["safe_published_url"] = safe_published_url
     return env
 
 

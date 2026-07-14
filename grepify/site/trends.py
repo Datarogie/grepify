@@ -145,6 +145,7 @@ class ItemSummary:
     published_at: str
     summary: str | None
     content_hash: str
+    source_url: str | None = None
 
 
 @dataclass(frozen=True)
@@ -398,7 +399,7 @@ class TrendQueries:
         # S608: `where` is one of two fixed literals above; all values bind through `?`.
         rows = self._conn.execute(
             "select i.item_id, i.source_id, coalesce(s.name, i.source_id) as name, "  # noqa: S608
-            "i.kind, i.title, i.canonical_url, i.published_at, i.summary, i.content_hash "
+            "i.kind, i.title, i.canonical_url, s.url, i.published_at, i.summary, i.content_hash "
             "from items i "
             "left join sources s on s.source_id = i.source_id "
             f"{where}"
@@ -414,11 +415,12 @@ class TrendQueries:
                 kind=kind,
                 title=title,
                 canonical_url=url,
+                source_url=surl,
                 published_at=pub,
                 summary=summary,
                 content_hash=chash,
             )
-            for iid, sid, name, kind, title, url, pub, summary, chash in rows
+            for iid, sid, name, kind, title, url, surl, pub, summary, chash in rows
         ]
 
     def latest_digests(self, *, limit: int = DEFAULT_LATEST_DIGESTS_LIMIT) -> list[DigestSummary]:
@@ -524,7 +526,7 @@ class TrendQueries:
         # S608: `placeholders` is a fixed count of `?` marks; ids bind through the tuple.
         rows = self._conn.execute(
             "select i.item_id, i.source_id, coalesce(s.name, i.source_id) as name, "  # noqa: S608
-            "i.kind, i.title, i.canonical_url, i.published_at, i.summary, i.content_hash "
+            "i.kind, i.title, i.canonical_url, s.url, i.published_at, i.summary, i.content_hash "
             "from items i "
             "left join sources s on s.source_id = i.source_id "
             f"where i.item_id in ({placeholders}) "
@@ -539,11 +541,12 @@ class TrendQueries:
                 kind=kind,
                 title=title,
                 canonical_url=url,
+                source_url=surl,
                 published_at=pub,
                 summary=summary,
                 content_hash=chash,
             )
-            for iid, sid, name, kind, title, url, pub, summary, chash in rows
+            for iid, sid, name, kind, title, url, surl, pub, summary, chash in rows
         ]
 
     # --- digest detail -------------------------------------------------------
@@ -599,7 +602,7 @@ class TrendQueries:
         """
         rows = self._conn.execute(
             "select ik.keyword, i.item_id, i.source_id, coalesce(s.name, i.source_id) as name, "
-            "i.kind, i.title, i.canonical_url, i.published_at, i.summary, i.content_hash "
+            "i.kind, i.title, i.canonical_url, s.url, i.published_at, i.summary, i.content_hash "
             "from item_keywords ik "
             "join items i on i.item_id = ik.item_id "
             "left join sources s on s.source_id = i.source_id "
@@ -609,7 +612,7 @@ class TrendQueries:
         items: dict[str, ItemSummary] = {}
         item_keywords: dict[str, set[str]] = {}
         kw_items: dict[str, set[str]] = {}
-        for kw, iid, sid, name, kind, title, url, pub, summary, chash in rows:
+        for kw, iid, sid, name, kind, title, url, surl, pub, summary, chash in rows:
             canonical = self._rules.apply(kw)
             if canonical is None:  # muted
                 continue
@@ -621,6 +624,7 @@ class TrendQueries:
                     kind=kind,
                     title=title,
                     canonical_url=url,
+                    source_url=surl,
                     published_at=pub,
                     summary=summary,
                     content_hash=chash,

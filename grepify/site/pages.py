@@ -33,6 +33,7 @@ from grepify.clock import from_iso
 from grepify.health import HealthSnapshot, SourceHealth
 from grepify.ingest.dedup import hamming_distance
 from grepify.models import Source, SourceStatus
+from grepify.site.published_url import safe_published_url
 from grepify.site.trends import CloudDataset, DigestDetail, ItemSummary, KeywordCount
 
 ITEMS_PER_PAGE = 20  # F-SIT-03
@@ -166,13 +167,14 @@ def item_matches_filter(  # noqa: PLR0913 - mirrors the JS predicate's inputs ex
 
 def item_json(item: ItemSummary, *, keywords: list[str], similar_count: int) -> dict[str, Any]:
     """The emitted-JSON shape for one item row (the filters.js data contract)."""
+    safe = safe_published_url(item.canonical_url, base_url=getattr(item, "source_url", None))
     return {
         "item_id": item.item_id,
         "kind": item.kind,
         "source_id": item.source_id,
         "source_name": item.source_name,
         "title": item.title,
-        "url": item.canonical_url,
+        "url": safe.href if safe is not None else None,
         "published_at": item.published_at,
         "keywords": keywords,
         "similar_count": similar_count,

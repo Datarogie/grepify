@@ -53,7 +53,8 @@
 <ul class="feed">
 {% for item in latest_items %}
 <li>
-<a href="{{ item.canonical_url }}" rel="noopener noreferrer">{{ item.title }}</a>
+{% set safe_url = safe_published_url(item.canonical_url, base_url=item.source_url) %}
+{% if safe_url %}<a href="{{ safe_url.href }}" rel="noopener noreferrer">{{ item.title }}</a>{% else %}<span class="item-title">{{ item.title }}</span>{% endif %}
 <div class="meta">{{ item.source_name }} · {{ item.kind }} · {{ item.published_at[:10] }}</div>
 {% set tags = item_tags.get(item.item_id, []) %}
 {% if tags %}

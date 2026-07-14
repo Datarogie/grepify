@@ -23,6 +23,7 @@ from grepify.clock import FixedClock
 from grepify.config.filesystem import FilesystemConfigProvider
 from grepify.errors import ConfigError
 from grepify.health import ErrorClass, HealthSnapshot, SourceHealth
+from grepify.ingest import RawItem, normalize
 from grepify.models import ExtractionMethod, FetchStatus, Item, ItemKeyword, SourceKind
 from grepify.path_safety import ContainedPath, ensure_safe_output_dir
 from grepify.paths import DataLayout
@@ -232,6 +233,241 @@ def build_canned(  # noqa: PLR0913 - test fixture builder, each knob is a distin
         base_path=base_path,
     )
     return result, tmp_path / "public"
+
+
+def test_normalized_ipv6_item_url_reaches_generated_html_and_json(tmp_path: Path) -> None:
+    conf = tmp_path / "sources"
+    (conf / "groups").mkdir(parents=True, exist_ok=True)
+    (conf / "settings.yml").write_text(_SETTINGS, encoding="utf-8")
+    (conf / "keywords.yml").write_text(_KEYWORDS, encoding="utf-8")
+    (conf / "groups" / "ipv6.yml").write_text(
+        textwrap.dedent(
+            """
+            group: ipv6
+            name: IPv6 Sources
+            category: ai
+            sources:
+              - {id: s-ipv6, kind: rss, name: IPv6 Source, url: 'https://feeds.example/rss.xml'}
+            """
+        ).strip(),
+        encoding="utf-8",
+    )
+
+    source = FilesystemConfigProvider(conf).sources()[0]
+    raw = RawItem(
+        url="http://[2001:db8::1]:8080/post?q=1&utm_source=x#fragment",
+        title="Valid IPv6 story",
+    )
+    item = normalize(raw, source, fetched_at="2026-07-08T11:00:00+00:00")
+    assert item.canonical_url == "http://[2001:db8::1]:8080/post?q=1"
+
+    data = tmp_path / "data"
+    repo = JsonlSqliteRepository(data)
+    repo.add_items([item])
+    repo.close()
+
+    out = build_site(
+        config=FilesystemConfigProvider(conf),
+        repository=JsonlSqliteRepository(data),
+        layout=DataLayout(data),
+        clock=_CLOCK,
+        run_id=_RUN_ID,
+        output_dir=tmp_path / "public",
+        base_path="/grepify/",
+    ).output_dir
+
+    items_html = (out / "items/index.html").read_text(encoding="utf-8")
+    assert '<a href="http://[2001:db8::1]:8080/post?q=1" rel="noopener noreferrer">' in items_html
+    assert "Valid IPv6 story" in items_html
+
+    payload = json.loads((out / "items/page-1.json").read_text(encoding="utf-8"))
+    assert payload["items"][0]["url"] == "http://[2001:db8::1]:8080/post?q=1"
+
+
+def test_generated_output_omits_unsafe_href_schemes_but_keeps_titles(tmp_path: Path) -> None:
+    conf = tmp_path / "sources"
+    (conf / "groups").mkdir(parents=True, exist_ok=True)
+    (conf / "settings.yml").write_text(
+        _SETTINGS.replace(
+            "windows:\n  cloud_days: 7", "windows:\n  cloud_days: 7\n  keyword_min_mentions: 2"
+        ),
+        encoding="utf-8",
+    )
+    (conf / "keywords.yml").write_text(_KEYWORDS, encoding="utf-8")
+    (conf / "groups" / "security.yml").write_text(
+        textwrap.dedent(
+            """
+            group: security
+            name: Security Sources
+            category: ai
+            sources:
+              - {id: s-safe, kind: rss, name: Safe Source, url: 'https://ex.com/feed/main.xml'}
+              - id: s-unsafe-feed
+                kind: rss
+                name: Unsafe Feed Source
+                url: 'javascript:alert(99)'
+              - id: s-relative-feed
+                kind: rss
+                name: Relative Feed Source
+                url: '/relative/feed.xml'
+            """
+        ).strip(),
+        encoding="utf-8",
+    )
+
+    data = tmp_path / "data"
+    repo = JsonlSqliteRepository(data)
+    common = {
+        "source_id": "s-safe",
+        "kind": SourceKind.RSS,
+        "summary": None,
+        "fetched_at": "2026-07-08T11:00:00+00:00",
+    }
+    repo.add_items(
+        [
+            Item(
+                **common,
+                item_id="rep-js",
+                external_id="rep-js",
+                canonical_url="javascript:alert(1)",
+                title="Readable representative JS title",
+                published_at="2026-07-07T10:05:00+00:00",
+                content_hash="1111111111111111",
+            ),
+            Item(
+                **common,
+                item_id="keyword-data",
+                external_id="keyword-data",
+                canonical_url="data:text/html,<h1>x</h1>",
+                title="Readable keyword data title",
+                published_at="2026-07-07T10:04:00+00:00",
+                content_hash="2222222222222222",
+            ),
+            Item(
+                **common,
+                item_id="relative-item",
+                external_id="relative-item",
+                canonical_url="../relative-post?x=1",
+                title="Resolved relative title",
+                published_at="2026-07-07T10:03:00+00:00",
+                content_hash="3333333333333333",
+            ),
+            Item(
+                **common,
+                item_id="valid-https",
+                external_id="valid-https",
+                canonical_url="https://safe.example/post",
+                title="Valid HTTPS title",
+                published_at="2026-07-07T10:02:00+00:00",
+                content_hash="4444444444444444",
+            ),
+            Item(
+                **common,
+                item_id="valid-dup-rep",
+                external_id="valid-dup-rep",
+                canonical_url="http://safe.example/duplicate",
+                title="Valid duplicate representative title",
+                published_at="2026-07-07T10:01:00+00:00",
+                content_hash="aaaaaaaaaaaaaaaa",
+            ),
+            Item(
+                **common,
+                item_id="dup-js",
+                external_id="dup-js",
+                canonical_url="javascript:alert(2)",
+                title="Readable duplicate JS title",
+                published_at="2026-07-07T10:00:00+00:00",
+                content_hash="aaaaaaaaaaaaaaab",
+            ),
+        ]
+    )
+    repo.add_item_keywords([_kw("keyword-data", "genai"), _kw("relative-item", "genai")])
+    repo.close()
+
+    result = build_site(
+        config=FilesystemConfigProvider(conf),
+        repository=JsonlSqliteRepository(data),
+        layout=DataLayout(data),
+        clock=_CLOCK,
+        run_id=_RUN_ID,
+        output_dir=tmp_path / "public",
+        base_path="/grepify/",
+    )
+    out = result.output_dir
+    keyword_page = next((out / "keyword").glob("genai-*/index.html"))
+
+    generated = {
+        "home": (out / "index.html").read_text(encoding="utf-8"),
+        "items": (out / "items/index.html").read_text(encoding="utf-8"),
+        "keyword": keyword_page.read_text(encoding="utf-8"),
+        "sources": (out / "sources/index.html").read_text(encoding="utf-8"),
+    }
+    combined = "\n".join(generated.values())
+
+    for html in generated.values():
+        assert 'href="javascript:' not in html.lower()
+        assert 'href="data:' not in html.lower()
+    assert "Readable representative JS title" in generated["items"]
+    assert "Readable duplicate JS title" in generated["items"]
+    assert "Readable keyword data title" in generated["keyword"]
+    assert "feed" in generated["sources"]
+    assert "Valid HTTPS title" in combined
+    assert 'href="https://safe.example/post"' in combined
+    assert 'href="http://safe.example/duplicate"' in generated["items"]
+    assert 'href="https://ex.com/relative-post?x=1"' in combined
+    assert 'href="javascript:alert(99)"' not in generated["sources"].lower()
+    assert 'href="/relative/feed.xml"' not in generated["sources"]
+    assert (
+        'href="https://ex.com/feed/main.xml" rel="noopener noreferrer">feed</a>'
+        in generated["sources"]
+    )
+
+    payload = json.loads((out / "items/page-1.json").read_text(encoding="utf-8"))
+    urls = {item["item_id"]: item["url"] for item in payload["items"]}
+    assert urls["rep-js"] is None
+    assert urls["keyword-data"] is None
+    assert urls["relative-item"] == "https://ex.com/relative-post?x=1"
+    assert urls["valid-https"] == "https://safe.example/post"
+
+    rebuilt = build_site(
+        config=FilesystemConfigProvider(conf),
+        repository=JsonlSqliteRepository(data),
+        layout=DataLayout(data),
+        clock=_CLOCK,
+        run_id=_RUN_ID,
+        output_dir=tmp_path / "public-again",
+        base_path="/grepify/",
+    ).output_dir
+    rebuilt_files = {
+        p.relative_to(rebuilt): p.read_bytes() for p in rebuilt.rglob("*") if p.is_file()
+    }
+    first_files = {p.relative_to(out): p.read_bytes() for p in out.rglob("*") if p.is_file()}
+    assert rebuilt_files == first_files
+
+
+def test_generated_pages_include_meta_csp_and_required_assets_are_allowed(tmp_path: Path) -> None:
+    _, out = build_canned(tmp_path)
+    html = (out / "index.html").read_text(encoding="utf-8")
+    csp_pos = html.index('http-equiv="Content-Security-Policy"')
+    assert csp_pos < html.index('rel="stylesheet"') < html.index("<script src=")
+    csp = re.search(r'<meta http-equiv="Content-Security-Policy" content="([^"]+)">', html)
+    assert csp is not None
+    policy = csp.group(1)
+    directives = [
+        "default-src 'none'",
+        "script-src 'self'",
+        "style-src 'self'",
+        "font-src 'self' data:",
+        "img-src 'self' data:",
+        "object-src 'none'",
+        "base-uri 'none'",
+        "form-action 'none'",
+    ]
+    for directive in directives:
+        assert directive in policy
+    assert "'unsafe-inline'" not in policy
+    assert (out / "static/theme.js").is_file()
+    assert (out / "static/style.css").is_file()
 
 
 # --- snapshots ---------------------------------------------------------------
