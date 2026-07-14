@@ -201,6 +201,7 @@ class DigestDetail:
     period_start: str
     period_end: str
     created_at: str
+    model: str  # real vs "template" (GRP-63 existence checks read this)
 
 
 @dataclass(frozen=True)
@@ -563,12 +564,12 @@ class TrendQueries:
         """
         rows = self._conn.execute(
             "select digest_id, kind, category, title, body_md, top_keywords, "
-            "period_start, period_end, created_at "
+            "period_start, period_end, created_at, model "
             "from digests "
             "order by period_start desc, created_at desc, digest_id desc"
         )
         details: list[DigestDetail] = []
-        for did, kind, cat, title, body_md, top_kw_json, ps, pe, created in rows:
+        for did, kind, cat, title, body_md, top_kw_json, ps, pe, created, model in rows:
             details.append(
                 DigestDetail(
                     digest_id=did,
@@ -580,6 +581,7 @@ class TrendQueries:
                     period_start=ps,
                     period_end=pe,
                     created_at=created,
+                    model=model,
                 )
             )
         return details

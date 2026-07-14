@@ -47,7 +47,10 @@ Failure modes
   convention as ``extract``); the summary rewrite + keyword-row drop happen only
   after that check, and the forced re-extract degrades per-batch to the fallback
   extractor rather than failing the run (PRD §9). A clean corpus is a no-op.
-- ``digest-gate`` is a pure clock read; it never fails.
+- ``digest-gate`` (GRP-63) reads config + the digests already in truth to check
+  existence; a bad config propagates :class:`~grepify.errors.ConfigError` same as
+  every other config-reading command, but a missing/empty data root is not an
+  error - no digests found just means every category's existence check is false.
 - The ``trends`` stub never fails the process; it writes a manifest noting the
   not-yet-implemented epic and returns 0.
 - ``health`` with no recorded runs prints a friendly notice, exit 0.
@@ -86,7 +89,14 @@ from grepify.datasize import (
     compute_data_size,
     format_report,
 )
-from grepify.digest import TEMPLATE_MODEL, digest_gate, format_gate, run_digest_pipeline
+from grepify.digest import (
+    TEMPLATE_MODEL,
+    digest_gate,
+    digest_id_for,
+    format_gate,
+    run_digest_pipeline,
+)
+from grepify.digest.periods import previous_day, previous_iso_week
 from grepify.doctor import build_doctor_report, format_doctor_report
 from grepify.extract import (
     ExtractPipelineResult,
@@ -448,15 +458,38 @@ def digest(ctx: typer.Context, kind: KindOpt = DigestKind.DAILY) -> None:
 
 @app.command(name="digest-gate")
 def digest_gate_command(ctx: typer.Context) -> None:
-    """Print ``daily=/weekly=`` flags: are digest steps due now? (GRP-45).
+    """Print ``daily=/weekly=`` flags: are digest steps due now? (GRP-45/GRP-63).
 
     America/Edmonton-pinned, DST-aware pure gate (:func:`grepify.digest.digest_gate`)
-    over the injected clock. Output is valid to append to ``$GITHUB_OUTPUT`` or to
-    ``eval`` into shell vars - it replaces the coarse ``scripts/digest-gate.sh``
-    placeholder the GRP-06 workflows shipped.
+    over the injected clock and today's digest existence: a step is due once local
+    time is at or past the morning opening and its own period's digest is not yet
+    in truth (GRP-63), so a later run naturally retries a missed morning window.
+    Output is valid to append to ``$GITHUB_OUTPUT`` or to ``eval`` into shell vars -
+    it replaces the coarse ``scripts/digest-gate.sh`` placeholder the GRP-06
+    workflows shipped.
     """
     state: AppState = ctx.obj
-    typer.echo(format_gate(digest_gate(state.clock.now())))
+    now = state.clock.now()
+    config = FilesystemConfigProvider(state.config_root)
+    categories = {g.category for g in config.groups() if g.enabled}
+
+    repository = JsonlSqliteRepository(state.data_root)
+    try:
+        real_ids = {d.digest_id for d in repository.iter_digests() if d.model != TEMPLATE_MODEL}
+    finally:
+        repository.close()
+
+    daily_key = previous_day(now).key
+    weekly_key = previous_iso_week(now).key
+    daily_exists = all(
+        digest_id_for(DigestKind.DAILY, c, daily_key) in real_ids for c in categories
+    )
+    weekly_exists = all(
+        digest_id_for(DigestKind.WEEKLY, c, weekly_key) in real_ids for c in categories
+    )
+
+    gate = digest_gate(now, daily_exists=daily_exists, weekly_exists=weekly_exists)
+    typer.echo(format_gate(gate))
 
 
 OutputDirOpt = Annotated[Path, typer.Option(help="Output directory for the rendered site.")]
