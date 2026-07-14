@@ -192,6 +192,8 @@ class Digest(_Record):
 class FetchLogEntry(_Record):
     """One per-source fetch attempt (PRD §6 fetch_log)."""
 
+    model_config = ConfigDict(extra="ignore", frozen=True)
+
     source_id: str
     run_id: str
     started_at: str
@@ -200,6 +202,7 @@ class FetchLogEntry(_Record):
     error: str | None = None
     duration_ms: int | None = None
     rung: Rung | None = None
+    acquisition_trace: str | None = None
 
 
 class LlmLogEntry(_Record):

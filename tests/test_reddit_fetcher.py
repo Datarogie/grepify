@@ -257,3 +257,21 @@ def test_acquire_reports_alt_endpoint_rung_on_rss_fallback() -> None:
     assert outcome.rung is Rung.ALT_ENDPOINT
     assert outcome.resolved_url == "https://www.reddit.com/r/LocalLLaMA/new.rss"
     assert len(outcome.items) == 2
+
+
+def test_json_429_retry_after_is_respected_and_traced() -> None:
+    sleeps: list[float] = []
+    transport = ScriptedTransport(
+        [
+            HttpResponse(status_code=429, content=b"", headers={"retry-after": "7"}),
+            fixture_response("reddit", "fallback.rss"),
+        ]
+    )
+    outcome = RedditFetcher(transport, sleep=sleeps.append, max_attempts=1).acquire(
+        make_source("localllama", kind=SourceKind.REDDIT, url=_SUB_URL)
+    )
+    assert outcome.rung is Rung.ALT_ENDPOINT
+    assert sleeps == []
+    assert outcome.acquisition_trace is not None
+    assert "rate_limited" in outcome.acquisition_trace
+    assert '"retry_after":"7"' in outcome.acquisition_trace

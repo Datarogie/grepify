@@ -65,6 +65,7 @@ class FetchOutcome:
     items: list[RawItem]
     rung: Rung = Rung.DIRECT
     resolved_url: str | None = None
+    acquisition_trace: str | None = None
 
 
 class Fetcher(ABC):

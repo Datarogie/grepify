@@ -488,3 +488,30 @@ normalizer - investigate that, do not just re-run O1.
   `validate` or any `pull_request`-triggered step, and never log a credential.
 </content>
 </invoke>
+
+## Provider-aware acquisition diagnostics (#119)
+
+`fetch_log` rows may include an additive `acquisition_trace` JSON string. It is
+compact and sanitized: method/rung, provider, redacted URL, coarse outcome, and
+item count when a method served. It deliberately excludes response bodies,
+cookies, authorization data, challenge tokens, upstream headers, and sensitive
+query values.
+
+Provider notes:
+
+- Substack feeds are treated as `substack`, not generic WordPress. The RSS
+  fetcher does not try WordPress-shaped `/feed/atom/` or `?feed=rss2` alternates
+  for Substack hosts. If direct Substack is blocked from the GitHub-hosted
+  runner, only homepage autodiscovery and an explicitly pinned `active_url`
+  fallback are attempted.
+- `benn-substack` is `degraded`, not `dead`: the strongest current evidence is
+  a runner-specific 403 against a publicly live publication. Its canonical
+  identity remains `https://benn.substack.com/feed`; any fallback is just
+  transport evidence.
+- Reddit remains JSON-first with `.rss` fallback. HTTP 403 falls back
+  immediately; HTTP 429 records `rate_limited` and honors bounded
+  `Retry-After` values before the RSS fallback.
+
+When triaging a flagged source, prefer `acquisition_trace` over a single
+`error` string because it shows what failed before a fallback served. Older
+fetch-log rows lack this field and remain valid.

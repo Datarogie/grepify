@@ -295,11 +295,22 @@ def _run_source(
         outcome = services.registry.acquire(source)
         raw_items = outcome.items[:item_cap]
         if not raw_items:
-            return _finish(attempt, FetchStatus.EMPTY, rung=outcome.rung)
+            return _finish(
+                attempt,
+                FetchStatus.EMPTY,
+                rung=outcome.rung,
+                acquisition_trace=outcome.acquisition_trace,
+            )
         fetched_at = to_iso(services.clock.now())
         items = dedup_within_batch(normalize_batch(raw_items, source, fetched_at=fetched_at))
         items_new = services.repository.add_items(items)
-        return _finish(attempt, FetchStatus.OK, items_new=items_new, rung=outcome.rung)
+        return _finish(
+            attempt,
+            FetchStatus.OK,
+            items_new=items_new,
+            rung=outcome.rung,
+            acquisition_trace=outcome.acquisition_trace,
+        )
     except FetchError as exc:
         return _finish(attempt, FetchStatus.ERROR, error=str(exc))
     except KeyError as exc:
@@ -311,13 +322,14 @@ def _run_source(
         return _finish(attempt, FetchStatus.ERROR, error=f"{type(exc).__name__}: {exc}")
 
 
-def _finish(
+def _finish(  # noqa: PLR0913
     attempt: _Attempt,
     status: FetchStatus,
     *,
     items_new: int = 0,
     error: str | None = None,
     rung: Rung | None = None,
+    acquisition_trace: str | None = None,
 ) -> SourceResult:
     return _record(
         attempt.repository,
@@ -330,5 +342,6 @@ def _finish(
             error=error,
             duration_ms=int((time.monotonic() - attempt.t0) * 1000),
             rung=rung,
+            acquisition_trace=acquisition_trace,
         ),
     )

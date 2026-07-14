@@ -290,3 +290,74 @@ def test_mirror_rung_uses_transport_policy_before_request() -> None:
         "https://example.com/?feed=rss2",
         "https://example.com/",
     ]
+
+
+def test_substack_direct_success_stays_direct_without_generic_wordpress_alts() -> None:
+    transport = ScriptedTransport([fixture_response("rss", "valid.xml")])
+    source = make_source("getdbt-roundup", url="https://roundup.getdbt.com/feed")
+    outcome = RssFetcher(transport).acquire(source)
+    assert outcome.rung is Rung.DIRECT
+    assert transport.calls == [("https://roundup.getdbt.com/feed", transport.calls[0][1])]
+
+
+def test_substack_403_uses_explicit_pinned_fallback_and_preserves_identity() -> None:
+    source = make_source("benn-substack", url="https://benn.substack.com/feed").model_copy(
+        update={"active_url": "https://substack.com/feed/@benn"}
+    )
+    transport = ScriptedTransport(
+        [
+            _fail(403),
+            _html(b"<html>no feed</html>"),
+            fixture_response("rss", "valid.xml"),
+        ]
+    )
+    outcome = RssFetcher(transport).acquire(source)
+    assert outcome.rung is Rung.MIRROR
+    assert outcome.resolved_url == "https://substack.com/feed/@benn"
+    assert source.url == "https://benn.substack.com/feed"
+    assert [call[0] for call in transport.calls] == [
+        "https://benn.substack.com/feed",
+        "https://benn.substack.com/",
+        "https://substack.com/feed/@benn",
+    ]
+    assert outcome.acquisition_trace is not None
+    assert "403" not in outcome.acquisition_trace
+    assert "runner_blocked_or_forbidden" in outcome.acquisition_trace
+
+
+def test_substack_all_methods_failing_is_bounded() -> None:
+    source = make_source("benn-substack", url="https://benn.substack.com/feed").model_copy(
+        update={"active_url": "https://substack.com/feed/@benn"}
+    )
+    transport = ScriptedTransport([_fail(403), _html(b"<html>no feed</html>"), _fail(403)])
+    with pytest.raises(FetchError, match="all acquisition rungs failed"):
+        RssFetcher(transport).acquire(source)
+    assert len(transport.calls) == 3
+
+
+def test_oversized_feed_rejected_before_parse() -> None:
+    transport = ScriptedTransport(
+        [HttpResponse(status_code=200, content=b"x" * 2_000_001, headers={})]
+    )
+    with pytest.raises(FetchError, match="too large"):
+        RssFetcher(transport).fetch(make_source("s1"))
+
+
+def test_acquisition_trace_redacts_sensitive_query_values() -> None:
+    source = make_source("s1", url="https://example.com/feed?token=secret").model_copy(
+        update={"active_url": "https://example.com/mirror.xml?api_key=secret"}
+    )
+    transport = ScriptedTransport(
+        [
+            _fail(403),
+            _fail(404),
+            _fail(404),
+            _fail(404),
+            _html(b"no"),
+            fixture_response("rss", "valid.xml"),
+        ]
+    )
+    outcome = RssFetcher(transport).acquire(source)
+    assert outcome.acquisition_trace is not None
+    assert "secret" not in outcome.acquisition_trace
+    assert "REDACTED" in outcome.acquisition_trace

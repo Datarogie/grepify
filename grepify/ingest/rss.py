@@ -41,7 +41,9 @@ XML, zero entries) also returns ``[]`` - an empty feed is normal, not an error.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
+from urllib.parse import urlsplit
 
 from grepify.errors import FetchError
 from grepify.ingest.base import Fetcher, FetchOutcome, RawItem
@@ -51,6 +53,7 @@ from grepify.ingest.ladder import alt_endpoint_urls, discover_feed_url, site_roo
 from grepify.models import Rung, Source, SourceKind
 
 _TIMEOUT_SECONDS = 10.0
+_MAX_RESPONSE_BYTES = 2_000_000
 _USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
@@ -96,40 +99,40 @@ class RssFetcher(Fetcher):
     def acquire(self, source: Source) -> FetchOutcome:
         """Walk the acquisition ladder (ADR 0002 §1) and report the rung.
 
-        Order: direct (rung 0) -> alternate endpoints (rung 1) -> feed
-        autodiscovery (rung 2) -> a maintainer-pinned mirror in ``active_url``
-        (rung 3). A rung *advances* only when the one before it **failed**
-        (raised :class:`~grepify.errors.FetchError`); a rung that returns a
-        parseable feed serves it and stops, even when that feed is empty (a
-        quiet feed is not a failure and must not be re-classified as degraded).
-        Attempts are bounded - one GET per static rung plus one HTML + one feed
-        GET for autodiscovery - so the ladder can never spin (no unbounded
-        retries, PRD §9).
+        Attempts are bounded and traced with sanitized provider-aware metadata.
         """
         errors: list[str] = []
+        attempts: list[dict[str, object]] = []
         for rung, url in self._static_candidates(source):
             try:
                 items = self._fetch_feed(source, url, use_cache=rung is Rung.DIRECT)
             except FetchError as exc:
                 errors.append(str(exc))
+                attempts.append(_trace(rung, url, "error", _coarse_error(exc)))
                 continue
-            return FetchOutcome(items, rung, None if rung is Rung.DIRECT else url)
+            attempts.append(_trace(rung, url, "served", None, item_count=len(items)))
+            return FetchOutcome(
+                items, rung, None if rung is Rung.DIRECT else url, _trace_json(attempts)
+            )
 
-        discovered = self._autodiscover(source, errors)
+        discovered = self._autodiscover(source, errors, attempts)
         for rung, url in self._discovered_candidates(source, discovered):
             try:
                 items = self._fetch_feed(source, url, use_cache=False)
             except FetchError as exc:
                 errors.append(str(exc))
+                attempts.append(_trace(rung, url, "error", _coarse_error(exc)))
                 continue
-            return FetchOutcome(items, rung, url)
+            attempts.append(_trace(rung, url, "served", None, item_count=len(items)))
+            return FetchOutcome(items, rung, url, _trace_json(attempts))
 
         raise FetchError(f"{source.source_id}: all acquisition rungs failed: {'; '.join(errors)}")
 
     def _static_candidates(self, source: Source) -> list[tuple[Rung, str]]:
         """Rungs 0 and 1: the direct feed then same-publisher alternates."""
         candidates: list[tuple[Rung, str]] = [(Rung.DIRECT, source.url)]
-        candidates += [(Rung.ALT_ENDPOINT, url) for url in alt_endpoint_urls(source.url)]
+        if _provider_for_url(source.url) != "substack":
+            candidates += [(Rung.ALT_ENDPOINT, url) for url in alt_endpoint_urls(source.url)]
         return candidates
 
     def _discovered_candidates(
@@ -144,7 +147,9 @@ class RssFetcher(Fetcher):
             candidates.append((Rung.MIRROR, source.active_url))
         return candidates
 
-    def _autodiscover(self, source: Source, errors: list[str]) -> str | None:
+    def _autodiscover(
+        self, source: Source, errors: list[str], attempts: list[dict[str, object]]
+    ) -> str | None:
         root = site_root(source.url)
         try:
             response = get_or_raise(
@@ -156,14 +161,26 @@ class RssFetcher(Fetcher):
             )
         except FetchError as exc:
             errors.append(str(exc))
+            attempts.append(_trace(Rung.AUTODISCOVERY, root, "error", _coarse_error(exc)))
             return None
         if not (200 <= response.status_code < 300):
             safe_root = safe_url_for_log(root)
             errors.append(
                 f"{source.source_id}: autodiscovery GET {safe_root} HTTP {response.status_code}"
             )
+            attempts.append(
+                _trace(Rung.AUTODISCOVERY, root, "error", f"http_{response.status_code}")
+            )
             return None
-        return discover_feed_url(response.content, base_url=root)
+        if len(response.content) > _MAX_RESPONSE_BYTES:
+            attempts.append(_trace(Rung.AUTODISCOVERY, root, "error", "oversized"))
+            errors.append(f"{source.source_id}: autodiscovery response too large")
+            return None
+        discovered = discover_feed_url(response.content, base_url=root)
+        attempts.append(
+            _trace(Rung.AUTODISCOVERY, root, "discovered" if discovered else "empty", None)
+        )
+        return discovered
 
     def _fetch_feed(self, source: Source, url: str, *, use_cache: bool) -> list[RawItem]:
         headers = {"user-agent": _USER_AGENT, "accept": _ACCEPT}
@@ -182,6 +199,8 @@ class RssFetcher(Fetcher):
             source_id=source.source_id,
         )
 
+        if len(response.content) > _MAX_RESPONSE_BYTES:
+            raise FetchError(f"{source.source_id}: response too large")
         if response.status_code == 304:
             return []
         if not (200 <= response.status_code < 300):
@@ -196,3 +215,44 @@ class RssFetcher(Fetcher):
 
         feed_lang = parsed.feed.get("language")
         return [raw_item_from_feed_entry(entry, lang=feed_lang) for entry in parsed.entries]
+
+
+def _provider_for_url(url: str) -> str:
+    host = (urlsplit(url).hostname or "").lower().rstrip(".")
+    return "substack" if host.endswith(".substack.com") else "generic_rss"
+
+
+def _coarse_error(exc: FetchError) -> str:
+    text = str(exc).lower()
+    checks = (
+        (("403",), "runner_blocked_or_forbidden"),
+        (("429",), "rate_limited"),
+        (("too large",), "oversized"),
+        (("timeout",), "timeout"),
+        (("unsafe", "credential", "scheme"), "policy_blocked"),
+        (("unparseable", "malformed"), "parse_error"),
+    )
+    for needles, category in checks:
+        if any(needle in text for needle in needles):
+            return category
+    return "fetch_error"
+
+
+def _trace(
+    rung: Rung, url: str, outcome: str, reason: str | None, *, item_count: int | None = None
+) -> dict[str, object]:
+    row: dict[str, object] = {
+        "provider": _provider_for_url(url),
+        "method": rung.value,
+        "url": safe_url_for_log(url),
+        "outcome": outcome,
+    }
+    if reason is not None:
+        row["reason"] = reason
+    if item_count is not None:
+        row["items"] = item_count
+    return row
+
+
+def _trace_json(attempts: list[dict[str, object]]) -> str:
+    return json.dumps(attempts, sort_keys=True, separators=(",", ":"))

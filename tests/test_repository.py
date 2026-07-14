@@ -258,3 +258,31 @@ def test_corrupt_truth_file_raises(tmp_path: Path) -> None:
     bad.write_text("{not json}\n", encoding="utf-8")
     with pytest.raises(RepositoryError):
         repo.existing_item_ids()
+
+
+def test_old_fetch_log_rows_ignore_new_acquisition_trace_field_absence(tmp_path):
+    entry = FetchLogEntry.model_validate(
+        {
+            "source_id": "old",
+            "run_id": "r1",
+            "started_at": "2026-07-14T00:00:00+00:00",
+            "status": "ok",
+            "items_new": 0,
+        }
+    )
+    assert entry.status is FetchStatus.OK
+    assert entry.acquisition_trace is None
+
+
+def test_fetch_log_rows_ignore_future_additive_fields(tmp_path):
+    entry = FetchLogEntry.model_validate(
+        {
+            "source_id": "old",
+            "run_id": "r1",
+            "started_at": "2026-07-14T00:00:00+00:00",
+            "status": "error",
+            "acquisition_trace": "[]",
+            "future": "ignored",
+        }
+    )
+    assert entry.acquisition_trace == "[]"

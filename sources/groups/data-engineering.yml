@@ -16,8 +16,9 @@ sources:
     kind: rss
     name: benn.substack.com (Benn Stancil)
     url: https://benn.substack.com/feed
-    status: dead
-    evidence: "#45 run 20260713T003917Z: Substack HTTP 403 after browser UA (WAF/IP block, not a UA issue); rungs 0-2 cannot beat it. Recheck 30d; Substack -> strong rung 4 (openrss / self-host RSSHub) opt-in candidate."
+    status: degraded
+    evidence: "#119 2026-07-14: publicly live Substack, but GitHub-hosted runner direct feed receives HTTP 403. Keep enabled as runner-blocked/degraded and use the provider-aware ladder plus this explicit pinned same-publisher fallback if it validates."
+    active_url: https://substack.com/feed/@benn
     added_at: "2026-07-08"
   - id: getdbt-roundup
     kind: rss

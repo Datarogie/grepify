@@ -54,7 +54,13 @@ from grepify.clock import to_iso
 from grepify.errors import FetchError
 from grepify.ingest.base import Fetcher, FetchOutcome, RawItem
 from grepify.ingest.feedutil import clean_title, parse_feed_bytes, raw_item_from_feed_entry
-from grepify.ingest.http import HttpResponse, HttpxTransport, Transport, get_or_raise
+from grepify.ingest.http import (
+    HttpResponse,
+    HttpxTransport,
+    Transport,
+    get_or_raise,
+    safe_url_for_log,
+)
 from grepify.models import Rung, Source, SourceKind
 
 _TIMEOUT_SECONDS = 10.0
@@ -118,16 +124,39 @@ class RedditFetcher(Fetcher):
         headers = {"user-agent": _USER_AGENT}
         url = _with_limit(source.url, _ITEM_CAP)
 
-        response = self._get_with_backoff(url, headers=headers, source_id=source.source_id)
+        trace: list[dict[str, object]] = []
+        response = self._get_with_backoff(
+            url, headers=headers, source_id=source.source_id, trace=trace
+        )
         if response is not None:
             items = self._parse_json(response.content, source_id=source.source_id)
-            return FetchOutcome(items[:_ITEM_CAP], Rung.DIRECT)
+            trace.append(
+                {
+                    "provider": "reddit",
+                    "method": "json",
+                    "url": safe_url_for_log(url),
+                    "outcome": "served",
+                    "items": len(items[:_ITEM_CAP]),
+                }
+            )
+            return FetchOutcome(
+                items[:_ITEM_CAP], Rung.DIRECT, acquisition_trace=_trace_json(trace)
+            )
         fallback_url = _rss_fallback_url(source.url)
         items = self._fetch_rss_fallback(source, fallback_url, headers=headers)
-        return FetchOutcome(items[:_ITEM_CAP], Rung.ALT_ENDPOINT, fallback_url)
+        trace.append(
+            {
+                "provider": "reddit",
+                "method": "rss",
+                "url": safe_url_for_log(fallback_url),
+                "outcome": "served",
+                "items": len(items[:_ITEM_CAP]),
+            }
+        )
+        return FetchOutcome(items[:_ITEM_CAP], Rung.ALT_ENDPOINT, fallback_url, _trace_json(trace))
 
     def _get_with_backoff(
-        self, url: str, *, headers: dict[str, str], source_id: str
+        self, url: str, *, headers: dict[str, str], source_id: str, trace: list[dict[str, object]]
     ) -> HttpResponse | None:
         """GET with bounded exponential backoff on transient failures.
 
@@ -137,6 +166,7 @@ class RedditFetcher(Fetcher):
         a hard client error would only waste attempts.
         """
         for attempt in range(self._max_attempts):
+            response: HttpResponse | None = None
             try:
                 response = get_or_raise(
                     self._transport,
@@ -145,15 +175,50 @@ class RedditFetcher(Fetcher):
                     timeout=self._timeout,
                     source_id=source_id,
                 )
-            except FetchError:
-                pass
+            except FetchError as exc:
+                trace.append(
+                    {
+                        "provider": "reddit",
+                        "method": "json",
+                        "url": safe_url_for_log(url),
+                        "outcome": "error",
+                        "reason": _coarse_error(str(exc)),
+                    }
+                )
             else:
                 if 200 <= response.status_code < 300:
                     return response
+                retry_after = response.headers.get("retry-after")
                 if response.status_code not in _RETRYABLE_STATUSES:
+                    trace.append(
+                        {
+                            "provider": "reddit",
+                            "method": "json",
+                            "url": safe_url_for_log(url),
+                            "outcome": "error",
+                            "status": response.status_code,
+                            "reason": _coarse_error(str(response.status_code)),
+                        }
+                    )
                     return None
+                trace.append(
+                    {
+                        "provider": "reddit",
+                        "method": "json",
+                        "url": safe_url_for_log(url),
+                        "outcome": "retry",
+                        "status": response.status_code,
+                        "reason": _coarse_error(str(response.status_code)),
+                        "retry_after": retry_after or "absent",
+                    }
+                )
             if attempt < self._max_attempts - 1:
-                self._sleep(_BACKOFF_BASE_SECONDS * (2**attempt))
+                self._sleep(
+                    _retry_delay(
+                        response.headers.get("retry-after") if response is not None else None,
+                        attempt,
+                    )
+                )
         return None
 
     def _fetch_rss_fallback(
@@ -207,3 +272,28 @@ class RedditFetcher(Fetcher):
             author=data.get("author"),
             published_at=published_at,
         )
+
+
+def _retry_delay(retry_after: str | None, attempt: int) -> float:
+    if retry_after is not None:
+        try:
+            value = float(retry_after)
+        except ValueError:
+            value = -1.0
+        if 0 <= value <= 60:
+            return value
+    return float(_BACKOFF_BASE_SECONDS * (2**attempt))
+
+
+def _coarse_error(text: str) -> str:
+    if "429" in text:
+        return "rate_limited"
+    if "403" in text:
+        return "forbidden"
+    if "timeout" in text.lower():
+        return "timeout"
+    return "fetch_error"
+
+
+def _trace_json(trace: list[dict[str, object]]) -> str:
+    return json.dumps(trace, sort_keys=True, separators=(",", ":"))
