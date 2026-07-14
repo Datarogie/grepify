@@ -320,6 +320,17 @@ KindOpt = Annotated[
 ]
 
 
+def _real_digest_ids(repository: JsonlSqliteRepository) -> set[str]:
+    """Digest ids already in truth, excluding template (degraded) ones.
+
+    Shared by the ``digest`` pipeline's own idempotent skip and ``digest-gate``'s
+    existence check (GRP-63): a template digest must not count as present, so a
+    later run with a working LLM upgrades it rather than treating the period as
+    already done.
+    """
+    return {d.digest_id for d in repository.iter_digests() if d.model != TEMPLATE_MODEL}
+
+
 @app.command()
 def digest(ctx: typer.Context, kind: KindOpt = DigestKind.DAILY) -> None:
     """Generate per-category digests for the just-completed period (GRP-41/42).
@@ -394,12 +405,7 @@ def digest(ctx: typer.Context, kind: KindOpt = DigestKind.DAILY) -> None:
         categories = [g.category for g in groups if g.enabled]
 
         repository.load_config(groups, config.sources())
-        # Template digests (the degraded fallback) are deliberately excluded, so a
-        # later run with a working LLM upgrades them rather than treating the day
-        # as already done.
-        existing_digest_ids = {
-            d.digest_id for d in repository.iter_digests() if d.model != TEMPLATE_MODEL
-        }
+        existing_digest_ids = _real_digest_ids(repository)
         repository.rebuild_cache()
         conn = open_cache(layout)
         try:
@@ -475,7 +481,7 @@ def digest_gate_command(ctx: typer.Context) -> None:
 
     repository = JsonlSqliteRepository(state.data_root)
     try:
-        real_ids = {d.digest_id for d in repository.iter_digests() if d.model != TEMPLATE_MODEL}
+        real_ids = _real_digest_ids(repository)
     finally:
         repository.close()
 
