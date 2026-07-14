@@ -25,6 +25,7 @@ windows:
   digest_weekly: iso_week
   keyword_days: 30 # trailing window for keyword detail pages (F-SIT-04)
   keyword_min_mentions: 3 # a keyword gets a page at >= this many mentions in that window
+  coverage_quiet_days: 30 # a live source with no item this recently reads as quiet (GRP-70)
 
 # Rising-detection + digest shaping (PRD §8 F-TRD-03 / F-DIG-01/03). All optional
 # (these are the defaults); tune without a code change.

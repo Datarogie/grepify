@@ -18,6 +18,7 @@ windows:
   digest_weekly: iso_week
   keyword_days: 30
   keyword_min_mentions: 3
+  coverage_quiet_days: 30
 
 digest:
   rising_min_count: 3

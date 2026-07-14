@@ -6,28 +6,28 @@
 <meta name="color-scheme" content="dark">
 <meta name="robots" content="noindex">
 <title>grepify - health</title>
-<link rel="stylesheet" href="/grepify/static/style.css?v=94160f70">
-<script src="/grepify/static/theme.js?v=5e2d620e"></script>
+<link rel="stylesheet" href="/static/style.css?v=94160f70">
+<script src="/static/theme.js?v=5e2d620e"></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="site-header">
 <div class="masthead-row">
-<a class="brand" href="/grepify/">grepify<span class="caret" aria-hidden="true"></span></a>
+<a class="brand" href="/">grepify<span class="caret" aria-hidden="true"></span></a>
 <button type="button" class="theme-toggle" id="theme-toggle" aria-pressed="false" hidden>theme: dark</button>
 </div>
 <nav class="site-nav" aria-label="Primary">
-<a href="/grepify/">Home</a>
-<a href="/grepify/digest/">Digests</a>
-<a href="/grepify/items/">Items</a>
-<a href="/grepify/sources/">Sources</a>
-<a href="/grepify/health/" aria-current="page">Health</a>
+<a href="/">Home</a>
+<a href="/digest/">Digests</a>
+<a href="/items/">Items</a>
+<a href="/sources/">Sources</a>
+<a href="/health/" aria-current="page">Health</a>
 </nav>
 </header>
 <main id="main" class="site-main">
 <h1>Health</h1>
 
-<p class="muted">0 of 2 live sources contributed nothing in 30 days.</p>
+<p class="status-quiet">1 of 3 live sources contributed nothing in 30 days.</p>
 
 <h2>Next scheduled digest</h2>
 <p>Next digest run: <strong>2026-07-07 05:00</strong> America/Edmonton (UTC-06:00).</p>
@@ -40,8 +40,17 @@
 <table>
 <thead><tr><th>Source</th><th>Class</th><th>Last status</th><th>Error</th><th>Last attempt</th><th>Attempts</th><th>Consecutive failures</th></tr></thead>
 <tbody>
+<tr class="status-error">
+<td>Erroring One</td>
+<td class="status-ok">active</td>
+<td class="status-error">error</td>
+<td title="s-erroring: HTTP 500">-</td>
+<td>2026-07-08T08:00:00</td>
+<td>10</td>
+<td>6 ⚑</td>
+</tr>
 <tr>
-<td>Source One</td>
+<td>Fresh One</td>
 <td class="status-ok">active</td>
 <td class="status-ok">ok</td>
 <td>-</td>
@@ -49,18 +58,31 @@
 <td>10</td>
 <td>0</td>
 </tr>
-<tr class="status-error">
-<td>Source Two</td>
+<tr>
+<td>Quiet One</td>
 <td class="status-ok">active</td>
-<td class="status-error">error</td>
-<td title="returned HTTP 429 Too Many Requests">http_4xx</td>
+<td class="status-ok">ok</td>
+<td>-</td>
 <td>2026-07-08T08:00:00</td>
-<td>8</td>
-<td>6 ⚑</td>
+<td>10</td>
+<td>0</td>
 </tr>
 </tbody>
 </table>
 
+<details class="lifecycle-disabled">
+<summary>Disabled sources (1) - not fetched, shown for the record</summary>
+<table>
+<thead><tr><th>Source</th><th>Class</th><th>Reason</th></tr></thead>
+<tbody>
+<tr>
+<td>Dead One</td>
+<td class="status-warn">dead</td>
+<td class="muted">#66: full ladder failed; recheck 30d</td>
+</tr>
+</tbody>
+</table>
+</details>
 </main>
 <footer class="site-footer">
 <span>Generated 2026-07-08T00:00:00+00:00</span>

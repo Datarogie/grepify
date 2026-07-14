@@ -292,6 +292,19 @@ def test_top_sources(tmp_path: Path) -> None:
     ]
 
 
+# --- coverage (GRP-70) --------------------------------------------------------
+
+
+def test_last_contributed_at_is_all_time_max_per_source(tmp_path: Path) -> None:
+    q = _queries(tmp_path)
+    contributed = q.last_contributed_at()
+    # s1's newest item is i2 (i5 is outside the trend window but still counts -
+    # all-time, not window-bound); s2's newest is i3.
+    assert contributed["s1"] == "2026-07-06T10:00:00+00:00"
+    assert contributed["s2"] == "2026-07-07T10:00:00+00:00"
+    assert "s3" not in contributed  # zero items ever -> absent, not a sentinel
+
+
 # --- latest lists ------------------------------------------------------------
 
 

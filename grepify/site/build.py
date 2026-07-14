@@ -44,6 +44,18 @@ build's injected ``clock``) and the most-recent digest per category
 digests already queried for the digest pages). Neither reads new state - the
 digest gate (GRP-45, ``grepify.digest.gating``) stays the single source of
 truth for whether a digest actually runs; this only renders it.
+
+Coverage: last-contributed recency + quiet rollup (GRP-70)
+------------------------------------------------------------
+Both the sources page (a last-contributed column) and the health page (a
+one-line "N of M live sources contributed nothing in <days> days" rollup)
+render :func:`~grepify.site.pages.build_source_rows` /
+:func:`~grepify.site.pages.coverage_rollup`, computed once per build from
+``TrendQueries.last_contributed_at`` (all-time, not the trailing-90d emission
+window) and ``settings.windows.coverage_quiet_days``. Quiet is scoped to live
+(enabled) sources only - a dead/paywalled source's silence is already
+explained by its lifecycle class (GRP-66), not double-counted as coverage
+quiet.
 """
 
 from __future__ import annotations
@@ -64,15 +76,19 @@ from grepify.config.schemas import SettingsConfig
 from grepify.digest.periods import previous_day
 from grepify.health import HealthSnapshot
 from grepify.keywords import KeywordRules
-from grepify.models import DigestKind, Source, SourceGroup
+from grepify.models import DigestKind, SourceGroup
 from grepify.paths import DataLayout
 from grepify.repository.base import Repository
 from grepify.site.next_digest import next_scheduled_run
 from grepify.site.pages import (
     ITEMS_PER_PAGE,
+    CoverageRollup,
     Page,
+    SourceRow,
     build_health_view,
     build_pages,
+    build_source_rows,
+    coverage_rollup,
     item_json,
     latest_digest_per_category,
     page_facets,
@@ -167,10 +183,19 @@ def build_site(  # noqa: PLR0913 - distinct collaborators, all required
         digests = queries.all_digests()
         daily_exists = _daily_digest_exists(digests, config.groups(), now)
 
+        quiet_after_days = settings.windows.coverage_quiet_days
+        source_rows = build_source_rows(
+            config.sources(),
+            queries.last_contributed_at(),
+            now=now,
+            quiet_after_days=quiet_after_days,
+        )
+        coverage = coverage_rollup(source_rows, quiet_after_days=quiet_after_days)
+
         pages_written = (
             _write_home(env, meta, output_dir, queries, cloud_window, keyword_pages, settings)
             + _write_items(env, meta, output_dir, queries, emitted_items)
-            + _write_sources(env, meta, output_dir, config)
+            + _write_sources(env, meta, output_dir, config, source_rows, coverage)
             + _write_health(
                 env,
                 meta,
@@ -181,6 +206,7 @@ def build_site(  # noqa: PLR0913 - distinct collaborators, all required
                 digests=digests,
                 now=now,
                 daily_exists=daily_exists,
+                coverage=coverage,
             )
             + _write_digests(env, meta, output_dir, digests)
             + _write_keyword_pages(env, meta, output_dir, keyword_details)
@@ -260,16 +286,20 @@ def _write_items(
     return len(pages)
 
 
-def _write_sources(
-    env: jinja2.Environment, meta: SiteMeta, output_dir: Path, config: ConfigProvider
+def _write_sources(  # noqa: PLR0913 - collaborators of one page render, all required
+    env: jinja2.Environment,
+    meta: SiteMeta,
+    output_dir: Path,
+    config: ConfigProvider,
+    source_rows: list[SourceRow],
+    coverage: CoverageRollup,
 ) -> int:
     groups = sorted(config.groups(), key=lambda g: g.group_id)
-    sources = config.sources()
-    by_group: dict[str, list[Source]] = {}
-    for source in sources:
-        by_group.setdefault(source.group_id, []).append(source)
+    by_group: dict[str, list[SourceRow]] = {}
+    for row in source_rows:
+        by_group.setdefault(row.group_id, []).append(row)
     grouped = [
-        (group, sorted(by_group.get(group.group_id, []), key=lambda s: s.source_id))
+        (group, sorted(by_group.get(group.group_id, []), key=lambda r: r.source_id))
         for group in groups
     ]
     html = render_page(
@@ -277,7 +307,8 @@ def _write_sources(
         "sources.html",
         PageContext(meta=meta, active="sources"),
         grouped=grouped,
-        source_count=len(sources),
+        source_count=len(source_rows),
+        coverage=coverage,
     )
     _write(output_dir / "sources" / "index.html", html)
     return 1
@@ -317,6 +348,7 @@ def _write_health(  # noqa: PLR0913 - collaborators of one page render, all requ
     digests: list[DigestDetail],
     now: datetime,
     daily_exists: bool,
+    coverage: CoverageRollup,
 ) -> int:
     sources = config.sources()
     quiet_kinds = set(settings.ingest.quiet_kinds)
@@ -329,6 +361,7 @@ def _write_health(  # noqa: PLR0913 - collaborators of one page render, all requ
         health_view=view,
         next_run=next_scheduled_run(now, daily_exists=daily_exists),
         category_digests=latest_digest_per_category(digests),
+        coverage=coverage,
     )
     _write(output_dir / "health" / "index.html", html)
     return 1
