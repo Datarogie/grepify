@@ -46,7 +46,7 @@ from dataclasses import dataclass
 from grepify.errors import FetchError
 from grepify.ingest.base import Fetcher, FetchOutcome, RawItem
 from grepify.ingest.feedutil import parse_feed_bytes, raw_item_from_feed_entry
-from grepify.ingest.http import HttpxTransport, Transport, get_or_raise
+from grepify.ingest.http import HttpxTransport, Transport, get_or_raise, safe_url_for_log
 from grepify.ingest.ladder import alt_endpoint_urls, discover_feed_url, site_root
 from grepify.models import Rung, Source, SourceKind
 
@@ -158,8 +158,9 @@ class RssFetcher(Fetcher):
             errors.append(str(exc))
             return None
         if not (200 <= response.status_code < 300):
+            safe_root = safe_url_for_log(root)
             errors.append(
-                f"{source.source_id}: autodiscovery GET {root} HTTP {response.status_code}"
+                f"{source.source_id}: autodiscovery GET {safe_root} HTTP {response.status_code}"
             )
             return None
         return discover_feed_url(response.content, base_url=root)

@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import ipaddress
+
+import httpx
 import pytest
 
 from grepify.errors import FetchError
 from grepify.ingest import RssFetcher
-from grepify.ingest.http import HttpResponse
+from grepify.ingest.http import HttpResponse, HttpxTransport, OutboundHttpClient
 from grepify.models import Rung
 from tests.conftest import ScriptedTransport, fixture_response, make_source
 
@@ -248,3 +251,42 @@ def test_fetch_still_uses_only_the_direct_rung() -> None:
     with pytest.raises(FetchError, match="403"):
         RssFetcher(transport).fetch(make_source("s1", url=_FEED_URL))
     assert len(transport.calls) == 1
+
+
+def test_autodiscovery_status_error_redacts_sensitive_query() -> None:
+    source = make_source("s1", url="https://example.com/feed?token=secret")
+    fetcher = RssFetcher(ScriptedTransport([_fail(), _fail(), _fail()]))
+
+    with pytest.raises(FetchError) as exc:
+        fetcher.acquire(source)
+
+    text = str(exc.value)
+    assert "secret" not in text
+
+
+def test_mirror_rung_uses_transport_policy_before_request() -> None:
+    sent: list[str] = []
+    fetcher = RssFetcher(
+        HttpxTransport(
+            client=OutboundHttpClient(
+                resolver=lambda host, port: [ipaddress.ip_address("8.8.8.8")],
+                transport_factory=lambda _: httpx.MockTransport(
+                    lambda request: sent.append(str(request.url)) or httpx.Response(404)
+                ),
+            )
+        )
+    )
+    source = make_source("s1", url="https://example.com/feed").model_copy(
+        update={"active_url": "https://127.0.0.1/feed"}
+    )
+
+    with pytest.raises(FetchError):
+        fetcher.acquire(source)
+
+    assert sent == [
+        "https://example.com/feed",
+        "https://example.com/feed/",
+        "https://example.com/feed/atom/",
+        "https://example.com/?feed=rss2",
+        "https://example.com/",
+    ]

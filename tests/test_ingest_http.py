@@ -1,71 +1,426 @@
-"""#45: HttpxTransport TLS wiring (security-level-1 SSL context).
-
-Covers only the SSL-context construction and that HttpxTransport threads that
-context through to ``httpx.get`` via ``verify=``. Network-free and deterministic:
-the fetcher tests inject a fake transport and never exercise HttpxTransport, so
-this is the one place the real transport's wiring is checked.
-"""
-
 from __future__ import annotations
 
-import ssl
-from typing import Any, ClassVar
+import ipaddress
+from collections.abc import Callable
+from pathlib import Path
+from typing import Any
 
 import httpx
+import pytest
 
-from grepify.ingest.http import HttpxTransport, _build_ssl_context
-
-
-def test_build_ssl_context_permits_legacy_ciphers_but_keeps_verification() -> None:
-    ctx = _build_ssl_context()
-    assert isinstance(ctx, ssl.SSLContext)
-    # Protocol floor stays modern; only ciphers/keys are relaxed.
-    assert ctx.minimum_version == ssl.TLSVersion.TLSv1_2
-    # Certificate verification is preserved.
-    assert ctx.verify_mode == ssl.CERT_REQUIRED
-    assert ctx.check_hostname is True
-
-
-def test_transport_uses_the_context_by_default() -> None:
-    transport = HttpxTransport()
-    ctx = transport._ssl_context
-    assert isinstance(ctx, ssl.SSLContext)
-    assert ctx.minimum_version == ssl.TLSVersion.TLSv1_2
-    assert ctx.verify_mode == ssl.CERT_REQUIRED
-    assert ctx.check_hostname is True
+from grepify.errors import FetchError, LlmError
+from grepify.ingest import http as http_mod
+from grepify.ingest.http import (
+    HttpCompatibility,
+    HttpxTransport,
+    OutboundErrorKind,
+    OutboundHttpClient,
+    OutboundPolicy,
+    OutboundRequestError,
+    _PolicyNetworkBackend,
+    get_or_raise,
+)
+from grepify.llm.transport import HttpxCompletionTransport
 
 
-class _StubResponse:
-    """Minimal stand-in for what HttpxTransport.get reads off httpx's response."""
+def resolver(
+    *addresses: str,
+) -> Callable[[str, int], list[ipaddress.IPv4Address | ipaddress.IPv6Address]]:
+    def resolve(host: str, port: int) -> list[ipaddress.IPv4Address | ipaddress.IPv6Address]:
+        return [ipaddress.ip_address(address) for address in addresses]
 
-    status_code = 200
-    content = b"<rss/>"
-    headers: ClassVar[dict[str, str]] = {"ETag": "abc"}
+    return resolve
 
 
-def test_get_passes_ssl_context_as_verify(monkeypatch: Any) -> None:
-    recorded: dict[str, Any] = {}
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://127.0.0.1/feed",
+        "https://[::1]/feed",
+        "https://10.0.0.1/feed",
+        "https://192.168.1.1/feed",
+        "https://172.16.0.1/feed",
+        "https://[fc00::1]/feed",
+        "https://169.254.1.1/feed",
+        "https://[fe80::1]/feed",
+        "https://100.64.0.1/feed",
+        "https://224.0.0.1/feed",
+        "https://0.0.0.0/feed",
+        "https://240.0.0.1/feed",
+        "https://192.0.2.1/feed",
+        "https://[::ffff:127.0.0.1]/feed",
+    ],
+)
+def test_unsafe_literal_addresses_are_rejected(url: str) -> None:
+    client = OutboundHttpClient(
+        transport_factory=lambda _: httpx.MockTransport(lambda r: httpx.Response(200))
+    )
+    with pytest.raises(OutboundRequestError) as exc:
+        client.get(url, headers={}, timeout=1)
+    assert exc.value.kind is OutboundErrorKind.UNSAFE_DESTINATION
 
-    def fake_get(url: str, **kwargs: Any) -> _StubResponse:
-        recorded["url"] = url
-        recorded.update(kwargs)
-        return _StubResponse()
 
-    monkeypatch.setattr(httpx, "get", fake_get)
+@pytest.mark.parametrize("url", ["https://8.8.8.8/feed", "https://[2606:4700:4700::1111]/feed"])
+def test_public_literal_addresses_are_allowed(url: str) -> None:
+    client = OutboundHttpClient(
+        transport_factory=lambda _: httpx.MockTransport(lambda r: httpx.Response(200))
+    )
+    assert client.get(url, headers={}, timeout=1).status_code == 200
 
-    transport = HttpxTransport()
-    response = transport.get("https://example.com/feed", headers={}, timeout=5.0)
 
-    # The transport's own context is handed to httpx as verify=.
-    assert recorded["verify"] is transport._ssl_context
-    assert recorded["follow_redirects"] is True
-    # And the response is mapped through with lowercased header keys.
+def test_dns_multiple_safe_addresses_allowed() -> None:
+    calls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(str(request.url))
+        return httpx.Response(200, content=b"ok")
+
+    client = OutboundHttpClient(
+        resolver=resolver("8.8.8.8", "1.1.1.1"),
+        transport_factory=lambda _: httpx.MockTransport(handler),
+    )
+    assert client.get("https://example.com/feed", headers={}, timeout=1).content == b"ok"
+    assert calls == ["https://example.com/feed"]
+
+
+def test_dns_any_unsafe_address_fails_closed_before_request() -> None:
+    sent: list[str] = []
+    client = OutboundHttpClient(
+        resolver=resolver("8.8.8.8", "127.0.0.1"),
+        transport_factory=lambda _: httpx.MockTransport(
+            lambda r: sent.append(str(r.url)) or httpx.Response(200)
+        ),
+    )
+    with pytest.raises(OutboundRequestError) as exc:
+        client.get("https://example.com/feed", headers={}, timeout=1)
+    assert exc.value.kind is OutboundErrorKind.UNSAFE_DESTINATION
+    assert sent == []
+
+
+@pytest.mark.parametrize(
+    "url,kind",
+    [
+        ("http://example.com/feed", OutboundErrorKind.UNSUPPORTED_SCHEME),
+        ("ftp://example.com/feed", OutboundErrorKind.UNSUPPORTED_SCHEME),
+        ("//example.com/feed", OutboundErrorKind.UNSUPPORTED_SCHEME),
+        ("https://user@example.com/feed", OutboundErrorKind.EMBEDDED_CREDENTIALS),
+        ("https://user:pass@example.com/feed", OutboundErrorKind.EMBEDDED_CREDENTIALS),
+        ("https:///feed", OutboundErrorKind.INVALID_HOST),
+        ("https://example.com:bad/feed", OutboundErrorKind.INVALID_HOST),
+        ("https://example.com:444/feed", OutboundErrorKind.INVALID_HOST),
+        ("https://example.com/\x00feed", OutboundErrorKind.INVALID_HOST),
+        ("https://0x7f000001/feed", OutboundErrorKind.INVALID_HOST),
+        ("https://2130706433/feed", OutboundErrorKind.INVALID_HOST),
+        ("https://0177.0.0.1/feed", OutboundErrorKind.INVALID_HOST),
+        ("https://127.1/feed", OutboundErrorKind.INVALID_HOST),
+        ("https://[fe80::1%25eth0]/feed", OutboundErrorKind.INVALID_HOST),
+    ],
+)
+def test_url_policy_rejections(url: str, kind: OutboundErrorKind) -> None:
+    client = OutboundHttpClient(
+        transport_factory=lambda _: httpx.MockTransport(lambda r: httpx.Response(200))
+    )
+    with pytest.raises(OutboundRequestError) as exc:
+        client.get(url, headers={}, timeout=1)
+    assert exc.value.kind is kind
+
+
+def test_http_can_be_enabled_for_exact_normalized_host() -> None:
+    client = OutboundHttpClient(
+        policy=OutboundPolicy(http=HttpCompatibility(frozenset({"example.com"}))),
+        resolver=resolver("8.8.8.8"),
+        transport_factory=lambda _: httpx.MockTransport(lambda r: httpx.Response(200)),
+    )
+    assert client.get("http://EXAMPLE.com./feed", headers={}, timeout=1).status_code == 200
+
+
+def test_internationalized_hostname_uses_idna_for_resolution() -> None:
+    resolved: list[str] = []
+
+    def fake_resolver(host: str, port: int) -> list[ipaddress.IPv4Address | ipaddress.IPv6Address]:
+        resolved.append(host)
+        return [ipaddress.ip_address("8.8.8.8")]
+
+    client = OutboundHttpClient(
+        resolver=fake_resolver,
+        transport_factory=lambda _: httpx.MockTransport(lambda r: httpx.Response(200)),
+    )
+    assert client.get("https://bücher.example/feed", headers={}, timeout=1).status_code == 200
+    assert resolved == ["xn--bcher-kva.example"]
+
+
+def test_redirects_are_validated_before_next_request() -> None:
+    sent: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        sent.append(str(request.url))
+        return httpx.Response(302, headers={"location": "https://127.0.0.1/private"})
+
+    client = OutboundHttpClient(
+        resolver=resolver("8.8.8.8"),
+        transport_factory=lambda _: httpx.MockTransport(handler),
+    )
+    with pytest.raises(OutboundRequestError) as exc:
+        client.get("https://example.com/feed", headers={}, timeout=1)
+    assert exc.value.kind is OutboundErrorKind.UNSAFE_DESTINATION
+    assert sent == ["https://example.com/feed"]
+
+
+def test_legitimate_relative_and_cross_origin_redirects() -> None:
+    sent: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        sent.append(str(request.url))
+        if str(request.url) == "https://example.com/feed":
+            return httpx.Response(302, headers={"location": "/rss"})
+        if str(request.url) == "https://example.com/rss":
+            return httpx.Response(302, headers={"location": "https://other.example/feed"})
+        return httpx.Response(200, content=b"ok")
+
+    client = OutboundHttpClient(
+        resolver=resolver("8.8.8.8"),
+        transport_factory=lambda _: httpx.MockTransport(handler),
+    )
+    assert client.get("https://example.com/feed", headers={}, timeout=1).content == b"ok"
+    assert sent == [
+        "https://example.com/feed",
+        "https://example.com/rss",
+        "https://other.example/feed",
+    ]
+
+
+@pytest.mark.parametrize(
+    "location,kind",
+    [
+        ("ftp://example.com/feed", OutboundErrorKind.UNSUPPORTED_SCHEME),
+        ("http://example.com/feed", OutboundErrorKind.UNSUPPORTED_SCHEME),
+        ("https://example.com/feed", OutboundErrorKind.REDIRECT_LOOP),
+    ],
+)
+def test_redirect_rejections(location: str, kind: OutboundErrorKind) -> None:
+    client = OutboundHttpClient(
+        resolver=resolver("8.8.8.8"),
+        transport_factory=lambda _: httpx.MockTransport(
+            lambda r: httpx.Response(302, headers={"location": location})
+        ),
+    )
+    with pytest.raises(OutboundRequestError) as exc:
+        client.get("https://example.com/feed", headers={}, timeout=1)
+    assert exc.value.kind is kind
+
+
+def test_redirect_limit_and_missing_location() -> None:
+    client = OutboundHttpClient(
+        policy=OutboundPolicy(max_redirects=0),
+        resolver=resolver("8.8.8.8"),
+        transport_factory=lambda _: httpx.MockTransport(
+            lambda r: httpx.Response(302, headers={"location": "/next"})
+        ),
+    )
+    with pytest.raises(OutboundRequestError) as exc:
+        client.get("https://example.com/feed", headers={}, timeout=1)
+    assert exc.value.kind is OutboundErrorKind.REDIRECT_LIMIT
+
+    client = OutboundHttpClient(
+        resolver=resolver("8.8.8.8"),
+        transport_factory=lambda _: httpx.MockTransport(lambda r: httpx.Response(302)),
+    )
+    with pytest.raises(OutboundRequestError) as exc2:
+        client.get("https://example.com/feed", headers={}, timeout=1)
+    assert exc2.value.kind is OutboundErrorKind.UNSAFE_REDIRECT
+
+
+def test_sensitive_headers_are_stripped_on_cross_origin_redirect() -> None:
+    headers_seen: list[dict[str, str]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        headers_seen.append({k.lower(): v for k, v in request.headers.items()})
+        if str(request.url) == "https://example.com/feed":
+            return httpx.Response(302, headers={"location": "https://other.example/feed"})
+        return httpx.Response(200)
+
+    client = OutboundHttpClient(
+        resolver=resolver("8.8.8.8"),
+        transport_factory=lambda _: httpx.MockTransport(handler),
+    )
+    client.get(
+        "https://example.com/feed",
+        headers={
+            "Authorization": "Bearer secret",
+            "Proxy-Authorization": "Basic secret",
+            "Cookie": "a=b",
+            "X-Keep": "1",
+            "Host": "evil",
+        },
+        timeout=1,
+    )
+    assert "authorization" in headers_seen[0]
+    assert "proxy-authorization" in headers_seen[0]
+    assert "cookie" in headers_seen[0]
+    assert "host" not in headers_seen[0] or headers_seen[0]["host"] == "example.com"
+    assert "authorization" not in headers_seen[1]
+    assert "proxy-authorization" not in headers_seen[1]
+    assert "cookie" not in headers_seen[1]
+    assert headers_seen[1]["x-keep"] == "1"
+
+
+def test_same_origin_redirect_retains_safe_headers() -> None:
+    seen: list[dict[str, str]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append({k.lower(): v for k, v in request.headers.items()})
+        return (
+            httpx.Response(302, headers={"location": "/next"})
+            if len(seen) == 1
+            else httpx.Response(200)
+        )
+
+    client = OutboundHttpClient(
+        resolver=resolver("8.8.8.8"),
+        transport_factory=lambda _: httpx.MockTransport(handler),
+    )
+    client.get("https://example.com/feed", headers={"Authorization": "Bearer safe"}, timeout=1)
+    assert seen[1]["authorization"] == "Bearer safe"
+
+
+def test_errors_redact_sensitive_query_values() -> None:
+    client = OutboundHttpClient(
+        resolver=resolver("8.8.8.8"),
+        transport_factory=lambda _: httpx.MockTransport(
+            lambda r: (_ for _ in ()).throw(httpx.ConnectError("boom"))
+        ),
+    )
+    with pytest.raises(OutboundRequestError) as exc:
+        client.get("https://example.com/feed?token=secret&ok=visible", headers={}, timeout=1)
+    text = str(exc.value)
+    assert "secret" not in text
+    assert "token=REDACTED" in text
+    assert "ok=visible" in text
+
+
+def test_bound_network_backend_uses_validated_addresses_without_second_dns(
+    monkeypatch: Any,
+) -> None:
+    calls: list[str] = []
+
+    class DummyBackend:
+        def connect_tcp(self, host: str, port: int, *args: Any) -> object:
+            calls.append(host)
+            return object()
+
+    bound = http_mod._BoundResolver(resolver("8.8.8.8"))
+    bound.validate("example.com", 443)
+    backend = _PolicyNetworkBackend(bound)
+    monkeypatch.setattr(backend, "_backend", DummyBackend())
+    backend.connect_tcp("example.com", 443)
+    assert calls == ["8.8.8.8"]
+
+
+def test_httpx_transport_uses_central_client() -> None:
+    transport = HttpxTransport(
+        client=OutboundHttpClient(
+            policy=OutboundPolicy(max_redirects=0),
+            resolver=resolver("8.8.8.8"),
+            transport_factory=lambda _: httpx.MockTransport(
+                lambda r: httpx.Response(200, headers={"ETag": "abc"}, content=b"ok")
+            ),
+        )
+    )
+    response = transport.get("https://example.com/feed", headers={}, timeout=1)
     assert response.status_code == 200
-    assert response.content == b"<rss/>"
-    assert response.headers == {"etag": "abc"}
+    assert response.headers["etag"] == "abc"
 
 
-def test_injected_context_is_used() -> None:
-    injected = ssl.create_default_context()
-    transport = HttpxTransport(ssl_context=injected)
-    assert transport._ssl_context is injected
+def test_get_or_raise_redacts_generic_exceptions() -> None:
+    class BadTransport:
+        def get(self, url: str, *, headers: dict[str, str], timeout: float) -> Any:
+            raise RuntimeError("https://example.com/feed?token=secret")
+
+    with pytest.raises(FetchError) as exc:
+        get_or_raise(
+            BadTransport(),
+            "https://example.com/feed?token=secret",
+            headers={},
+            timeout=1,
+            source_id="s",
+        )
+    assert "secret" not in str(exc.value)
+
+
+def test_no_direct_httpx_module_calls_outside_policy() -> None:
+    offenders: list[str] = []
+    for path in Path("grepify").rglob("*.py"):
+        if path.as_posix() == "grepify/ingest/http.py":
+            continue
+        text = path.read_text()
+        for needle in (
+            "httpx.get",
+            "httpx.post",
+            "httpx.request",
+            "httpx.Client",
+            "httpx.AsyncClient",
+        ):
+            if needle in text:
+                offenders.append(f"{path}:{needle}")
+    assert offenders == []
+
+
+def test_redirected_hostname_dns_is_validated_before_second_request() -> None:
+    sent: list[str] = []
+    answers = {
+        "example.com": [ipaddress.ip_address("8.8.8.8")],
+        "next.example": [ipaddress.ip_address("10.0.0.1")],
+    }
+
+    def fake_resolver(host: str, port: int) -> list[ipaddress.IPv4Address | ipaddress.IPv6Address]:
+        return answers[host]
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        sent.append(str(request.url))
+        return httpx.Response(302, headers={"location": "https://next.example/feed"})
+
+    client = OutboundHttpClient(
+        resolver=fake_resolver,
+        transport_factory=lambda _: httpx.MockTransport(handler),
+    )
+    with pytest.raises(OutboundRequestError) as exc:
+        client.get("https://example.com/feed", headers={}, timeout=1)
+    assert exc.value.kind is OutboundErrorKind.UNSAFE_DESTINATION
+    assert sent == ["https://example.com/feed"]
+
+
+def test_llm_transport_uses_policy_and_does_not_follow_post_redirects() -> None:
+    sent: list[str] = []
+    transport = HttpxCompletionTransport(
+        client=OutboundHttpClient(
+            policy=OutboundPolicy(max_redirects=0),
+            resolver=resolver("8.8.8.8"),
+            transport_factory=lambda _: httpx.MockTransport(
+                lambda request: (
+                    sent.append(str(request.url))
+                    or httpx.Response(302, headers={"location": "https://other.example/chat"})
+                )
+            ),
+        )
+    )
+    with pytest.raises(LlmError):
+        transport.post_json(
+            "https://example.com/chat",
+            headers={"Authorization": "Bearer secret"},
+            payload={"prompt": "private"},
+            timeout=1,
+        )
+    assert sent == ["https://example.com/chat"]
+
+
+def test_llm_transport_blocks_unsafe_url_without_auth_leak() -> None:
+    with pytest.raises(LlmError) as exc:
+        HttpxCompletionTransport().post_json(
+            "https://127.0.0.1/chat?token=secret",
+            headers={"Authorization": "Bearer secret"},
+            payload={},
+            timeout=1,
+        )
+    text = str(exc.value)
+    assert "Bearer secret" not in text
+    assert "token=secret" not in text
