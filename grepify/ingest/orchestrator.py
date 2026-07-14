@@ -121,6 +121,8 @@ class SourceResult:
     duration_ms: int
     error: str | None = None
     rung: Rung | None = None
+    resolved_url: str | None = None
+    acquisition_trace: str | None = None
 
 
 @dataclass(frozen=True)
@@ -247,6 +249,8 @@ def _record(repository: Repository, entry: FetchLogEntry) -> SourceResult:
         duration_ms=entry.duration_ms or 0,
         error=entry.error,
         rung=entry.rung,
+        resolved_url=entry.resolved_url,
+        acquisition_trace=entry.acquisition_trace,
     )
 
 
@@ -300,6 +304,7 @@ def _run_source(
                 attempt,
                 FetchStatus.EMPTY,
                 rung=outcome.rung,
+                resolved_url=outcome.resolved_url,
                 acquisition_trace=outcome.acquisition_trace,
             )
         fetched_at = to_iso(services.clock.now())
@@ -310,6 +315,7 @@ def _run_source(
             FetchStatus.OK,
             items_new=items_new,
             rung=outcome.rung,
+            resolved_url=outcome.resolved_url,
             acquisition_trace=outcome.acquisition_trace,
         )
     except AcquisitionError as exc:
@@ -334,6 +340,7 @@ def _finish(  # noqa: PLR0913
     items_new: int = 0,
     error: str | None = None,
     rung: Rung | None = None,
+    resolved_url: str | None = None,
     acquisition_trace: str | None = None,
 ) -> SourceResult:
     return _record(
@@ -347,6 +354,7 @@ def _finish(  # noqa: PLR0913
             error=error,
             duration_ms=int((time.monotonic() - attempt.t0) * 1000),
             rung=rung,
+            resolved_url=resolved_url,
             acquisition_trace=acquisition_trace,
         ),
     )

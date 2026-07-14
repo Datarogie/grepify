@@ -96,7 +96,9 @@ create table fetch_log (
   items_new      integer not null default 0,
   error          text,
   duration_ms    integer,
-  rung           text
+  rung           text,
+  resolved_url   text,
+  acquisition_trace text
 );
 
 create table llm_log (

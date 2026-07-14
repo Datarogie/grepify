@@ -202,6 +202,7 @@ class FetchLogEntry(_Record):
     error: str | None = None
     duration_ms: int | None = None
     rung: Rung | None = None
+    resolved_url: str | None = None
     acquisition_trace: str | None = None
 
 
