@@ -3,13 +3,14 @@
 Public surface the CLI (``grepify digest`` / ``grepify digest-gate``) and the
 site build (E4 pages) consume:
 
-- Rising detection (GRP-40) - :func:`is_rising` (F-TRD-03, config-driven).
 - Digest input assembler (GRP-40) - :func:`assemble_digest_input` +
   :class:`DigestInput` / :class:`KeywordBrief`: deterministic, category-keyed.
+  Rising detection (F-TRD-03) is :func:`grepify.windows.is_rising`, shared
+  with the site's keyword cloud.
 - Digest generation (GRP-41/42) - :func:`generate_digest` (skip-threshold,
   provenance, template fallback), :func:`digest_id_for`, :data:`PROMPT_VERSION`.
 - Pipeline (GRP-41/42) - :func:`run_digest_pipeline` (catch-up + idempotent) +
-  :class:`DigestRunResult`, :func:`period_for`, :func:`periods_for`.
+  :class:`DigestRunResult`, :func:`periods_for`.
 - Period math (GRP-41/42) - :func:`previous_day`, :func:`previous_iso_week`,
   :func:`recent_days`, :func:`trailing_days`, :func:`edmonton_date`,
   :class:`Period`, :data:`EDMONTON`.
@@ -49,12 +50,10 @@ from grepify.digest.periods import (
 )
 from grepify.digest.pipeline import (
     DigestRunResult,
-    period_for,
     periods_for,
     run_digest_pipeline,
 )
 from grepify.digest.prompt import PROMPT_VERSION, build_messages
-from grepify.digest.rising import is_rising
 
 __all__ = [
     "EDMONTON",
@@ -72,8 +71,6 @@ __all__ = [
     "edmonton_date",
     "format_gate",
     "generate_digest",
-    "is_rising",
-    "period_for",
     "periods_for",
     "previous_day",
     "previous_iso_week",

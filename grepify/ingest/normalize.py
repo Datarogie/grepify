@@ -22,7 +22,9 @@ The cache has ``unique index idx_items_dedup on items(kind, external_id)``. When
 index cannot be violated. Guid-less entries store ``external_id = NULL`` (SQLite
 treats NULLs as distinct) and dedup on ``canonical_url`` via ``item_id``. An
 empty / whitespace-only ``external_id`` is coerced to ``None`` so a blank id can
-never masquerade as a shared non-null key.
+never masquerade as a shared non-null key. Cross-source guid collisions (two
+distinct sources of the same ``kind`` sharing a guid, e.g. syndicated feeds)
+intentionally collapse to whichever source is ingested first - not a bug.
 
 Summary cleaning
 ----------------

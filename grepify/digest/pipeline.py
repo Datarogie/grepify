@@ -41,15 +41,18 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 from grepify.clock import Clock
 from grepify.config.schemas import SettingsConfig
 from grepify.digest.assemble import assemble_digest_input
 from grepify.digest.generate import TEMPLATE_MODEL, digest_id_for, generate_digest
-from grepify.digest.periods import Period, previous_day, previous_iso_week, recent_days
+from grepify.digest.periods import Period, previous_iso_week, recent_days
 from grepify.llm import LlmClient
 from grepify.models import Digest, DigestKind
-from grepify.site.trends import TrendQueries
+
+if TYPE_CHECKING:
+    from grepify.site.trends import TrendQueries
 
 
 @dataclass(frozen=True)
@@ -63,13 +66,6 @@ class DigestRunResult:
     already_present: int = 0  # (category, period) pairs skipped because a digest already exists
     skipped_categories: list[str] = field(default_factory=list)  # below-threshold, deduped+sorted
     template_categories: list[str] = field(default_factory=list)
-
-
-def period_for(kind: DigestKind, clock: Clock) -> Period:
-    """The single just-completed America/Edmonton period for ``kind`` (injected clock)."""
-    if kind is DigestKind.WEEKLY:
-        return previous_iso_week(clock.now())
-    return previous_day(clock.now())
 
 
 def periods_for(kind: DigestKind, clock: Clock, *, daily_lookback: int) -> list[Period]:

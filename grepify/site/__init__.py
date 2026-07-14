@@ -9,8 +9,9 @@ issues build on:
   and :func:`sparkline_svg`.
 - Trend queries (GRP-31) - :class:`TrendQueries` and its datasets
   (:class:`CloudDataset`, :class:`Stats`, :class:`SourceCount`,
-  :class:`ItemSummary`, :class:`DigestSummary`), plus :func:`window_ending_at` /
-  :func:`previous_window` / :func:`open_cache`.
+  :class:`ItemSummary`, :class:`DigestSummary`), plus :func:`open_cache`.
+  Window arithmetic (:func:`window_ending_at` / :func:`previous_window`) lives
+  in :mod:`grepify.windows`, shared with the digest package.
 - Page helpers (GRP-32/33/34) - :func:`collapse_near_duplicates`,
   :func:`paginate`, :func:`item_matches_filter`, :class:`ItemGroup`,
   :class:`Page`.
@@ -58,11 +59,9 @@ from grepify.site.trends import (
     SourceCount,
     Stats,
     TrendQueries,
-    Window,
     open_cache,
-    previous_window,
-    window_ending_at,
 )
+from grepify.windows import Window, previous_window, window_ending_at
 
 __all__ = [
     "CLOUD_BUCKETS",

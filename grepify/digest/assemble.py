@@ -4,7 +4,7 @@ Deterministic, **category-keyed** (never per-user, PRD §2/§7): for one categor
 and one period it gathers everything the digest generator (GRP-41/42) needs -
 the category's in-window item count (the skip-threshold input, F-DIG-03), its
 top-N keywords by distinct-item count (after alias/mute), each flagged rising or
-not (:mod:`grepify.digest.rising`) and carrying its top item titles/summaries,
+not (:func:`grepify.windows.is_rising`) and carrying its top item titles/summaries,
 and the rising subset. It reads only the derived cache via
 :class:`~grepify.site.trends.TrendQueries`, so it is pure and offline-testable.
 
@@ -24,12 +24,15 @@ touches the network or the LLM.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from grepify.config.schemas import DigestSettings
 from grepify.digest.periods import Period
-from grepify.digest.rising import is_rising
 from grepify.models import DigestKind
-from grepify.site.trends import ItemSummary, TrendQueries, Window, previous_window
+from grepify.windows import Window, is_rising, previous_window
+
+if TYPE_CHECKING:
+    from grepify.site.trends import ItemSummary, TrendQueries
 
 
 @dataclass(frozen=True)

@@ -66,8 +66,9 @@ create table item_keywords (
 );
 create index idx_kw_keyword on item_keywords(keyword);
 
--- Intentionally unpopulated in E0: aliases live in keywords.yml and are applied
--- at trend-computation time (PRD §6 note), so a later epic (E3/E4) projects them.
+-- v2-reserved: deliberately unpopulated in v1. Aliases live in keywords.yml and
+-- are applied at trend-query time (PRD §6 note, grepify.keywords); nothing
+-- writes this table until a v2 backend needs it queryable rather than YAML-only.
 create table keyword_aliases (
   alias          text primary key,
   canonical      text not null

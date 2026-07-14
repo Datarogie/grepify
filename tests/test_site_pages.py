@@ -13,7 +13,8 @@ from grepify.site.pages import (
     paginate,
     rising_strip,
 )
-from grepify.site.trends import CloudDataset, DigestDetail, ItemSummary, KeywordCount, Window
+from grepify.site.trends import CloudDataset, DigestDetail, ItemSummary, KeywordCount
+from grepify.windows import Window
 
 
 def _summary(

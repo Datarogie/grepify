@@ -17,7 +17,8 @@ from grepify.keywords import KeywordRules
 from grepify.models import ExtractionMethod, Item, ItemKeyword, Source, SourceKind
 from grepify.paths import DataLayout
 from grepify.repository import JsonlSqliteRepository
-from grepify.site.trends import TrendQueries, open_cache, window_ending_at
+from grepify.site.trends import TrendQueries, open_cache
+from grepify.windows import window_ending_at
 
 # 07-08 07:00 MDT -> 30d window ends at Edmonton midnight: [2026-06-08, 2026-07-08)
 _NOW = datetime(2026, 7, 8, 13, 0, tzinfo=UTC)
