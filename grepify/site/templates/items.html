@@ -17,7 +17,8 @@
 {% set item = group.representative %}
 {% set tags = item_tags.get(item.item_id, []) %}
 <li class="item" data-item-id="{{ item.item_id }}" data-kind="{{ item.kind }}" data-source="{{ item.source_id }}" data-keywords='{{ tags | tojson }}'>
-<a href="{{ item.canonical_url }}" rel="noopener noreferrer">{{ item.title }}</a>
+{% set safe_url = safe_published_url(item.canonical_url, base_url=item.source_url) %}
+{% if safe_url %}<a href="{{ safe_url.href }}" rel="noopener noreferrer">{{ item.title }}</a>{% else %}<span class="item-title">{{ item.title }}</span>{% endif %}
 <div class="meta">{{ item.source_name }} · {{ item.kind }} · {{ item.published_at[:10] }}</div>
 {% if tags %}
 <div class="meta">{% for kw in tags %}<span class="tag">#{{ kw }}</span> {% endfor %}</div>
@@ -27,7 +28,7 @@
 <summary>{{ group.similar_count }} similar</summary>
 <ul class="feed">
 {% for dup in group.similar %}
-<li><a href="{{ dup.canonical_url }}" rel="noopener noreferrer">{{ dup.title }}</a><div class="meta">{{ dup.source_name }} · {{ dup.published_at[:10] }}</div></li>
+<li>{% set safe_url = safe_published_url(dup.canonical_url, base_url=dup.source_url) %}{% if safe_url %}<a href="{{ safe_url.href }}" rel="noopener noreferrer">{{ dup.title }}</a>{% else %}<span class="item-title">{{ dup.title }}</span>{% endif %}<div class="meta">{{ dup.source_name }} · {{ dup.published_at[:10] }}</div></li>
 {% endfor %}
 </ul>
 </details>

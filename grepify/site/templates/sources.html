@@ -20,7 +20,7 @@
 <td>{{ s.kind }}</td>
 <td class="status-{{ 'ok' if s.status == 'active' else 'warn' }}">{{ s.status }}{% if s.status == 'degraded' and s.active_url %} (via fallback){% endif %}</td>
 <td{% if s.quiet %} class="status-quiet"{% endif %}>{{ s.recency.label }}</td>
-<td><a href="{{ s.url }}" rel="noopener noreferrer">feed</a></td>
+<td>{% set safe_url = safe_published_url(s.url) %}{% if safe_url %}<a href="{{ safe_url.href }}" rel="noopener noreferrer">feed</a>{% else %}<span class="muted">feed</span>{% endif %}</td>
 </tr>
 {% if s.status == 'paywalled' and s.message %}
 <tr class="source-note"><td colspan="5" class="muted">{{ s.message }}</td></tr>

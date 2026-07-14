@@ -234,6 +234,101 @@ def build_canned(  # noqa: PLR0913 - test fixture builder, each knob is a distin
     return result, tmp_path / "public"
 
 
+def test_generated_output_omits_unsafe_href_schemes_but_keeps_titles(tmp_path: Path) -> None:
+    _, out = build_canned(tmp_path)
+    data = tmp_path / "data"
+    repo = JsonlSqliteRepository(data)
+    common = {
+        "source_id": "s1",
+        "kind": SourceKind.RSS,
+        "summary": None,
+        "fetched_at": "2026-07-08T11:00:00+00:00",
+    }
+    repo.add_items(
+        [
+            Item(
+                **common,
+                item_id="bad-js",
+                external_id="bad-js",
+                canonical_url="javascript:alert(1)",
+                title="Readable JS title",
+                published_at="2026-07-08T10:00:00+00:00",
+                content_hash="1111111111111111",
+            ),
+            Item(
+                **common,
+                item_id="bad-data",
+                external_id="bad-data",
+                canonical_url="data:text/html,<h1>x</h1>",
+                title="Readable data title",
+                published_at="2026-07-08T10:01:00+00:00",
+                content_hash="2222222222222222",
+            ),
+            Item(
+                **common,
+                item_id="rel",
+                external_id="rel",
+                canonical_url="../relative-post",
+                title="Resolved relative title",
+                published_at="2026-07-08T10:02:00+00:00",
+                content_hash="3333333333333333",
+            ),
+        ]
+    )
+    repo.add_item_keywords([_kw("rel", "genai")])
+    repo.close()
+    build_site(
+        config=FilesystemConfigProvider(tmp_path / "sources"),
+        repository=JsonlSqliteRepository(data),
+        layout=DataLayout(data),
+        clock=_CLOCK,
+        run_id=_RUN_ID,
+        output_dir=out,
+        base_path="/grepify/",
+    )
+
+    htmls = [p.read_text(encoding="utf-8") for p in [out / "index.html", out / "items/index.html"]]
+    combined = "\n".join(htmls)
+    assert 'href="javascript:' not in combined.lower()
+    assert 'href="data:' not in combined.lower()
+    assert "Readable JS title" in combined
+    assert "Readable data title" in combined
+    assert (
+        '<a href="https://ex.com/relative-post" rel="noopener noreferrer">'
+        "Resolved relative title</a>"
+    ) in combined
+    payload = json.loads((out / "items/page-1.json").read_text(encoding="utf-8"))
+    urls = {item["item_id"]: item["url"] for item in payload["items"]}
+    assert urls["bad-js"] is None
+    assert urls["bad-data"] is None
+    assert urls["rel"] == "https://ex.com/relative-post"
+
+
+def test_generated_pages_include_meta_csp_and_required_assets_are_allowed(tmp_path: Path) -> None:
+    _, out = build_canned(tmp_path)
+    html = (out / "index.html").read_text(encoding="utf-8")
+    csp_pos = html.index('http-equiv="Content-Security-Policy"')
+    assert csp_pos < html.index('rel="stylesheet"') < html.index("<script src=")
+    csp = re.search(r'<meta http-equiv="Content-Security-Policy" content="([^"]+)">', html)
+    assert csp is not None
+    policy = csp.group(1)
+    directives = [
+        "default-src 'none'",
+        "script-src 'self'",
+        "style-src 'self'",
+        "font-src 'self' data:",
+        "img-src 'self' data:",
+        "object-src 'none'",
+        "base-uri 'none'",
+        "form-action 'none'",
+    ]
+    for directive in directives:
+        assert directive in policy
+    assert "'unsafe-inline'" not in policy
+    assert (out / "static/theme.js").is_file()
+    assert (out / "static/style.css").is_file()
+
+
 # --- snapshots ---------------------------------------------------------------
 
 
