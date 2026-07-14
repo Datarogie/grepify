@@ -61,9 +61,10 @@ import jinja2
 from grepify.clock import Clock, to_iso
 from grepify.config.provider import ConfigProvider
 from grepify.config.schemas import SettingsConfig
+from grepify.digest.periods import previous_day
 from grepify.health import HealthSnapshot
 from grepify.keywords import KeywordRules
-from grepify.models import Source
+from grepify.models import DigestKind, Source, SourceGroup
 from grepify.paths import DataLayout
 from grepify.repository.base import Repository
 from grepify.site.next_digest import next_scheduled_run
@@ -163,12 +164,15 @@ def build_site(  # noqa: PLR0913 - distinct collaborators, all required
         )
         keyword_pages = set(keyword_details)  # keywords that have a detail page
         digests = queries.all_digests()
+        daily_exists = _daily_digest_exists(digests, config.groups(), now)
 
         pages_written = (
             _write_home(env, meta, output_dir, queries, cloud_window, keyword_pages, settings)
             + _write_items(env, meta, output_dir, queries, emitted_items)
             + _write_sources(env, meta, output_dir, config)
-            + _write_health(env, meta, output_dir, layout, digests=digests, now=now)
+            + _write_health(
+                env, meta, output_dir, layout, digests=digests, now=now, daily_exists=daily_exists
+            )
             + _write_digests(env, meta, output_dir, digests)
             + _write_keyword_pages(env, meta, output_dir, keyword_details)
         )
@@ -270,6 +274,29 @@ def _write_sources(
     return 1
 
 
+def _daily_digest_exists(
+    digests: list[DigestDetail], groups: list[SourceGroup], now: datetime
+) -> bool:
+    """Has every enabled category's daily digest for the current period landed?
+
+    Mirrors the existence check :func:`grepify.cli.digest_gate_command` feeds
+    :func:`grepify.digest.gating.digest_gate` (GRP-63), so the health page's
+    "next run" rolls to tomorrow exactly when the real gate would already
+    consider the daily step done. A template digest (LLM degraded) does not
+    count as present, matching the pipeline's own upgrade-on-retry rule.
+    """
+    # Deferred: grepify.digest imports grepify.digest.assemble, which imports
+    # this module, so a module-level import would be circular.
+    from grepify.digest import TEMPLATE_MODEL, digest_id_for  # noqa: PLC0415
+
+    period_key = previous_day(now).key
+    real_ids = {d.digest_id for d in digests if d.model != TEMPLATE_MODEL}
+    categories = {g.category for g in groups if g.enabled}
+    return all(
+        digest_id_for(DigestKind.DAILY, category, period_key) in real_ids for category in categories
+    )
+
+
 def _write_health(  # noqa: PLR0913 - collaborators of one page render, all required
     env: jinja2.Environment,
     meta: SiteMeta,
@@ -278,13 +305,14 @@ def _write_health(  # noqa: PLR0913 - collaborators of one page render, all requ
     *,
     digests: list[DigestDetail],
     now: datetime,
+    daily_exists: bool,
 ) -> int:
     html = render_page(
         env,
         "health.html",
         PageContext(meta=meta, active="health"),
         health=_load_health(layout),
-        next_run=next_scheduled_run(now),
+        next_run=next_scheduled_run(now, daily_exists=daily_exists),
         category_digests=latest_digest_per_category(digests),
     )
     _write(output_dir / "health" / "index.html", html)

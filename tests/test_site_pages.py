@@ -196,6 +196,7 @@ def _digest(
         period_start=period_start,
         period_end="2026-07-08T00:00:00+00:00",
         created_at=created_at,
+        model="digest-model",
     )
 
 

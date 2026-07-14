@@ -256,12 +256,15 @@ run is still **green** - this is a degrade, not a failure (PRD §9/§13).
 `/health/` "Last digest per category", or the site shows an old digest date.
 
 **Diagnosis (phone):**
-1. First check whether the digest was even **due**. Digests are time-gated
-   (`grepify/digest/gating.py`): the daily fires only on the pipeline run that
-   lands in the **05:00-08:00 America/Edmonton** morning window; weekly only on
-   Monday in that window. The other two daily cron runs correctly skip it. On
-   `/health/`, the "Next scheduled digest" line tells you when the next one is
-   due.
+1. First check whether the digest was even **due**. Digests are gated
+   (`grepify/digest/gating.py`, GRP-63): a run fires once local time is at or
+   past the **05:00 America/Edmonton** morning opening *and* the period's
+   digest does not exist yet - there is no closing hour, so any later run that
+   day (13:00/19:00 MDT etc.) is a natural retry, not a skip, if the morning
+   run missed the opening or never landed. Weekly follows the same rule, gated
+   to Monday. On `/health/`, the "Next scheduled digest" line tells you when
+   the next one is due (and shows today's already-past opening if today's is
+   still missing).
 2. If it was due, open that morning run in the Actions app and look at the
    `Daily digest` / `Weekly digest` steps:
    - **Step was skipped (grey):** the gate did not fire for that run. Check the
@@ -275,12 +278,14 @@ run is still **green** - this is a degrade, not a failure (PRD §9/§13).
      but persistence did not.
 
 **Fix:**
-- **Was not due yet:** no action. Wait for the morning window, or force it.
+- **Was not due yet:** no action. Wait for the morning opening, or force it.
+- **A cron run missed the morning opening or slipped late:** no action needed -
+  the next cron run that day retries automatically (GRP-63), and the daily
+  digest's own catch-up window backfills any recent day still missing.
 - **Force a digest on demand:** GitHub app -> Actions -> `pipeline` -> Run
   workflow -> set `force_digest: true`. This runs both daily and weekly
   regardless of the gate (idempotent: existing digests are skipped, so it only
-  fills gaps). This is the standard "the morning run missed a day" recovery -
-  the pipeline already backfills any recent missed day when the gate next fires.
+  fills gaps).
 - **Genuinely broken generation/persistence:** paste:
 
   > Read docs/runbook.md and grepify/digest/pipeline.py. The daily digest for

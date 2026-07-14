@@ -1,22 +1,28 @@
 """Next-scheduled-digest-run for the site (T4, one of the three v1.0.0 gates).
 
-Surfaces :mod:`grepify.digest.gating`'s morning window (GRP-45, 05:00-08:59
-America/Edmonton) as a "next scheduled digest run" instant for the health page,
-without touching that module - :data:`grepify.digest.gating.MORNING_START_HOUR`
-and ``MONDAY`` are read, not redefined. This is a pure render of the clock: the
-next occurrence of the gate's opening hour after the injected instant, so the
-same instant always yields the same next-run (F-SIT-08 / S8), and a build never
-reads the wall clock a second time to compute it.
+Surfaces :mod:`grepify.digest.gating`'s morning opening (GRP-45/GRP-63,
+05:00 America/Edmonton, no closing hour) as a "next scheduled digest run"
+instant for the health page, without touching that module -
+:data:`grepify.digest.gating.MORNING_START_HOUR` and ``MONDAY`` are read, not
+redefined. This is a pure render of the clock + a caller-supplied existence
+flag: the next occurrence of the gate's opening hour after the injected
+instant, so the same inputs always yield the same next-run (F-SIT-08 / S8),
+and a build never reads the wall clock or truth a second time to compute it.
 
 What "next" means
 ------------------
 The candidate is today's Edmonton-local ``MORNING_START_HOUR:00``. If that
-instant is already at or before "now" (the gate has opened for today, or the
-build is running inside/after the window), the candidate rolls to tomorrow -
-the pipeline's own build step never runs before the gate check it follows in
-the same job, so "today's" window, once reached, is always already handled.
+instant is already at or before "now" *and* ``daily_exists`` is true (the
+window opened today and the digest already ran), the candidate rolls to
+tomorrow. If the window opened but the digest is still missing, the candidate
+stays at today's opening - the same "at or past open, still missing" retry
+condition the gate itself uses (GRP-63), so a display in that state
+legitimately shows a past time: the digest is overdue, not yet scheduled.
 ``zoneinfo`` resolves the UTC offset for whichever day the candidate lands on,
-so a rollover across a DST transition picks up the correct new offset.
+so a rollover across a DST transition picks up the correct new offset. On a
+Monday the rollover still keys off ``daily_exists`` only, not the weekly
+digest's own existence - a Monday where daily is done but weekly is still
+pending is not separately reflected in this display.
 
 Failure modes
 -------------
@@ -43,13 +49,17 @@ class NextDigestRun:
     is_weekly: bool  # this occurrence also fires the weekly digest (Monday)
 
 
-def next_scheduled_run(instant: datetime) -> NextDigestRun:
-    """Return the next Edmonton-local digest-gate opening after ``instant``."""
+def next_scheduled_run(instant: datetime, *, daily_exists: bool) -> NextDigestRun:
+    """Return the next Edmonton-local digest-gate opening after ``instant``.
+
+    ``daily_exists`` reports whether today's daily digest is already in truth
+    (the caller queries this, mirroring :func:`grepify.digest.gating.digest_gate`).
+    """
     if instant.tzinfo is None:
         raise ValueError("next_scheduled_run requires a timezone-aware instant")
     local = instant.astimezone(EDMONTON)
     candidate = local.replace(hour=MORNING_START_HOUR, minute=0, second=0, microsecond=0)
-    if candidate <= local:
+    if candidate <= local and daily_exists:
         candidate += timedelta(days=1)
     offset = candidate.utcoffset()
     # S101: type-narrowing; zoneinfo always resolves an offset for a real instant.
