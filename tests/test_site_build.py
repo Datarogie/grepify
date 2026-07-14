@@ -745,3 +745,60 @@ def test_keyboard_interrupt_during_second_replace_restores_previous_output(tmp_p
 
     assert (output / "index.html").read_text(encoding="utf-8") == "previous"
     assert not stage.exists()
+
+
+def test_backup_identity_mismatch_preserves_interloper_and_stage_not_published(
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "public"
+    output.mkdir()
+    (output / "index.html").write_text("previous", encoding="utf-8")
+    expected = _capture_destination_state(output)
+    stage = tmp_path / ".public.stage"
+    stage.mkdir()
+    (stage / "index.html").write_text("stage", encoding="utf-8")
+    interloper = tmp_path / "interloper"
+    interloper.mkdir()
+    (interloper / "index.html").write_text("interloper", encoding="utf-8")
+    original_saved = tmp_path / "original-saved"
+
+    def swap_before_backup_rename(src: Path, dst: Path) -> None:
+        if src == output:
+            src.replace(original_saved)
+            interloper.replace(src)
+        src.replace(dst)
+
+    with pytest.raises(RuntimeError, match="backup identity mismatch"):
+        _replace_output(
+            stage, output, expected_output_state=expected, replace=swap_before_backup_rename
+        )
+
+    assert (output / "index.html").read_text(encoding="utf-8") == "interloper"
+    assert (original_saved / "index.html").read_text(encoding="utf-8") == "previous"
+    assert not stage.exists()
+
+
+def test_absent_output_created_during_claim_is_preserved(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    output = tmp_path / "public"
+    expected = _capture_destination_state(output)
+    stage = tmp_path / ".public.stage"
+    stage.mkdir()
+    (stage / "index.html").write_text("stage", encoding="utf-8")
+    original_mkdir = Path.mkdir
+
+    def occupy_before_claim(self: Path, *args: object, **kwargs: object) -> None:
+        if self == output:
+            original_mkdir(self)
+            (self / "index.html").write_text("occupant", encoding="utf-8")
+            raise FileExistsError(str(self))
+        original_mkdir(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "mkdir", occupy_before_claim)
+
+    with pytest.raises(RuntimeError, match="changed during build"):
+        _replace_output(stage, output, expected_output_state=expected)
+
+    assert (output / "index.html").read_text(encoding="utf-8") == "occupant"
+    assert not stage.exists()

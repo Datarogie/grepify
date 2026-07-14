@@ -122,6 +122,10 @@ STATIC_DIR = Path(__file__).parent / "static"
 _ALL = 10_000_000  # effectively-unbounded limit for the emission query
 
 
+class _BackupIdentityMismatchError(RuntimeError):
+    pass
+
+
 @dataclass(frozen=True)
 class _DestinationState:
     exists: bool
@@ -527,23 +531,34 @@ def _replace_output(
     replace: Callable[[Path, Path], None] = os.replace,
 ) -> None:
     if not _destination_matches(output_dir, expected_output_state):
-        if stage_dir.exists():
-            shutil.rmtree(stage_dir)
+        _remove_owned_stage(stage_dir)
         raise RuntimeError(f"output destination changed during build: {output_dir}")
+    if not expected_output_state.exists:
+        _publish_into_absent_output(stage_dir, output_dir)
+        return
+
     backup_dir = Path(
         tempfile.mkdtemp(prefix=f".{output_dir.name}.", suffix=".previous", dir=output_dir.parent)
     )
     backup_dir.rmdir()
     moved_existing = False
     try:
-        if _path_occupied(output_dir):
-            replace(output_dir, backup_dir)
-            moved_existing = True
+        replace(output_dir, backup_dir)
+        moved_existing = True
+        if _capture_destination_state(backup_dir) != expected_output_state:
+            _handle_backup_identity_mismatch(
+                stage_dir=stage_dir,
+                output_dir=output_dir,
+                backup_dir=backup_dir,
+                replace=replace,
+            )
         if _path_occupied(output_dir):
             raise RuntimeError(
                 f"output destination became occupied; previous output preserved at {backup_dir}"
             )
         replace(stage_dir, output_dir)
+    except _BackupIdentityMismatchError:
+        raise
     except BaseException as exc:
         _handle_publish_failure(
             _PublishFailure(
@@ -560,15 +575,52 @@ def _replace_output(
         shutil.rmtree(backup_dir)
 
 
+def _publish_into_absent_output(stage_dir: Path, output_dir: Path) -> None:
+    try:
+        output_dir.mkdir()
+    except FileExistsError as exc:
+        _remove_owned_stage(stage_dir)
+        raise RuntimeError(f"output destination changed during build: {output_dir}") from exc
+    try:
+        for child in stage_dir.iterdir():
+            os.replace(child, output_dir / child.name)
+        stage_dir.rmdir()
+    except BaseException:
+        if output_dir.exists():
+            shutil.rmtree(output_dir)
+        _remove_owned_stage(stage_dir)
+        raise
+
+
+def _handle_backup_identity_mismatch(
+    *,
+    stage_dir: Path,
+    output_dir: Path,
+    backup_dir: Path,
+    replace: Callable[[Path, Path], None],
+) -> None:
+    _remove_owned_stage(stage_dir)
+    preserved_at = backup_dir
+    if not _path_occupied(output_dir):
+        replace(backup_dir, output_dir)
+        preserved_at = output_dir
+    raise _BackupIdentityMismatchError(
+        f"output backup identity mismatch; moved entry preserved at {preserved_at}"
+    )
+
+
+def _remove_owned_stage(stage_dir: Path) -> None:
+    if stage_dir.exists():
+        shutil.rmtree(stage_dir)
+
+
 def _handle_publish_failure(failure: _PublishFailure) -> None:
     if not failure.moved_existing:
-        if failure.stage_dir.exists():
-            shutil.rmtree(failure.stage_dir)
+        _remove_owned_stage(failure.stage_dir)
         return
     if not _path_occupied(failure.output_dir):
         failure.replace(failure.backup_dir, failure.output_dir)
-        if failure.stage_dir.exists():
-            shutil.rmtree(failure.stage_dir)
+        _remove_owned_stage(failure.stage_dir)
         return
     raise RuntimeError(
         f"output publish failed and destination is occupied; "
