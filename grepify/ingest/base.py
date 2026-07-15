@@ -29,7 +29,16 @@ from dataclasses import dataclass
 
 from pydantic import BaseModel, ConfigDict
 
+from grepify.errors import FetchError
 from grepify.models import Rung, Source, SourceKind
+
+
+class AcquisitionError(FetchError):
+    """Fetch failure that carries a sanitized structured acquisition trace."""
+
+    def __init__(self, message: str, *, acquisition_trace: str | None) -> None:
+        self.acquisition_trace = acquisition_trace
+        super().__init__(message)
 
 
 class RawItem(BaseModel):
@@ -65,6 +74,7 @@ class FetchOutcome:
     items: list[RawItem]
     rung: Rung = Rung.DIRECT
     resolved_url: str | None = None
+    acquisition_trace: str | None = None
 
 
 class Fetcher(ABC):

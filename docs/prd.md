@@ -201,7 +201,11 @@ create table fetch_log (
   status         text not null check (status in ('ok','empty','error','skipped')),
   items_new      integer not null default 0,
   error          text,
-  duration_ms    integer
+  duration_ms    integer,
+  rung           text,                      -- acquisition rung that served (ADR 0002)
+  resolved_url   text,                      -- non-canonical URL that served, if any
+  acquisition_trace text                    -- sanitized per-attempt JSON (#119); no
+                                            -- bodies, headers, or unredacted URLs
 );
 
 create table llm_log (

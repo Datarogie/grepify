@@ -97,7 +97,8 @@ create table fetch_log (
   error          text,
   duration_ms    integer,
   rung           text,
-  resolved_url   text
+  resolved_url   text,
+  acquisition_trace text
 );
 
 create table llm_log (

@@ -102,14 +102,15 @@ def test_prd_mandated_seeds_present() -> None:
 
 
 def test_dead_and_reprobe_sources_present_not_omitted() -> None:
-    # ADR 0002: a `dead` source stays in the file (status: dead + evidence)
-    # rather than being omitted; the two never-fetched data-eng seeds are
+    # ADR 0002/#119: runner-blocked-but-live sources stay present as degraded;
+    # the two never-fetched data-eng seeds are
     # provisional-active re-probes (enabled) so the pipeline ladder resolves
     # their real feed instead of leaving them dark.
     by_id = {s.source_id: s for s in _provider().sources()}
-    assert by_id["benn-substack"].status is SourceStatus.DEAD
-    assert by_id["benn-substack"].enabled is False
+    assert by_id["benn-substack"].status is SourceStatus.DEGRADED
+    assert by_id["benn-substack"].enabled is True
     assert by_id["benn-substack"].evidence is not None
+    assert by_id["benn-substack"].active_url is None
     assert by_id["dbt-developer-blog"].enabled is True
     assert by_id["snowflake-engineering"].enabled is True
 
