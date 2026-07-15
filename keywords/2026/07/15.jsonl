@@ -120,3 +120,10 @@
 {"item_id":"c8e1946640077612f419f4945c3bc517ba840c924d260c650a1c95d2c43ace4a","keyword":"moratorium","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-15T02:28:08+00:00"}
 {"item_id":"c8e1946640077612f419f4945c3bc517ba840c924d260c650a1c95d2c43ace4a","keyword":"energy grid","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-15T02:28:08+00:00"}
 {"item_id":"c8e1946640077612f419f4945c3bc517ba840c924d260c650a1c95d2c43ace4a","keyword":"climate risks","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-15T02:28:08+00:00"}
+{"item_id":"406c9319ccc5f290bf17f4368cc619cb336ae401945f5f4fc6d023814184759a","keyword":"artificial intelligence","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-15T04:00:37+00:00"}
+{"item_id":"406c9319ccc5f290bf17f4368cc619cb336ae401945f5f4fc6d023814184759a","keyword":"anthony albanese","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-15T04:00:37+00:00"}
+{"item_id":"406c9319ccc5f290bf17f4368cc619cb336ae401945f5f4fc6d023814184759a","keyword":"ai regulation","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-15T04:00:37+00:00"}
+{"item_id":"406c9319ccc5f290bf17f4368cc619cb336ae401945f5f4fc6d023814184759a","keyword":"datacentres","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-15T04:00:37+00:00"}
+{"item_id":"406c9319ccc5f290bf17f4368cc619cb336ae401945f5f4fc6d023814184759a","keyword":"australian politics","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-15T04:00:37+00:00"}
+{"item_id":"406c9319ccc5f290bf17f4368cc619cb336ae401945f5f4fc6d023814184759a","keyword":"ai investment","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-15T04:00:37+00:00"}
+{"item_id":"406c9319ccc5f290bf17f4368cc619cb336ae401945f5f4fc6d023814184759a","keyword":"technology policy","rank":7,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-07-15T04:00:37+00:00"}
