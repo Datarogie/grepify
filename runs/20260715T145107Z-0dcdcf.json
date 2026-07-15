@@ -1,0 +1,25 @@
+{
+  "run_id": "20260715T145107Z-0dcdcf",
+  "command": "ingest",
+  "started_at": "2026-07-15T14:51:07+00:00",
+  "finished_at": "2026-07-15T14:54:45+00:00",
+  "ok": true,
+  "counts": {
+    "sources_attempted": 93,
+    "sources_ok": 87,
+    "sources_empty": 1,
+    "sources_error": 5,
+    "sources_skipped": 34,
+    "items_new": 84
+  },
+  "durations_ms": {
+    "total_ms": 217263
+  },
+  "notes": [
+    "ahead-of-ai: ahead-of-ai: all acquisition rungs failed: response failure: response body exceeded size limit; response failure: response body exceeded size limit; ahead-of-ai: HTTP 404; ahead-of-ai: unparseable feed: SAXParseException('not well-formed (invalid token)'); response failure: response body exceeded size limit",
+    "dlabs-ai: dlabs-ai: all acquisition rungs failed: response failure: response body exceeded size limit; response failure: response body exceeded size limit; response failure: response body exceeded size limit; response failure: response body exceeded size limit",
+    "towards-data-science: towards-data-science: all acquisition rungs failed: towards-data-science: HTTP 403; towards-data-science: HTTP 403; towards-data-science: HTTP 403; towards-data-science: HTTP 403; towards-data-science: autodiscovery GET https://towardsdatascience.com/ HTTP 403",
+    "benn-substack: benn-substack: all acquisition rungs failed: benn-substack: HTTP 403; benn-substack: Substack archive HTTP 403; benn-substack: autodiscovery GET https://benn.substack.com/ HTTP 403",
+    "snowflake-engineering: snowflake-engineering: all acquisition rungs failed: snowflake-engineering: HTTP 404; snowflake-engineering: HTTP 404; snowflake-engineering: HTTP 404; snowflake-engineering: unparseable feed: SAXParseException('not well-formed (invalid token)')"
+  ]
+}
