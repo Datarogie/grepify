@@ -1,0 +1,31 @@
+{
+  "run_id": "20260717T040646Z-fad182",
+  "command": "ingest",
+  "started_at": "2026-07-17T04:06:46+00:00",
+  "finished_at": "2026-07-17T04:08:30+00:00",
+  "ok": true,
+  "counts": {
+    "sources_attempted": 93,
+    "sources_ok": 81,
+    "sources_empty": 1,
+    "sources_error": 11,
+    "sources_skipped": 34,
+    "items_new": 53
+  },
+  "durations_ms": {
+    "total_ms": 104094
+  },
+  "notes": [
+    "ahead-of-ai: ahead-of-ai: all acquisition rungs failed: response failure: response body exceeded size limit; response failure: response body exceeded size limit; ahead-of-ai: HTTP 404; ahead-of-ai: unparseable feed: SAXParseException('not well-formed (invalid token)'); response failure: response body exceeded size limit",
+    "dlabs-ai: dlabs-ai: all acquisition rungs failed: response failure: response body exceeded size limit; response failure: response body exceeded size limit; response failure: response body exceeded size limit; response failure: response body exceeded size limit",
+    "towards-data-science: towards-data-science: all acquisition rungs failed: towards-data-science: HTTP 403; towards-data-science: HTTP 403; towards-data-science: HTTP 403; towards-data-science: HTTP 403; towards-data-science: autodiscovery GET https://towardsdatascience.com/ HTTP 403",
+    "benn-substack: benn-substack: all acquisition rungs failed: benn-substack: HTTP 403; benn-substack: Substack archive HTTP 403; benn-substack: autodiscovery GET https://benn.substack.com/ HTTP 403",
+    "snowflake-engineering: snowflake-engineering: all acquisition rungs failed: snowflake-engineering: HTTP 404; snowflake-engineering: HTTP 404; snowflake-engineering: HTTP 404; snowflake-engineering: unparseable feed: SAXParseException('not well-formed (invalid token)')",
+    "yt-jack-roberts: yt-jack-roberts: HTTP 404",
+    "yt-jeff-su: yt-jeff-su: HTTP 404",
+    "yt-dylan-davis: yt-dylan-davis: HTTP 404",
+    "yt-futurepedia: yt-futurepedia: HTTP 404",
+    "yt-kevin-stratvert: yt-kevin-stratvert: HTTP 404",
+    "yt-theprimeagen: yt-theprimeagen: HTTP 404"
+  ]
+}
