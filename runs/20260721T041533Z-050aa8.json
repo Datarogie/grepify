@@ -1,0 +1,45 @@
+{
+  "run_id": "20260721T041533Z-050aa8",
+  "command": "ingest",
+  "started_at": "2026-07-21T04:15:33+00:00",
+  "finished_at": "2026-07-21T04:17:59+00:00",
+  "ok": true,
+  "counts": {
+    "sources_attempted": 93,
+    "sources_ok": 68,
+    "sources_empty": 0,
+    "sources_error": 25,
+    "sources_skipped": 34,
+    "items_new": 31
+  },
+  "durations_ms": {
+    "total_ms": 144790
+  },
+  "notes": [
+    "ai-news: ai-news: all acquisition rungs failed: ai-news: unparseable feed: SAXParseException('not well-formed (invalid token)'); ai-news: unparseable feed: SAXParseException('not well-formed (invalid token)'); ai-news: unparseable feed: SAXParseException('not well-formed (invalid token)'); ai-news: unparseable feed: SAXParseException('not well-formed (invalid token)')",
+    "ai-time-journal: ai-time-journal: all acquisition rungs failed: ai-time-journal: HTTP 403; ai-time-journal: HTTP 403; ai-time-journal: HTTP 403; ai-time-journal: HTTP 403; ai-time-journal: autodiscovery GET https://www.aitimejournal.com/ HTTP 403",
+    "artificial-lawyer: artificial-lawyer: all acquisition rungs failed: artificial-lawyer: HTTP 415; artificial-lawyer: HTTP 415; artificial-lawyer: HTTP 415; artificial-lawyer: HTTP 415; artificial-lawyer: autodiscovery GET https://www.artificiallawyer.com/ HTTP 415",
+    "bdan-ai: bdan-ai: all acquisition rungs failed: bdan-ai: HTTP 415; bdan-ai: HTTP 415; bdan-ai: HTTP 415; bdan-ai: HTTP 415; bdan-ai: autodiscovery GET https://bigdataanalyticsnews.com/ HTTP 415",
+    "just-ai-news: just-ai-news: all acquisition rungs failed: just-ai-news: unparseable feed: SAXParseException('not well-formed (invalid token)'); just-ai-news: unparseable feed: SAXParseException('not well-formed (invalid token)'); just-ai-news: unparseable feed: SAXParseException('not well-formed (invalid token)'); just-ai-news: unparseable feed: SAXParseException('not well-formed (invalid token)')",
+    "la-biblia-de-la-ia: la-biblia-de-la-ia: all acquisition rungs failed: la-biblia-de-la-ia: HTTP 415; la-biblia-de-la-ia: HTTP 415; la-biblia-de-la-ia: HTTP 415; la-biblia-de-la-ia: HTTP 415; la-biblia-de-la-ia: autodiscovery GET https://editorialia.com/ HTTP 415",
+    "ahead-of-ai: ahead-of-ai: all acquisition rungs failed: response failure: response body exceeded size limit; response failure: response body exceeded size limit; ahead-of-ai: HTTP 404; ahead-of-ai: unparseable feed: SAXParseException('not well-formed (invalid token)'); response failure: response body exceeded size limit",
+    "aiiot-artificial-intelligence: aiiot-artificial-intelligence: all acquisition rungs failed: aiiot-artificial-intelligence: HTTP 415; aiiot-artificial-intelligence: HTTP 415; aiiot-artificial-intelligence: HTTP 415; aiiot-artificial-intelligence: HTTP 415; aiiot-artificial-intelligence: autodiscovery GET https://www.aiiottalk.com/ HTTP 415",
+    "cogito-tech-blog: cogito-tech-blog: all acquisition rungs failed: cogito-tech-blog: unparseable feed: SAXParseException('not well-formed (invalid token)'); cogito-tech-blog: unparseable feed: SAXParseException('not well-formed (invalid token)'); cogito-tech-blog: unparseable feed: SAXParseException('not well-formed (invalid token)'); cogito-tech-blog: unparseable feed: SAXParseException('not well-formed (invalid token)')",
+    "dlabs-ai: dlabs-ai: all acquisition rungs failed: response failure: response body exceeded size limit; response failure: response body exceeded size limit; response failure: response body exceeded size limit; response failure: response body exceeded size limit",
+    "kavita-ganesans-blog: kavita-ganesans-blog: all acquisition rungs failed: kavita-ganesans-blog: unparseable feed: SAXParseException('not well-formed (invalid token)'); kavita-ganesans-blog: unparseable feed: SAXParseException('not well-formed (invalid token)'); kavita-ganesans-blog: unparseable feed: SAXParseException('not well-formed (invalid token)'); kavita-ganesans-blog: unparseable feed: SAXParseException('not well-formed (invalid token)')",
+    "marktechpost: marktechpost: all acquisition rungs failed: marktechpost: unparseable feed: SAXParseException('not well-formed (invalid token)'); marktechpost: unparseable feed: SAXParseException('not well-formed (invalid token)'); marktechpost: unparseable feed: SAXParseException('not well-formed (invalid token)'); marktechpost: unparseable feed: SAXParseException('not well-formed (invalid token)')",
+    "towards-data-science: towards-data-science: all acquisition rungs failed: towards-data-science: HTTP 403; towards-data-science: HTTP 403; towards-data-science: HTTP 403; towards-data-science: HTTP 403; towards-data-science: autodiscovery GET https://towardsdatascience.com/ HTTP 403",
+    "yatter-blog: yatter-blog: all acquisition rungs failed: response failure: yatter.in; response failure: yatter.in; response failure: yatter.in; response failure: yatter.in; response failure: yatter.in",
+    "benn-substack: benn-substack: all acquisition rungs failed: benn-substack: HTTP 403; benn-substack: Substack archive HTTP 403; benn-substack: autodiscovery GET https://benn.substack.com/ HTTP 403",
+    "snowflake-engineering: snowflake-engineering: all acquisition rungs failed: snowflake-engineering: HTTP 404; snowflake-engineering: HTTP 404; snowflake-engineering: HTTP 404; snowflake-engineering: unparseable feed: SAXParseException('not well-formed (invalid token)')",
+    "yt-jack-roberts: yt-jack-roberts: HTTP 404",
+    "yt-jeff-su: yt-jeff-su: HTTP 404",
+    "yt-ben-ai: yt-ben-ai: HTTP 404",
+    "yt-dylan-davis: yt-dylan-davis: HTTP 404",
+    "yt-futurepedia: yt-futurepedia: HTTP 404",
+    "yt-greg-isenberg: yt-greg-isenberg: HTTP 404",
+    "yt-kevin-stratvert: yt-kevin-stratvert: HTTP 404",
+    "yt-lex-fridman: yt-lex-fridman: HTTP 404",
+    "yt-theprimeagen: yt-theprimeagen: HTTP 404"
+  ]
+}
