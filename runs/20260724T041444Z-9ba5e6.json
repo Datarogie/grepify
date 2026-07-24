@@ -1,0 +1,34 @@
+{
+  "run_id": "20260724T041444Z-9ba5e6",
+  "command": "ingest",
+  "started_at": "2026-07-24T04:14:44+00:00",
+  "finished_at": "2026-07-24T04:16:01+00:00",
+  "ok": true,
+  "counts": {
+    "sources_attempted": 93,
+    "sources_ok": 79,
+    "sources_empty": 0,
+    "sources_error": 14,
+    "sources_skipped": 34,
+    "items_new": 41
+  },
+  "durations_ms": {
+    "total_ms": 76936
+  },
+  "notes": [
+    "ai-time-journal: ai-time-journal: all acquisition rungs failed: ai-time-journal: HTTP 403; ai-time-journal: HTTP 403; ai-time-journal: HTTP 403; ai-time-journal: HTTP 403; ai-time-journal: autodiscovery GET https://www.aitimejournal.com/ HTTP 403",
+    "ahead-of-ai: ahead-of-ai: all acquisition rungs failed: response failure: response body exceeded size limit; response failure: response body exceeded size limit; ahead-of-ai: HTTP 404; ahead-of-ai: unparseable feed: SAXParseException('not well-formed (invalid token)'); response failure: response body exceeded size limit",
+    "dlabs-ai: dlabs-ai: all acquisition rungs failed: response failure: response body exceeded size limit; response failure: response body exceeded size limit; response failure: response body exceeded size limit; response failure: response body exceeded size limit",
+    "benn-substack: benn-substack: all acquisition rungs failed: benn-substack: HTTP 403; benn-substack: Substack archive HTTP 403; benn-substack: autodiscovery GET https://benn.substack.com/ HTTP 403",
+    "snowflake-engineering: snowflake-engineering: all acquisition rungs failed: snowflake-engineering: HTTP 404; snowflake-engineering: HTTP 404; snowflake-engineering: HTTP 404; snowflake-engineering: unparseable feed: SAXParseException('not well-formed (invalid token)')",
+    "yt-jack-roberts: yt-jack-roberts: HTTP 404",
+    "yt-jeff-su: yt-jeff-su: HTTP 404",
+    "yt-ben-ai: yt-ben-ai: HTTP 404",
+    "yt-dylan-davis: yt-dylan-davis: HTTP 404",
+    "yt-futurepedia: yt-futurepedia: HTTP 404",
+    "yt-greg-isenberg: yt-greg-isenberg: HTTP 404",
+    "yt-kevin-stratvert: yt-kevin-stratvert: HTTP 404",
+    "yt-lex-fridman: yt-lex-fridman: HTTP 404",
+    "yt-theprimeagen: yt-theprimeagen: HTTP 404"
+  ]
+}
