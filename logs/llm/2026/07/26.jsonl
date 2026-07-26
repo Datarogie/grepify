@@ -1,3 +1,4 @@
 {"run_id":"20260726T042835Z-90b8a7","purpose":"extract","model":"gemini-3.1-flash-lite","input_items":21,"tokens_in":3012,"tokens_out":1754,"status":"ok","created_at":"2026-07-26T04:28:35+00:00"}
 {"run_id":"20260726T143228Z-977d77","purpose":"extract","model":"gemini-3.1-flash-lite","input_items":13,"tokens_in":2148,"tokens_out":1274,"status":"ok","created_at":"2026-07-26T14:32:28+00:00"}
 {"run_id":"20260726T143232Z-8a0365","purpose":"digest","model":"gemini-3.1-flash-lite","input_items":12,"tokens_in":2685,"tokens_out":253,"status":"ok","created_at":"2026-07-26T14:32:32+00:00"}
+{"run_id":"20260726T201331Z-5a40d9","purpose":"extract","model":"gemini-3.1-flash-lite","input_items":13,"tokens_in":2296,"tokens_out":1117,"status":"ok","created_at":"2026-07-26T20:13:31+00:00"}
