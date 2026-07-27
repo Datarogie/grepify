@@ -1,0 +1,18 @@
+{
+  "run_id": "20260727T202705Z-868e6a",
+  "command": "extract",
+  "started_at": "2026-07-27T20:27:05+00:00",
+  "finished_at": "2026-07-27T20:27:19+00:00",
+  "ok": true,
+  "counts": {
+    "items_selected": 61,
+    "batches_total": 3,
+    "batches_llm": 3,
+    "batches_fallback": 0,
+    "keywords_written": 230,
+    "keywords_muted": 0,
+    "items_no_keywords": 0
+  },
+  "durations_ms": {},
+  "notes": []
+}
