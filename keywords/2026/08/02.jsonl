@@ -199,3 +199,22 @@
 {"item_id":"b670d770885568c2409b93e3db24eb2921e43a887b28121fdd4e47d5bf6c259e","keyword":"inkling","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-02T14:32:32+00:00"}
 {"item_id":"b670d770885568c2409b93e3db24eb2921e43a887b28121fdd4e47d5bf6c259e","keyword":"kimi k3","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-02T14:32:32+00:00"}
 {"item_id":"b670d770885568c2409b93e3db24eb2921e43a887b28121fdd4e47d5bf6c259e","keyword":"machine learning","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-02T14:32:32+00:00"}
+{"item_id":"ad9d604cfc7faefdbe514d5a76ddef6267c94884c5383aa655c31d7c25944670","keyword":"xberg","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-02T20:18:26+00:00"}
+{"item_id":"ad9d604cfc7faefdbe514d5a76ddef6267c94884c5383aa655c31d7c25944670","keyword":"content intelligence","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-02T20:18:26+00:00"}
+{"item_id":"ad9d604cfc7faefdbe514d5a76ddef6267c94884c5383aa655c31d7c25944670","keyword":"data processing","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-02T20:18:26+00:00"}
+{"item_id":"ad9d604cfc7faefdbe514d5a76ddef6267c94884c5383aa655c31d7c25944670","keyword":"document parsing","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-02T20:18:26+00:00"}
+{"item_id":"ad9d604cfc7faefdbe514d5a76ddef6267c94884c5383aa655c31d7c25944670","keyword":"transcription","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-02T20:18:26+00:00"}
+{"item_id":"a2ff5f05714459280a364f57690d05631879c652b52478b98661103b18bf6b76","keyword":"coding agents","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-02T20:18:26+00:00"}
+{"item_id":"a2ff5f05714459280a364f57690d05631879c652b52478b98661103b18bf6b76","keyword":"ai automation","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-02T20:18:26+00:00"}
+{"item_id":"a2ff5f05714459280a364f57690d05631879c652b52478b98661103b18bf6b76","keyword":"data science","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-02T20:18:26+00:00"}
+{"item_id":"a2ff5f05714459280a364f57690d05631879c652b52478b98661103b18bf6b76","keyword":"workflow optimization","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-02T20:18:26+00:00"}
+{"item_id":"46c0c84ddca7fe7e56a87d9a89bf97533b854e4a4911649c5dd4f5fe8fde9b26","keyword":"google earth","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-02T20:18:26+00:00"}
+{"item_id":"46c0c84ddca7fe7e56a87d9a89bf97533b854e4a4911649c5dd4f5fe8fde9b26","keyword":"deepfake","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-02T20:18:26+00:00"}
+{"item_id":"46c0c84ddca7fe7e56a87d9a89bf97533b854e4a4911649c5dd4f5fe8fde9b26","keyword":"satellite imagery","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-02T20:18:26+00:00"}
+{"item_id":"46c0c84ddca7fe7e56a87d9a89bf97533b854e4a4911649c5dd4f5fe8fde9b26","keyword":"disinformation","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-02T20:18:26+00:00"}
+{"item_id":"46c0c84ddca7fe7e56a87d9a89bf97533b854e4a4911649c5dd4f5fe8fde9b26","keyword":"ai ethics","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-02T20:18:26+00:00"}
+{"item_id":"c259633950d6f10c207126b81a930b24a7d3e1d717347f05c7ec1d4d10fcf63c","keyword":"fender","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-02T20:18:26+00:00"}
+{"item_id":"c259633950d6f10c207126b81a930b24a7d3e1d717347f05c7ec1d4d10fcf63c","keyword":"ai music","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-02T20:18:26+00:00"}
+{"item_id":"c259633950d6f10c207126b81a930b24a7d3e1d717347f05c7ec1d4d10fcf63c","keyword":"bud cole","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-02T20:18:26+00:00"}
+{"item_id":"c259633950d6f10c207126b81a930b24a7d3e1d717347f05c7ec1d4d10fcf63c","keyword":"telecaster","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-02T20:18:26+00:00"}
+{"item_id":"c259633950d6f10c207126b81a930b24a7d3e1d717347f05c7ec1d4d10fcf63c","keyword":"music industry","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-02T20:18:26+00:00"}
