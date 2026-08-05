@@ -1,0 +1,27 @@
+{
+  "run_id": "20260805T151325Z-837c28",
+  "command": "ingest",
+  "started_at": "2026-08-05T15:13:25+00:00",
+  "finished_at": "2026-08-05T15:16:40+00:00",
+  "ok": true,
+  "counts": {
+    "sources_attempted": 93,
+    "sources_ok": 86,
+    "sources_empty": 0,
+    "sources_error": 7,
+    "sources_skipped": 34,
+    "items_new": 91
+  },
+  "durations_ms": {
+    "total_ms": 195076
+  },
+  "notes": [
+    "ai-news: ai-news: all acquisition rungs failed: ai-news: unparseable feed: SAXParseException('syntax error'); ai-news: unparseable feed: SAXParseException('syntax error'); ai-news: unparseable feed: SAXParseException('syntax error'); ai-news: unparseable feed: SAXParseException('syntax error')",
+    "ai-time-journal: ai-time-journal: all acquisition rungs failed: ai-time-journal: HTTP 403; ai-time-journal: HTTP 403; ai-time-journal: HTTP 403; ai-time-journal: HTTP 403; ai-time-journal: autodiscovery GET https://www.aitimejournal.com/ HTTP 403",
+    "bdan-ai: bdan-ai: all acquisition rungs failed: bdan-ai: HTTP 508; bdan-ai: HTTP 503; bdan-ai: HTTP 508; bdan-ai: HTTP 508; bdan-ai: autodiscovery GET https://bigdataanalyticsnews.com/ HTTP 503",
+    "ahead-of-ai: ahead-of-ai: all acquisition rungs failed: response failure: response body exceeded size limit; response failure: response body exceeded size limit; ahead-of-ai: HTTP 404; ahead-of-ai: unparseable feed: SAXParseException('not well-formed (invalid token)'); response failure: response body exceeded size limit",
+    "dlabs-ai: dlabs-ai: all acquisition rungs failed: response failure: response body exceeded size limit; response failure: response body exceeded size limit; response failure: response body exceeded size limit; response failure: response body exceeded size limit",
+    "benn-substack: benn-substack: all acquisition rungs failed: benn-substack: HTTP 403; benn-substack: Substack archive HTTP 403; benn-substack: autodiscovery GET https://benn.substack.com/ HTTP 403",
+    "snowflake-engineering: snowflake-engineering: all acquisition rungs failed: snowflake-engineering: HTTP 404; snowflake-engineering: HTTP 404; snowflake-engineering: HTTP 404; snowflake-engineering: unparseable feed: SAXParseException('not well-formed (invalid token)')"
+  ]
+}
