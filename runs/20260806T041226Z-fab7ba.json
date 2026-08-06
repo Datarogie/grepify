@@ -1,0 +1,33 @@
+{
+  "run_id": "20260806T041226Z-fab7ba",
+  "command": "ingest",
+  "started_at": "2026-08-06T04:12:26+00:00",
+  "finished_at": "2026-08-06T04:14:24+00:00",
+  "ok": true,
+  "counts": {
+    "sources_attempted": 93,
+    "sources_ok": 80,
+    "sources_empty": 0,
+    "sources_error": 13,
+    "sources_skipped": 34,
+    "items_new": 39
+  },
+  "durations_ms": {
+    "total_ms": 117532
+  },
+  "notes": [
+    "ai-news: ai-news: all acquisition rungs failed: ai-news: unparseable feed: SAXParseException('syntax error'); ai-news: unparseable feed: SAXParseException('syntax error'); ai-news: unparseable feed: SAXParseException('syntax error'); ai-news: unparseable feed: SAXParseException('syntax error')",
+    "ai-time-journal: ai-time-journal: all acquisition rungs failed: ai-time-journal: HTTP 403; ai-time-journal: HTTP 403; ai-time-journal: HTTP 403; ai-time-journal: HTTP 403; ai-time-journal: autodiscovery GET https://www.aitimejournal.com/ HTTP 403",
+    "ahead-of-ai: ahead-of-ai: all acquisition rungs failed: response failure: response body exceeded size limit; response failure: response body exceeded size limit; ahead-of-ai: HTTP 404; ahead-of-ai: unparseable feed: SAXParseException('not well-formed (invalid token)'); response failure: response body exceeded size limit",
+    "copyleaks-blog: copyleaks-blog: all acquisition rungs failed: copyleaks-blog: HTTP 403; copyleaks-blog: HTTP 403; copyleaks-blog: HTTP 403; copyleaks-blog: HTTP 403; copyleaks-blog: autodiscovery GET https://copyleaks.com/ HTTP 403",
+    "dlabs-ai: dlabs-ai: all acquisition rungs failed: response failure: response body exceeded size limit; response failure: response body exceeded size limit; response failure: response body exceeded size limit; response failure: response body exceeded size limit",
+    "benn-substack: benn-substack: all acquisition rungs failed: benn-substack: HTTP 403; benn-substack: Substack archive HTTP 403; benn-substack: autodiscovery GET https://benn.substack.com/ HTTP 403",
+    "snowflake-engineering: snowflake-engineering: all acquisition rungs failed: snowflake-engineering: HTTP 404; snowflake-engineering: HTTP 404; snowflake-engineering: HTTP 404; snowflake-engineering: unparseable feed: SAXParseException('not well-formed (invalid token)')",
+    "yt-jack-roberts: yt-jack-roberts: HTTP 404",
+    "yt-ben-ai: yt-ben-ai: HTTP 404",
+    "yt-dylan-davis: yt-dylan-davis: HTTP 404",
+    "yt-futurepedia: yt-futurepedia: HTTP 404",
+    "yt-kevin-stratvert: yt-kevin-stratvert: HTTP 404",
+    "yt-lex-fridman: yt-lex-fridman: HTTP 404"
+  ]
+}
