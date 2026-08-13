@@ -6,6 +6,10 @@ resolution-markers = [
     "python_full_version < '3.15'",
 ]
 
+[options]
+exclude-newer = "2026-08-05T21:17:57.656421559Z"
+exclude-newer-span = "P7D"
+
 [[package]]
 name = "annotated-doc"
 version = "0.0.4"

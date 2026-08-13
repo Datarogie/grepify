@@ -6,7 +6,11 @@
 .DEFAULT_GOAL := help
 UV ?= uv
 
-.PHONY: help install install-pipeline fmt lint typecheck test check audit workflow-security \
+# GRP-58 publish cooldown. Exported, not per-target: uv records the window in
+# uv.lock, so `--locked` treats any run without it as stale.
+export UV_EXCLUDE_NEWER ?= 7d
+
+.PHONY: help install install-pipeline lock fmt lint typecheck test check audit workflow-security \
         ingest extract trends digest digest-daily digest-weekly build validate health doctor backfill \
         digest-gate data-branch datasize commit-data site eval
 
@@ -15,10 +19,13 @@ help: ## List available targets
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
 install: ## Sync the dev environment
-	$(UV) sync --group dev
+	$(UV) sync --group dev --locked
 
 install-pipeline: ## Sync dev + the E5 optional extra (YouTube transcripts) for the cron pipeline job
-	$(UV) sync --group dev --extra transcripts
+	$(UV) sync --group dev --extra transcripts --locked
+
+lock: ## Relock under the cooldown (pass LOCK_ARGS=--upgrade to bump)
+	$(UV) lock $(LOCK_ARGS)
 
 fmt: ## Auto-format
 	$(UV) run ruff format .
