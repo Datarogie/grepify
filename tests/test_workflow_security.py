@@ -250,3 +250,13 @@ def test_failure_notification_uses_exact_title_without_issue_112_coupling() -> N
     script = notify_step["with"]["script"]
     assert "issue.title === title" in script
     assert "112" not in script
+
+
+def test_uv_lock_retains_the_publish_cooldown() -> None:
+    # GRP-58: any uv command run without UV_EXCLUDE_NEWER silently rewrites
+    # uv.lock and drops this block, so a stripped lock reaches CI looking clean.
+    lock = (ROOT / "uv.lock").read_text()
+    assert 'exclude-newer-span = "P7D"' in lock, (
+        "uv.lock lost its publish cooldown. A bare `uv run`/`uv sync` outside "
+        "make strips it. Restore with `make lock`."
+    )
