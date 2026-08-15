@@ -1,0 +1,31 @@
+{
+  "run_id": "20260815T133022Z-117c74",
+  "command": "ingest",
+  "started_at": "2026-08-15T13:30:22+00:00",
+  "finished_at": "2026-08-15T13:33:25+00:00",
+  "ok": true,
+  "counts": {
+    "sources_attempted": 93,
+    "sources_ok": 82,
+    "sources_empty": 0,
+    "sources_error": 11,
+    "sources_skipped": 34,
+    "items_new": 10
+  },
+  "durations_ms": {
+    "total_ms": 182953
+  },
+  "notes": [
+    "ai-news: ai-news: all acquisition rungs failed: ai-news: unparseable feed: SAXParseException('not well-formed (invalid token)'); ai-news: unparseable feed: SAXParseException('not well-formed (invalid token)'); ai-news: unparseable feed: SAXParseException('not well-formed (invalid token)'); ai-news: unparseable feed: SAXParseException('not well-formed (invalid token)')",
+    "ai-time-journal: ai-time-journal: all acquisition rungs failed: ai-time-journal: HTTP 403; ai-time-journal: HTTP 403; ai-time-journal: HTTP 403; ai-time-journal: HTTP 403; ai-time-journal: autodiscovery GET https://www.aitimejournal.com/ HTTP 403",
+    "just-ai-news: just-ai-news: all acquisition rungs failed: just-ai-news: unparseable feed: SAXParseException('not well-formed (invalid token)'); just-ai-news: unparseable feed: SAXParseException('not well-formed (invalid token)'); just-ai-news: unparseable feed: SAXParseException('not well-formed (invalid token)'); just-ai-news: unparseable feed: SAXParseException('not well-formed (invalid token)')",
+    "ahead-of-ai: ahead-of-ai: all acquisition rungs failed: response failure: response body exceeded size limit; response failure: response body exceeded size limit; ahead-of-ai: HTTP 404; ahead-of-ai: unparseable feed: SAXParseException('not well-formed (invalid token)'); response failure: response body exceeded size limit",
+    "aiiot-artificial-intelligence: aiiot-artificial-intelligence: all acquisition rungs failed: response failure: https://www.aiiottalk.com/feed/; response failure: https://www.aiiottalk.com/feed; response failure: https://www.aiiottalk.com/feed/atom/; response failure: https://www.aiiottalk.com/?feed=rss2; response failure: https://www.aiiottalk.com/",
+    "cogito-tech-blog: cogito-tech-blog: all acquisition rungs failed: cogito-tech-blog: unparseable feed: SAXParseException('not well-formed (invalid token)'); cogito-tech-blog: unparseable feed: SAXParseException('not well-formed (invalid token)'); cogito-tech-blog: unparseable feed: SAXParseException('not well-formed (invalid token)'); cogito-tech-blog: unparseable feed: SAXParseException('not well-formed (invalid token)')",
+    "dlabs-ai: dlabs-ai: all acquisition rungs failed: response failure: response body exceeded size limit; response failure: response body exceeded size limit; response failure: response body exceeded size limit; response failure: response body exceeded size limit",
+    "kavita-ganesans-blog: kavita-ganesans-blog: all acquisition rungs failed: kavita-ganesans-blog: unparseable feed: SAXParseException('not well-formed (invalid token)'); kavita-ganesans-blog: unparseable feed: SAXParseException('not well-formed (invalid token)'); kavita-ganesans-blog: unparseable feed: SAXParseException('not well-formed (invalid token)'); kavita-ganesans-blog: unparseable feed: SAXParseException('not well-formed (invalid token)')",
+    "marktechpost: marktechpost: all acquisition rungs failed: marktechpost: unparseable feed: SAXParseException('not well-formed (invalid token)'); marktechpost: unparseable feed: SAXParseException('not well-formed (invalid token)'); marktechpost: unparseable feed: SAXParseException('not well-formed (invalid token)'); marktechpost: unparseable feed: SAXParseException('not well-formed (invalid token)')",
+    "benn-substack: benn-substack: all acquisition rungs failed: benn-substack: HTTP 403; benn-substack: Substack archive HTTP 403; benn-substack: autodiscovery GET https://benn.substack.com/ HTTP 403",
+    "snowflake-engineering: snowflake-engineering: all acquisition rungs failed: snowflake-engineering: HTTP 404; snowflake-engineering: HTTP 404; snowflake-engineering: HTTP 404; network timeout: https://www.snowflake.com/en/blog/engineering/?feed=rss2"
+  ]
+}
