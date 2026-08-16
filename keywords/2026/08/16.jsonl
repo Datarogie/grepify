@@ -155,3 +155,39 @@
 {"item_id":"afb44f94524022f32cf06bf17575f4edd3618f5a07d1c9d764141036ae8b208f","keyword":"duckdb","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T13:35:18+00:00"}
 {"item_id":"afb44f94524022f32cf06bf17575f4edd3618f5a07d1c9d764141036ae8b208f","keyword":"data engineering","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T13:35:18+00:00"}
 {"item_id":"afb44f94524022f32cf06bf17575f4edd3618f5a07d1c9d764141036ae8b208f","keyword":"distributed computing","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T13:35:18+00:00"}
+{"item_id":"dc29c13f512c5314e5a1b045d53e4e478c13c7f9c4e74996f77098e25696dff3","keyword":"deepfakes","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"dc29c13f512c5314e5a1b045d53e4e478c13c7f9c4e74996f77098e25696dff3","keyword":"anthony albanese","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"dc29c13f512c5314e5a1b045d53e4e478c13c7f9c4e74996f77098e25696dff3","keyword":"scams","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"dc29c13f512c5314e5a1b045d53e4e478c13c7f9c4e74996f77098e25696dff3","keyword":"investment fraud","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"dc29c13f512c5314e5a1b045d53e4e478c13c7f9c4e74996f77098e25696dff3","keyword":"asic","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"dc29c13f512c5314e5a1b045d53e4e478c13c7f9c4e74996f77098e25696dff3","keyword":"australia","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"ccf5419bca900ad3af36fe59c65aa825a24e5d26569ba1500874d467bdc95bcd","keyword":"chatgpt","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"ccf5419bca900ad3af36fe59c65aa825a24e5d26569ba1500874d467bdc95bcd","keyword":"macos","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"ccf5419bca900ad3af36fe59c65aa825a24e5d26569ba1500874d467bdc95bcd","keyword":"computer history","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"ccf5419bca900ad3af36fe59c65aa825a24e5d26569ba1500874d467bdc95bcd","keyword":"ai automation","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"ccf5419bca900ad3af36fe59c65aa825a24e5d26569ba1500874d467bdc95bcd","keyword":"keystroke logging","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"ccf5419bca900ad3af36fe59c65aa825a24e5d26569ba1500874d467bdc95bcd","keyword":"training data","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"07363e69fa1c2cc3d561070cc17843d9ee5ece82587d5f7361842db5874d5071","keyword":"rag","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"07363e69fa1c2cc3d561070cc17843d9ee5ece82587d5f7361842db5874d5071","keyword":"knowledge layer","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"07363e69fa1c2cc3d561070cc17843d9ee5ece82587d5f7361842db5874d5071","keyword":"azure ai","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"07363e69fa1c2cc3d561070cc17843d9ee5ece82587d5f7361842db5874d5071","keyword":"data architecture","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"07363e69fa1c2cc3d561070cc17843d9ee5ece82587d5f7361842db5874d5071","keyword":"artificial intelligence","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"7a1f0bb6a0864565b9011a94728703d1ae8e0ed791b6f9454c0993111abacfb1","keyword":"dario amodei","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"7a1f0bb6a0864565b9011a94728703d1ae8e0ed791b6f9454c0993111abacfb1","keyword":"anthropic","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"7a1f0bb6a0864565b9011a94728703d1ae8e0ed791b6f9454c0993111abacfb1","keyword":"ai ethics","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"7a1f0bb6a0864565b9011a94728703d1ae8e0ed791b6f9454c0993111abacfb1","keyword":"public trust","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"7a1f0bb6a0864565b9011a94728703d1ae8e0ed791b6f9454c0993111abacfb1","keyword":"ai risks","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"3aea818aed4e113d5c38bd13aac2a5a3449c51e95329cfe510132d78622ffd6a","keyword":"dario amodei","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"3aea818aed4e113d5c38bd13aac2a5a3449c51e95329cfe510132d78622ffd6a","keyword":"anthropic","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"3aea818aed4e113d5c38bd13aac2a5a3449c51e95329cfe510132d78622ffd6a","keyword":"ai backlash","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"3aea818aed4e113d5c38bd13aac2a5a3449c51e95329cfe510132d78622ffd6a","keyword":"public trust","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"21a244c2aae97e18c8da830c0968d996b2f5e5a22d6d1e787ec20d93b58bfe09","keyword":"ai hiring","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"21a244c2aae97e18c8da830c0968d996b2f5e5a22d6d1e787ec20d93b58bfe09","keyword":"job interviews","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"21a244c2aae97e18c8da830c0968d996b2f5e5a22d6d1e787ec20d93b58bfe09","keyword":"recruitment","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"21a244c2aae97e18c8da830c0968d996b2f5e5a22d6d1e787ec20d93b58bfe09","keyword":"automation","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"21a244c2aae97e18c8da830c0968d996b2f5e5a22d6d1e787ec20d93b58bfe09","keyword":"human factor","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"ccf5dcaee17022f1bfe5c7650e70518595fe39791393493aec179b79698d4430","keyword":"fish audio","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"ccf5dcaee17022f1bfe5c7650e70518595fe39791393493aec179b79698d4430","keyword":"ai voice","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"ccf5dcaee17022f1bfe5c7650e70518595fe39791393493aec179b79698d4430","keyword":"speech synthesis","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"ccf5dcaee17022f1bfe5c7650e70518595fe39791393493aec179b79698d4430","keyword":"emotion control","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
+{"item_id":"ccf5dcaee17022f1bfe5c7650e70518595fe39791393493aec179b79698d4430","keyword":"hedra","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-16T19:24:17+00:00"}
