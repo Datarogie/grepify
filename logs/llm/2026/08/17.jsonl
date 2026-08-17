@@ -5,3 +5,6 @@
 {"run_id":"20260817T134226Z-8e31af","purpose":"digest","model":"gemini-3.1-flash-lite","input_items":12,"tokens_in":2414,"tokens_out":269,"status":"ok","created_at":"2026-08-17T13:42:26+00:00"}
 {"run_id":"20260817T134229Z-22b8ce","purpose":"digest","model":"gemini-3.1-flash-lite","input_items":20,"tokens_in":4817,"tokens_out":368,"status":"ok","created_at":"2026-08-17T13:42:30+00:00"}
 {"run_id":"20260817T134229Z-22b8ce","purpose":"digest","model":"gemini-3.1-flash-lite","input_items":20,"tokens_in":4735,"tokens_out":323,"status":"ok","created_at":"2026-08-17T13:42:33+00:00"}
+{"run_id":"20260817T193159Z-440f9f","purpose":"extract","model":"gemini-3.1-flash-lite","input_items":25,"tokens_in":3178,"tokens_out":2095,"status":"ok","created_at":"2026-08-17T19:32:00+00:00"}
+{"run_id":"20260817T193159Z-440f9f","purpose":"extract","model":"gemini-3.1-flash-lite","input_items":25,"tokens_in":4082,"tokens_out":2119,"status":"ok","created_at":"2026-08-17T19:32:06+00:00"}
+{"run_id":"20260817T193159Z-440f9f","purpose":"extract","model":"gemini-3.1-flash-lite","input_items":4,"tokens_in":741,"tokens_out":344,"status":"ok","created_at":"2026-08-17T19:32:12+00:00"}
