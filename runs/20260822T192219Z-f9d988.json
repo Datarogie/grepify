@@ -1,0 +1,30 @@
+{
+  "run_id": "20260822T192219Z-f9d988",
+  "command": "ingest",
+  "started_at": "2026-08-22T19:22:19+00:00",
+  "finished_at": "2026-08-22T19:28:42+00:00",
+  "ok": true,
+  "counts": {
+    "sources_attempted": 93,
+    "sources_ok": 83,
+    "sources_empty": 0,
+    "sources_error": 10,
+    "sources_skipped": 34,
+    "items_new": 8
+  },
+  "durations_ms": {
+    "total_ms": 382256
+  },
+  "notes": [
+    "ai-news: ai-news: all acquisition rungs failed: response failure: www.artificialintelligence-news.com; response failure: www.artificialintelligence-news.com; response failure: www.artificialintelligence-news.com; response failure: www.artificialintelligence-news.com; response failure: www.artificialintelligence-news.com",
+    "ai-time-journal: ai-time-journal: all acquisition rungs failed: ai-time-journal: HTTP 403; ai-time-journal: HTTP 403; ai-time-journal: HTTP 403; ai-time-journal: HTTP 403; ai-time-journal: autodiscovery GET https://www.aitimejournal.com/ HTTP 403",
+    "just-ai-news: just-ai-news: all acquisition rungs failed: response failure: justainews.com; response failure: justainews.com; response failure: justainews.com; response failure: justainews.com; response failure: justainews.com",
+    "ahead-of-ai: ahead-of-ai: all acquisition rungs failed: response failure: response body exceeded size limit; response failure: response body exceeded size limit; ahead-of-ai: HTTP 404; ahead-of-ai: unparseable feed: SAXParseException('not well-formed (invalid token)'); response failure: response body exceeded size limit",
+    "cogito-tech-blog: cogito-tech-blog: all acquisition rungs failed: response failure: www.cogitotech.com; response failure: www.cogitotech.com; response failure: www.cogitotech.com; response failure: www.cogitotech.com; response failure: www.cogitotech.com",
+    "dlabs-ai: dlabs-ai: all acquisition rungs failed: response failure: response body exceeded size limit; response failure: response body exceeded size limit; response failure: response body exceeded size limit; response failure: response body exceeded size limit",
+    "kavita-ganesans-blog: kavita-ganesans-blog: all acquisition rungs failed: response failure: kavita-ganesan.com; response failure: kavita-ganesan.com; response failure: kavita-ganesan.com; response failure: kavita-ganesan.com; response failure: kavita-ganesan.com",
+    "marktechpost: marktechpost: all acquisition rungs failed: marktechpost: unparseable feed: SAXParseException('not well-formed (invalid token)'); marktechpost: unparseable feed: SAXParseException('not well-formed (invalid token)'); marktechpost: unparseable feed: SAXParseException('not well-formed (invalid token)'); marktechpost: unparseable feed: SAXParseException('not well-formed (invalid token)')",
+    "benn-substack: benn-substack: all acquisition rungs failed: benn-substack: HTTP 403; benn-substack: Substack archive HTTP 403; benn-substack: autodiscovery GET https://benn.substack.com/ HTTP 403",
+    "snowflake-engineering: snowflake-engineering: all acquisition rungs failed: snowflake-engineering: HTTP 404; snowflake-engineering: HTTP 404; snowflake-engineering: HTTP 404; snowflake-engineering: unparseable feed: SAXParseException('not well-formed (invalid token)')"
+  ]
+}
