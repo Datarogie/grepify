@@ -141,3 +141,30 @@
 {"item_id":"e31033335457a83cda670f6b70416b21d3576c679800d07409765b2bf6e14596","keyword":"copyright law","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T17:04:12+00:00"}
 {"item_id":"e31033335457a83cda670f6b70416b21d3576c679800d07409765b2bf6e14596","keyword":"music industry","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T17:04:12+00:00"}
 {"item_id":"e31033335457a83cda670f6b70416b21d3576c679800d07409765b2bf6e14596","keyword":"suno","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T17:04:12+00:00"}
+{"item_id":"cf12b6e6a634a7a5b6a526d1e2cfc3c16165502b23c03d7509a386d636b41296","keyword":"vijay pande","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"cf12b6e6a634a7a5b6a526d1e2cfc3c16165502b23c03d7509a386d636b41296","keyword":"biotech","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"cf12b6e6a634a7a5b6a526d1e2cfc3c16165502b23c03d7509a386d636b41296","keyword":"artificial intelligence","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"cf12b6e6a634a7a5b6a526d1e2cfc3c16165502b23c03d7509a386d636b41296","keyword":"medicine","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"cf12b6e6a634a7a5b6a526d1e2cfc3c16165502b23c03d7509a386d636b41296","keyword":"vzvc","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"cf12b6e6a634a7a5b6a526d1e2cfc3c16165502b23c03d7509a386d636b41296","keyword":"a16z","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"cf12b6e6a634a7a5b6a526d1e2cfc3c16165502b23c03d7509a386d636b41296","keyword":"clinical trials","rank":7,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"cf12b6e6a634a7a5b6a526d1e2cfc3c16165502b23c03d7509a386d636b41296","keyword":"engineering biology","rank":8,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"7e78c4797d597488fceb679e9447959b051ffcd1cee4e9e70605e92dd08699d3","keyword":"chatgpt","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"7e78c4797d597488fceb679e9447959b051ffcd1cee4e9e70605e92dd08699d3","keyword":"crm","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"7e78c4797d597488fceb679e9447959b051ffcd1cee4e9e70605e92dd08699d3","keyword":"automation","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"7e78c4797d597488fceb679e9447959b051ffcd1cee4e9e70605e92dd08699d3","keyword":"artificial intelligence","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"7e78c4797d597488fceb679e9447959b051ffcd1cee4e9e70605e92dd08699d3","keyword":"productivity","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"a3e9665d36e733f2dd058244e9e0a48de39fa69345a11563b26131eb6d10d063","keyword":"anthropic","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"a3e9665d36e733f2dd058244e9e0a48de39fa69345a11563b26131eb6d10d063","keyword":"sony music","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"a3e9665d36e733f2dd058244e9e0a48de39fa69345a11563b26131eb6d10d063","keyword":"warner chappell","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"a3e9665d36e733f2dd058244e9e0a48de39fa69345a11563b26131eb6d10d063","keyword":"copyright infringement","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"a3e9665d36e733f2dd058244e9e0a48de39fa69345a11563b26131eb6d10d063","keyword":"lawsuit","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"a3e9665d36e733f2dd058244e9e0a48de39fa69345a11563b26131eb6d10d063","keyword":"artificial intelligence","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"a3e9665d36e733f2dd058244e9e0a48de39fa69345a11563b26131eb6d10d063","keyword":"intellectual property","rank":7,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"9966ac2be9e0689eb78662a00636f58c99467f985fc88fa12c9cc29f46b85f0e","keyword":"anthropic","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"9966ac2be9e0689eb78662a00636f58c99467f985fc88fa12c9cc29f46b85f0e","keyword":"sony music","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"9966ac2be9e0689eb78662a00636f58c99467f985fc88fa12c9cc29f46b85f0e","keyword":"warner chappell","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"9966ac2be9e0689eb78662a00636f58c99467f985fc88fa12c9cc29f46b85f0e","keyword":"copyright","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"9966ac2be9e0689eb78662a00636f58c99467f985fc88fa12c9cc29f46b85f0e","keyword":"lawsuit","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"9966ac2be9e0689eb78662a00636f58c99467f985fc88fa12c9cc29f46b85f0e","keyword":"piracy","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
+{"item_id":"9966ac2be9e0689eb78662a00636f58c99467f985fc88fa12c9cc29f46b85f0e","keyword":"intellectual property","rank":7,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-29T21:35:43+00:00"}
