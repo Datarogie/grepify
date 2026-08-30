@@ -197,3 +197,23 @@
 {"item_id":"5301693f3b3bbc401af7900c1a5143c1b0ccc0b0c1a5d30c4dff01a9f24fc9b8","keyword":"gas turbines","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-30T17:17:38+00:00"}
 {"item_id":"5301693f3b3bbc401af7900c1a5143c1b0ccc0b0c1a5d30c4dff01a9f24fc9b8","keyword":"pollution","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-30T17:17:38+00:00"}
 {"item_id":"5301693f3b3bbc401af7900c1a5143c1b0ccc0b0c1a5d30c4dff01a9f24fc9b8","keyword":"energy","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-30T17:17:38+00:00"}
+{"item_id":"7686ff0b97f05056d6b8043659d720d75592a6a1a506ab62af80e665a530f2b7","keyword":"big tech","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-30T21:55:15+00:00"}
+{"item_id":"7686ff0b97f05056d6b8043659d720d75592a6a1a506ab62af80e665a530f2b7","keyword":"artificial intelligence","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-30T21:55:15+00:00"}
+{"item_id":"7686ff0b97f05056d6b8043659d720d75592a6a1a506ab62af80e665a530f2b7","keyword":"corporate earnings","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-30T21:55:15+00:00"}
+{"item_id":"7686ff0b97f05056d6b8043659d720d75592a6a1a506ab62af80e665a530f2b7","keyword":"openai","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-30T21:55:15+00:00"}
+{"item_id":"7686ff0b97f05056d6b8043659d720d75592a6a1a506ab62af80e665a530f2b7","keyword":"anthropic","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-30T21:55:15+00:00"}
+{"item_id":"7686ff0b97f05056d6b8043659d720d75592a6a1a506ab62af80e665a530f2b7","keyword":"spacex","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-30T21:55:15+00:00"}
+{"item_id":"7686ff0b97f05056d6b8043659d720d75592a6a1a506ab62af80e665a530f2b7","keyword":"investment gains","rank":7,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-30T21:55:15+00:00"}
+{"item_id":"30a7126cc475f275b059e165e956f9d00cb60624e4f69537f91604b9742ea261","keyword":"google ai","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-30T21:55:15+00:00"}
+{"item_id":"30a7126cc475f275b059e165e956f9d00cb60624e4f69537f91604b9742ea261","keyword":"envharness","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-30T21:55:15+00:00"}
+{"item_id":"30a7126cc475f275b059e165e956f9d00cb60624e4f69537f91604b9742ea261","keyword":"machine learning","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-30T21:55:15+00:00"}
+{"item_id":"30a7126cc475f275b059e165e956f9d00cb60624e4f69537f91604b9742ea261","keyword":"agent training","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-30T21:55:15+00:00"}
+{"item_id":"30a7126cc475f275b059e165e956f9d00cb60624e4f69537f91604b9742ea261","keyword":"llm","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-30T21:55:15+00:00"}
+{"item_id":"30a7126cc475f275b059e165e956f9d00cb60624e4f69537f91604b9742ea261","keyword":"benchmarking","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-30T21:55:15+00:00"}
+{"item_id":"381d4485416d17f4742213e397b56bfcb4c3bfa55c9570070cf6954a034c754f","keyword":"voice agents","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-30T21:55:15+00:00"}
+{"item_id":"381d4485416d17f4742213e397b56bfcb4c3bfa55c9570070cf6954a034c754f","keyword":"latency","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-30T21:55:15+00:00"}
+{"item_id":"381d4485416d17f4742213e397b56bfcb4c3bfa55c9570070cf6954a034c754f","keyword":"time to first token","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-30T21:55:15+00:00"}
+{"item_id":"381d4485416d17f4742213e397b56bfcb4c3bfa55c9570070cf6954a034c754f","keyword":"inference apis","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-30T21:55:15+00:00"}
+{"item_id":"381d4485416d17f4742213e397b56bfcb4c3bfa55c9570070cf6954a034c754f","keyword":"speech-to-text","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-30T21:55:15+00:00"}
+{"item_id":"381d4485416d17f4742213e397b56bfcb4c3bfa55c9570070cf6954a034c754f","keyword":"text-to-speech","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-30T21:55:15+00:00"}
+{"item_id":"381d4485416d17f4742213e397b56bfcb4c3bfa55c9570070cf6954a034c754f","keyword":"llm performance","rank":7,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-08-30T21:55:15+00:00"}
