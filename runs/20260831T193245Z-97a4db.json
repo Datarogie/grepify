@@ -1,0 +1,17 @@
+{
+  "run_id": "20260831T193245Z-97a4db",
+  "command": "digest",
+  "started_at": "2026-08-31T19:32:45+00:00",
+  "finished_at": "2026-08-31T19:32:57+00:00",
+  "ok": true,
+  "counts": {
+    "categories": 2,
+    "category_periods_considered": 2,
+    "digests_generated": 2,
+    "digests_already_present": 0,
+    "categories_skipped": 0,
+    "categories_template": 0
+  },
+  "durations_ms": {},
+  "notes": []
+}
