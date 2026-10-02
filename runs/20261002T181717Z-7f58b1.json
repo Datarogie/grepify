@@ -1,0 +1,20 @@
+{
+  "run_id": "20261002T181717Z-7f58b1",
+  "command": "extract",
+  "started_at": "2026-10-02T18:17:17+00:00",
+  "finished_at": "2026-10-02T18:18:19+00:00",
+  "ok": true,
+  "counts": {
+    "items_selected": 116,
+    "batches_total": 5,
+    "batches_llm": 4,
+    "batches_fallback": 1,
+    "keywords_written": 521,
+    "keywords_muted": 0,
+    "items_no_keywords": 1
+  },
+  "durations_ms": {},
+  "notes": [
+    "items with no keywords after extraction: 1c38bc045af1292a84fb4195f67dcffc96e39ebd779f6dccfea1130987050f9e"
+  ]
+}
