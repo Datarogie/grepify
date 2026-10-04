@@ -350,3 +350,21 @@
 {"item_id":"c98b92af49465e1992fd31fa6ced19b847f40be965a636bb69e095203b816306","keyword":"misinformation","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-04T17:22:45+00:00"}
 {"item_id":"c98b92af49465e1992fd31fa6ced19b847f40be965a636bb69e095203b816306","keyword":"dale caldwell","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-04T17:22:45+00:00"}
 {"item_id":"c98b92af49465e1992fd31fa6ced19b847f40be965a636bb69e095203b816306","keyword":"sexual harassment","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-04T17:22:45+00:00"}
+{"item_id":"30689a80648d815bf32dbb5b62f020ff224de354f7fa89155f22dee4761f8433","keyword":"google gemini tasks","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-04T22:17:43+00:00"}
+{"item_id":"30689a80648d815bf32dbb5b62f020ff224de354f7fa89155f22dee4761f8433","keyword":"openai dots","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-04T22:17:43+00:00"}
+{"item_id":"30689a80648d815bf32dbb5b62f020ff224de354f7fa89155f22dee4761f8433","keyword":"ai productivity tools","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-04T22:17:43+00:00"}
+{"item_id":"30689a80648d815bf32dbb5b62f020ff224de354f7fa89155f22dee4761f8433","keyword":"artificial intelligence","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-04T22:17:43+00:00"}
+{"item_id":"1951bc4319d3ee41acbe02e0c78fb70c99d13dc4ceed832003a6b3dc96e758b3","keyword":"super intelligence","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-04T22:17:43+00:00"}
+{"item_id":"1951bc4319d3ee41acbe02e0c78fb70c99d13dc4ceed832003a6b3dc96e758b3","keyword":"ai safety","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-04T22:17:43+00:00"}
+{"item_id":"1951bc4319d3ee41acbe02e0c78fb70c99d13dc4ceed832003a6b3dc96e758b3","keyword":"trump administration","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-04T22:17:43+00:00"}
+{"item_id":"1951bc4319d3ee41acbe02e0c78fb70c99d13dc4ceed832003a6b3dc96e758b3","keyword":"ai policy","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-04T22:17:43+00:00"}
+{"item_id":"f260a245c2ef9a0560ba420e512327fe67533b9f30774bccd4c1a22e8bf07b28","keyword":"google","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-04T22:17:43+00:00"}
+{"item_id":"f260a245c2ef9a0560ba420e512327fe67533b9f30774bccd4c1a22e8bf07b28","keyword":"bug bounty program","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-04T22:17:43+00:00"}
+{"item_id":"f260a245c2ef9a0560ba420e512327fe67533b9f30774bccd4c1a22e8bf07b28","keyword":"ai submissions","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-04T22:17:43+00:00"}
+{"item_id":"f260a245c2ef9a0560ba420e512327fe67533b9f30774bccd4c1a22e8bf07b28","keyword":"open source","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-04T22:17:43+00:00"}
+{"item_id":"f260a245c2ef9a0560ba420e512327fe67533b9f30774bccd4c1a22e8bf07b28","keyword":"ai slop","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-04T22:17:43+00:00"}
+{"item_id":"d59b0107101f283f1ae6768ba687de829775856ea94088cdbd3d18a74d080c71","keyword":"ai generated video","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-04T22:17:43+00:00"}
+{"item_id":"d59b0107101f283f1ae6768ba687de829775856ea94088cdbd3d18a74d080c71","keyword":"court ruling","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-04T22:17:43+00:00"}
+{"item_id":"d59b0107101f283f1ae6768ba687de829775856ea94088cdbd3d18a74d080c71","keyword":"manslaughter","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-04T22:17:43+00:00"}
+{"item_id":"d59b0107101f283f1ae6768ba687de829775856ea94088cdbd3d18a74d080c71","keyword":"arizona","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-04T22:17:43+00:00"}
+{"item_id":"d59b0107101f283f1ae6768ba687de829775856ea94088cdbd3d18a74d080c71","keyword":"legal evidence","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-04T22:17:43+00:00"}
