@@ -4,3 +4,10 @@
 {"run_id":"20261006T071700Z-983ddd","purpose":"extract","model":"gemini-3.1-flash-lite","input_items":25,"tokens_in":3680,"tokens_out":2051,"status":"ok","created_at":"2026-10-06T07:17:20+00:00"}
 {"run_id":"20261006T071700Z-983ddd","purpose":"extract","model":"gemini-3.1-flash-lite","input_items":25,"tokens_in":3450,"tokens_out":2032,"status":"ok","created_at":"2026-10-06T07:17:28+00:00"}
 {"run_id":"20261006T071700Z-983ddd","purpose":"extract","model":"gemini-3.1-flash-lite","input_items":16,"tokens_in":2426,"tokens_out":1334,"status":"ok","created_at":"2026-10-06T07:17:35+00:00"}
+{"run_id":"20261006T185331Z-4f4e91","purpose":"extract","model":"gemini-3.1-flash-lite","input_items":25,"tokens_in":3517,"tokens_out":2018,"status":"ok","created_at":"2026-10-06T18:53:32+00:00"}
+{"run_id":"20261006T185331Z-4f4e91","purpose":"extract","model":"gemini-3.1-flash-lite","input_items":25,"tokens_in":3775,"tokens_out":2014,"status":"ok","created_at":"2026-10-06T18:53:43+00:00"}
+{"run_id":"20261006T185331Z-4f4e91","purpose":"extract","model":"gemini-3.1-flash-lite","input_items":25,"tokens_in":3895,"tokens_out":2108,"status":"ok","created_at":"2026-10-06T18:53:53+00:00"}
+{"run_id":"20261006T185331Z-4f4e91","purpose":"extract","model":"gemini-3.1-flash-lite","input_items":25,"tokens_in":null,"tokens_out":null,"status":"error","created_at":"2026-10-06T18:54:04+00:00"}
+{"run_id":"20261006T185331Z-4f4e91","purpose":"extract","model":"gemini-3.1-flash-lite","input_items":5,"tokens_in":822,"tokens_out":482,"status":"ok","created_at":"2026-10-06T18:54:15+00:00"}
+{"run_id":"20261006T185447Z-8d8908","purpose":"digest","model":"gemini-3.1-flash-lite","input_items":12,"tokens_in":3039,"tokens_out":291,"status":"ok","created_at":"2026-10-06T18:54:48+00:00"}
+{"run_id":"20261006T185447Z-8d8908","purpose":"digest","model":"gemini-3.1-flash-lite","input_items":12,"tokens_in":2743,"tokens_out":292,"status":"ok","created_at":"2026-10-06T18:54:57+00:00"}
