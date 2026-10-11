@@ -1,0 +1,2 @@
+{"run_id":"20261011T065142Z-85d178","purpose":"extract","model":"gemini-3.1-flash-lite","input_items":25,"tokens_in":3372,"tokens_out":2105,"status":"ok","created_at":"2026-10-11T06:51:43+00:00"}
+{"run_id":"20261011T065142Z-85d178","purpose":"extract","model":"gemini-3.1-flash-lite","input_items":1,"tokens_in":374,"tokens_out":95,"status":"ok","created_at":"2026-10-11T06:51:49+00:00"}
