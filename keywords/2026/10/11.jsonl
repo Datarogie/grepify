@@ -216,3 +216,19 @@
 {"item_id":"a5c7279c0ee5cc8c1a26aec3b15d8784346082c12334d6648cc40046c089f897","keyword":"nda","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-11T17:58:37+00:00"}
 {"item_id":"a5c7279c0ee5cc8c1a26aec3b15d8784346082c12334d6648cc40046c089f897","keyword":"transparency","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-11T17:58:37+00:00"}
 {"item_id":"a5c7279c0ee5cc8c1a26aec3b15d8784346082c12334d6648cc40046c089f897","keyword":"tech industry","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-11T17:58:37+00:00"}
+{"item_id":"2cdbcc5e8c83ebc4cfb4f2893f8215667fbd113c810c44af6726836572eb5405","keyword":"artificial intelligence","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-11T22:44:28+00:00"}
+{"item_id":"2cdbcc5e8c83ebc4cfb4f2893f8215667fbd113c810c44af6726836572eb5405","keyword":"donald trump","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-11T22:44:28+00:00"}
+{"item_id":"2cdbcc5e8c83ebc4cfb4f2893f8215667fbd113c810c44af6726836572eb5405","keyword":"silicon valley","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-11T22:44:28+00:00"}
+{"item_id":"2cdbcc5e8c83ebc4cfb4f2893f8215667fbd113c810c44af6726836572eb5405","keyword":"super intelligence","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-11T22:44:28+00:00"}
+{"item_id":"2cdbcc5e8c83ebc4cfb4f2893f8215667fbd113c810c44af6726836572eb5405","keyword":"tech policy","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-11T22:44:28+00:00"}
+{"item_id":"2cdbcc5e8c83ebc4cfb4f2893f8215667fbd113c810c44af6726836572eb5405","keyword":"rebranding","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-11T22:44:28+00:00"}
+{"item_id":"6d8c8d405c67d290985427c76a6d32daaaedc29e1fde09f49fe44f9841a2f611","keyword":"techcrunch disrupt","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-11T22:44:28+00:00"}
+{"item_id":"6d8c8d405c67d290985427c76a6d32daaaedc29e1fde09f49fe44f9841a2f611","keyword":"san francisco","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-11T22:44:28+00:00"}
+{"item_id":"6d8c8d405c67d290985427c76a6d32daaaedc29e1fde09f49fe44f9841a2f611","keyword":"technology conference","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-11T22:44:28+00:00"}
+{"item_id":"6d8c8d405c67d290985427c76a6d32daaaedc29e1fde09f49fe44f9841a2f611","keyword":"startups","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-11T22:44:28+00:00"}
+{"item_id":"ba4ce6a09bc84ce001fb8851b03745cc21ea72cab3b20370fb4f96f9194711a9","keyword":"apple","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-11T22:44:28+00:00"}
+{"item_id":"ba4ce6a09bc84ce001fb8851b03745cc21ea72cab3b20370fb4f96f9194711a9","keyword":"homeview","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-11T22:44:28+00:00"}
+{"item_id":"ba4ce6a09bc84ce001fb8851b03745cc21ea72cab3b20370fb4f96f9194711a9","keyword":"smart home","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-11T22:44:28+00:00"}
+{"item_id":"ba4ce6a09bc84ce001fb8851b03745cc21ea72cab3b20370fb4f96f9194711a9","keyword":"iot","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-11T22:44:28+00:00"}
+{"item_id":"ba4ce6a09bc84ce001fb8851b03745cc21ea72cab3b20370fb4f96f9194711a9","keyword":"home automation","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-11T22:44:28+00:00"}
+{"item_id":"ba4ce6a09bc84ce001fb8851b03745cc21ea72cab3b20370fb4f96f9194711a9","keyword":"consumer electronics","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-11T22:44:28+00:00"}
