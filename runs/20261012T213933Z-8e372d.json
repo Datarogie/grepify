@@ -1,0 +1,17 @@
+{
+  "run_id": "20261012T213933Z-8e372d",
+  "command": "digest",
+  "started_at": "2026-10-12T21:39:33+00:00",
+  "finished_at": "2026-10-12T21:39:41+00:00",
+  "ok": true,
+  "counts": {
+    "categories": 2,
+    "category_periods_considered": 2,
+    "digests_generated": 2,
+    "digests_already_present": 0,
+    "categories_skipped": 0,
+    "categories_template": 0
+  },
+  "durations_ms": {},
+  "notes": []
+}
