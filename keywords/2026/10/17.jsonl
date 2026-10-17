@@ -300,3 +300,28 @@
 {"item_id":"54aa1880772456ad8971385adcdff3826084a600adeb16ccee89255e1bbebb1f","keyword":"ai research","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T16:13:01+00:00"}
 {"item_id":"54aa1880772456ad8971385adcdff3826084a600adeb16ccee89255e1bbebb1f","keyword":"automated proof","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T16:13:01+00:00"}
 {"item_id":"54aa1880772456ad8971385adcdff3826084a600adeb16ccee89255e1bbebb1f","keyword":"scientific verification","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T16:13:01+00:00"}
+{"item_id":"1984478c608b22a70e744ffe85813d152ad87150043523dabc9ad8b1c28ca355","keyword":"artificial intelligence","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
+{"item_id":"1984478c608b22a70e744ffe85813d152ad87150043523dabc9ad8b1c28ca355","keyword":"anantha nageswaran","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
+{"item_id":"1984478c608b22a70e744ffe85813d152ad87150043523dabc9ad8b1c28ca355","keyword":"labor market","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
+{"item_id":"1984478c608b22a70e744ffe85813d152ad87150043523dabc9ad8b1c28ca355","keyword":"financial institutions","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
+{"item_id":"1984478c608b22a70e744ffe85813d152ad87150043523dabc9ad8b1c28ca355","keyword":"human judgment","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
+{"item_id":"1984478c608b22a70e744ffe85813d152ad87150043523dabc9ad8b1c28ca355","keyword":"ai safety","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
+{"item_id":"8c1f09c755d8432b60c4a7fbcb68d8e1e70480cb5b64c4b3d5ee8b6205cd865e","keyword":"chatgpt","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
+{"item_id":"8c1f09c755d8432b60c4a7fbcb68d8e1e70480cb5b64c4b3d5ee8b6205cd865e","keyword":"ai strategy","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
+{"item_id":"8c1f09c755d8432b60c4a7fbcb68d8e1e70480cb5b64c4b3d5ee8b6205cd865e","keyword":"ai coaching","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
+{"item_id":"8c1f09c755d8432b60c4a7fbcb68d8e1e70480cb5b64c4b3d5ee8b6205cd865e","keyword":"productivity","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
+{"item_id":"b7996f0b08c8a762b0450b2a35aed81a65b0c26f693081de28daabadd11d398f","keyword":"ai ethics","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
+{"item_id":"b7996f0b08c8a762b0450b2a35aed81a65b0c26f693081de28daabadd11d398f","keyword":"chatbots","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
+{"item_id":"b7996f0b08c8a762b0450b2a35aed81a65b0c26f693081de28daabadd11d398f","keyword":"michael samadi","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
+{"item_id":"b7996f0b08c8a762b0450b2a35aed81a65b0c26f693081de28daabadd11d398f","keyword":"ai rights","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
+{"item_id":"b7996f0b08c8a762b0450b2a35aed81a65b0c26f693081de28daabadd11d398f","keyword":"black box podcast","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
+{"item_id":"c696e74bd4e23fe040dea1e60c18096ceb6600f1346d30837822f3877e455cce","keyword":"anthropic","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
+{"item_id":"c696e74bd4e23fe040dea1e60c18096ceb6600f1346d30837822f3877e455cce","keyword":"workforce","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
+{"item_id":"c696e74bd4e23fe040dea1e60c18096ceb6600f1346d30837822f3877e455cce","keyword":"ai industry","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
+{"item_id":"c696e74bd4e23fe040dea1e60c18096ceb6600f1346d30837822f3877e455cce","keyword":"corporate structure","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
+{"item_id":"ef01cc357372c0a21142655aefbaffe4fa67078bcd16830e77f5e2aa06c65774","keyword":"nvidia rtx","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
+{"item_id":"ef01cc357372c0a21142655aefbaffe4fa67078bcd16830e77f5e2aa06c65774","keyword":"blackwell","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
+{"item_id":"ef01cc357372c0a21142655aefbaffe4fa67078bcd16830e77f5e2aa06c65774","keyword":"windows pcs","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
+{"item_id":"ef01cc357372c0a21142655aefbaffe4fa67078bcd16830e77f5e2aa06c65774","keyword":"laptops","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
+{"item_id":"ef01cc357372c0a21142655aefbaffe4fa67078bcd16830e77f5e2aa06c65774","keyword":"local ai","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
+{"item_id":"ef01cc357372c0a21142655aefbaffe4fa67078bcd16830e77f5e2aa06c65774","keyword":"gaming","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-17T21:19:08+00:00"}
