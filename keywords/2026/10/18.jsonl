@@ -468,3 +468,38 @@
 {"item_id":"7d77907adeafba735d9bc3de13a90dffa893ba97eea5ed694e1f8f2a5f7cf218","keyword":"artificial intelligence","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T16:25:56+00:00"}
 {"item_id":"7d77907adeafba735d9bc3de13a90dffa893ba97eea5ed694e1f8f2a5f7cf218","keyword":"decision making","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T16:25:56+00:00"}
 {"item_id":"7d77907adeafba735d9bc3de13a90dffa893ba97eea5ed694e1f8f2a5f7cf218","keyword":"human behavior","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T16:25:56+00:00"}
+{"item_id":"6b0f8c3892f259df4040bb77991e07473848011c314cb0889c805b123671053e","keyword":"iterators","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"6b0f8c3892f259df4040bb77991e07473848011c314cb0889c805b123671053e","keyword":"generators","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"6b0f8c3892f259df4040bb77991e07473848011c314cb0889c805b123671053e","keyword":"memory efficiency","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"6b0f8c3892f259df4040bb77991e07473848011c314cb0889c805b123671053e","keyword":"programming","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"6b0f8c3892f259df4040bb77991e07473848011c314cb0889c805b123671053e","keyword":"software development","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"8040eb584969e2dbba26230464733a7da5b6cacd8ad6c72510ba8c59507dee88","keyword":"anthropic","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"8040eb584969e2dbba26230464733a7da5b6cacd8ad6c72510ba8c59507dee88","keyword":"ai safety","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"8040eb584969e2dbba26230464733a7da5b6cacd8ad6c72510ba8c59507dee88","keyword":"ai regulation","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"8040eb584969e2dbba26230464733a7da5b6cacd8ad6c72510ba8c59507dee88","keyword":"watchdog","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"8040eb584969e2dbba26230464733a7da5b6cacd8ad6c72510ba8c59507dee88","keyword":"artificial intelligence","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"39c2bbedf9328f536af07ec0d20744e164ac609edaced0b7c7179d0f90705328","keyword":"disney","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"39c2bbedf9328f536af07ec0d20744e164ac609edaced0b7c7179d0f90705328","keyword":"character.ai","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"39c2bbedf9328f536af07ec0d20744e164ac609edaced0b7c7179d0f90705328","keyword":"acquisitions","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"39c2bbedf9328f536af07ec0d20744e164ac609edaced0b7c7179d0f90705328","keyword":"tech hiring","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"39c2bbedf9328f536af07ec0d20744e164ac609edaced0b7c7179d0f90705328","keyword":"artificial intelligence","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"4efd73759180eb4f755c60c9aad7759bf2d8768dc39ab587fcb495efd2dc1c66","keyword":"anthropic","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"4efd73759180eb4f755c60c9aad7759bf2d8768dc39ab587fcb495efd2dc1c66","keyword":"ai automation","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"4efd73759180eb4f755c60c9aad7759bf2d8768dc39ab587fcb495efd2dc1c66","keyword":"recruitment","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"4efd73759180eb4f755c60c9aad7759bf2d8768dc39ab587fcb495efd2dc1c66","keyword":"labor market","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"4efd73759180eb4f755c60c9aad7759bf2d8768dc39ab587fcb495efd2dc1c66","keyword":"ai agents","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"015030c5cbefab3a2c55e672fcea65eae09244a3203f8d552083c5f53bc3bcff","keyword":"delivery robots","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"015030c5cbefab3a2c55e672fcea65eae09244a3203f8d552083c5f53bc3bcff","keyword":"philadelphia","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"015030c5cbefab3a2c55e672fcea65eae09244a3203f8d552083c5f53bc3bcff","keyword":"automation","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"015030c5cbefab3a2c55e672fcea65eae09244a3203f8d552083c5f53bc3bcff","keyword":"labor protest","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"015030c5cbefab3a2c55e672fcea65eae09244a3203f8d552083c5f53bc3bcff","keyword":"uber","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"2214ac6a8b0b143786745e222ed5db54c169cb3e9e3245b2b1f932724b791100","keyword":"xai","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"2214ac6a8b0b143786745e222ed5db54c169cb3e9e3245b2b1f932724b791100","keyword":"grok","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"2214ac6a8b0b143786745e222ed5db54c169cb3e9e3245b2b1f932724b791100","keyword":"ai voice","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"2214ac6a8b0b143786745e222ed5db54c169cb3e9e3245b2b1f932724b791100","keyword":"openai","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"2214ac6a8b0b143786745e222ed5db54c169cb3e9e3245b2b1f932724b791100","keyword":"google","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"2214ac6a8b0b143786745e222ed5db54c169cb3e9e3245b2b1f932724b791100","keyword":"voice assistants","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"216dd3f1d837e1c9cf5df01ef4abada896fc336bb03e80779c183772ed52d163","keyword":"anthropic","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"216dd3f1d837e1c9cf5df01ef4abada896fc336bb03e80779c183772ed52d163","keyword":"public benefit fund","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"216dd3f1d837e1c9cf5df01ef4abada896fc336bb03e80779c183772ed52d163","keyword":"corporate governance","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
+{"item_id":"216dd3f1d837e1c9cf5df01ef4abada896fc336bb03e80779c183772ed52d163","keyword":"ai ethics","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-18T21:21:07+00:00"}
