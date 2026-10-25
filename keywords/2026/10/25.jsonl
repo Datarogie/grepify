@@ -477,3 +477,33 @@
 {"item_id":"dba566067195d7a034b9059085537425157d0b76751040495a519a3afa09ff31","keyword":"widespread hype","rank":6,"method":"fallback","model":null,"extracted_at":"2026-10-25T17:02:45+00:00"}
 {"item_id":"dba566067195d7a034b9059085537425157d0b76751040495a519a3afa09ff31","keyword":"hype around artificial","rank":7,"method":"fallback","model":null,"extracted_at":"2026-10-25T17:02:45+00:00"}
 {"item_id":"dba566067195d7a034b9059085537425157d0b76751040495a519a3afa09ff31","keyword":"technology has delivered","rank":8,"method":"fallback","model":null,"extracted_at":"2026-10-25T17:02:45+00:00"}
+{"item_id":"709d23dc5c7adda4ae62f3033c23398c2c558fbc02606b1d9e2d300cafd67a83","keyword":"dessa","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"709d23dc5c7adda4ae62f3033c23398c2c558fbc02606b1d9e2d300cafd67a83","keyword":"block","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"709d23dc5c7adda4ae62f3033c23398c2c558fbc02606b1d9e2d300cafd67a83","keyword":"jack dorsey","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"709d23dc5c7adda4ae62f3033c23398c2c558fbc02606b1d9e2d300cafd67a83","keyword":"voice ai","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"709d23dc5c7adda4ae62f3033c23398c2c558fbc02606b1d9e2d300cafd67a83","keyword":"generative ai","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"709d23dc5c7adda4ae62f3033c23398c2c558fbc02606b1d9e2d300cafd67a83","keyword":"local ai","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"709d23dc5c7adda4ae62f3033c23398c2c558fbc02606b1d9e2d300cafd67a83","keyword":"nvidia","rank":7,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"8048013c3e6e16896fec673dccaffac9435956960cc90600e4f0ed21800f1c00","keyword":"annotated illustrations","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"8048013c3e6e16896fec673dccaffac9435956960cc90600e4f0ed21800f1c00","keyword":"claude","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"8048013c3e6e16896fec673dccaffac9435956960cc90600e4f0ed21800f1c00","keyword":"software documentation","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"8048013c3e6e16896fec673dccaffac9435956960cc90600e4f0ed21800f1c00","keyword":"ai tools","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"8048013c3e6e16896fec673dccaffac9435956960cc90600e4f0ed21800f1c00","keyword":"diagramming","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"8048013c3e6e16896fec673dccaffac9435956960cc90600e4f0ed21800f1c00","keyword":"coding","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"cf089f0ca024fd3cfecc5b5aff8125f0b2c34233c3ce5792359dd2b795f375ae","keyword":"anthropic","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"cf089f0ca024fd3cfecc5b5aff8125f0b2c34233c3ce5792359dd2b795f375ae","keyword":"elvis presley","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"cf089f0ca024fd3cfecc5b5aff8125f0b2c34233c3ce5792359dd2b795f375ae","keyword":"copyright infringement","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"cf089f0ca024fd3cfecc5b5aff8125f0b2c34233c3ce5792359dd2b795f375ae","keyword":"ai training","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"cf089f0ca024fd3cfecc5b5aff8125f0b2c34233c3ce5792359dd2b795f375ae","keyword":"authentic brands group","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"cf089f0ca024fd3cfecc5b5aff8125f0b2c34233c3ce5792359dd2b795f375ae","keyword":"lawsuit","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"cf089f0ca024fd3cfecc5b5aff8125f0b2c34233c3ce5792359dd2b795f375ae","keyword":"music licensing","rank":7,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"cea077432e77d9e67dfc826be4cafe73504eeb5f73319400e5fe14707c56e979","keyword":"anthropic","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"cea077432e77d9e67dfc826be4cafe73504eeb5f73319400e5fe14707c56e979","keyword":"elvis presley","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"cea077432e77d9e67dfc826be4cafe73504eeb5f73319400e5fe14707c56e979","keyword":"copyright infringement","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"cea077432e77d9e67dfc826be4cafe73504eeb5f73319400e5fe14707c56e979","keyword":"ai models","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"cea077432e77d9e67dfc826be4cafe73504eeb5f73319400e5fe14707c56e979","keyword":"lawsuit","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"88b929c3529a5247e3420cc3d6f3db847467c3f467b4d51b2f8e25b4f1cdec27","keyword":"cover letter","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"88b929c3529a5247e3420cc3d6f3db847467c3f467b4d51b2f8e25b4f1cdec27","keyword":"job search","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"88b929c3529a5247e3420cc3d6f3db847467c3f467b4d51b2f8e25b4f1cdec27","keyword":"career advice","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"88b929c3529a5247e3420cc3d6f3db847467c3f467b4d51b2f8e25b4f1cdec27","keyword":"employment","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
+{"item_id":"88b929c3529a5247e3420cc3d6f3db847467c3f467b4d51b2f8e25b4f1cdec27","keyword":"resume writing","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-10-25T21:31:44+00:00"}
