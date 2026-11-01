@@ -181,3 +181,18 @@
 {"item_id":"d795f9a4f621f737c40ba2a5a8363f3469cffb889080c41b4adb648f497dd004","keyword":"electricity generating capacity","rank":6,"method":"fallback","model":null,"extracted_at":"2026-11-01T18:20:09+00:00"}
 {"item_id":"d795f9a4f621f737c40ba2a5a8363f3469cffb889080c41b4adb648f497dd004","keyword":"vast neighbouring datacentre","rank":7,"method":"fallback","model":null,"extracted_at":"2026-11-01T18:20:09+00:00"}
 {"item_id":"d795f9a4f621f737c40ba2a5a8363f3469cffb889080c41b4adb648f497dd004","keyword":"major datacentre projects","rank":8,"method":"fallback","model":null,"extracted_at":"2026-11-01T18:20:09+00:00"}
+{"item_id":"2fa15040a246a2b3fc6bba2990411c93746572c5d31af228aefbbb4e4e48823f","keyword":"artificial intelligence","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-01T22:39:38+00:00"}
+{"item_id":"2fa15040a246a2b3fc6bba2990411c93746572c5d31af228aefbbb4e4e48823f","keyword":"machine intelligence research institute","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-01T22:39:38+00:00"}
+{"item_id":"2fa15040a246a2b3fc6bba2990411c93746572c5d31af228aefbbb4e4e48823f","keyword":"nate soares","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-01T22:39:38+00:00"}
+{"item_id":"2fa15040a246a2b3fc6bba2990411c93746572c5d31af228aefbbb4e4e48823f","keyword":"existential risk","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-01T22:39:38+00:00"}
+{"item_id":"2fa15040a246a2b3fc6bba2990411c93746572c5d31af228aefbbb4e4e48823f","keyword":"human extinction","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-01T22:39:38+00:00"}
+{"item_id":"2fa15040a246a2b3fc6bba2990411c93746572c5d31af228aefbbb4e4e48823f","keyword":"machine learning","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-01T22:39:38+00:00"}
+{"item_id":"64ee0eb23b03b2aa2e135f306c901fdf904d0d8469552f2b4f652f517c7a49f5","keyword":"tech ceos","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-01T22:39:38+00:00"}
+{"item_id":"64ee0eb23b03b2aa2e135f306c901fdf904d0d8469552f2b4f652f517c7a49f5","keyword":"artificial intelligence","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-01T22:39:38+00:00"}
+{"item_id":"64ee0eb23b03b2aa2e135f306c901fdf904d0d8469552f2b4f652f517c7a49f5","keyword":"workplace impact","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-01T22:39:38+00:00"}
+{"item_id":"64ee0eb23b03b2aa2e135f306c901fdf904d0d8469552f2b4f652f517c7a49f5","keyword":"equity podcast","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-01T22:39:38+00:00"}
+{"item_id":"ccedf878a96db43d8401b20643816f7da526c110dc9d3498b7f6b0df2384b10e","keyword":"openai","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-01T22:39:38+00:00"}
+{"item_id":"ccedf878a96db43d8401b20643816f7da526c110dc9d3498b7f6b0df2384b10e","keyword":"data centers","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-01T22:39:38+00:00"}
+{"item_id":"ccedf878a96db43d8401b20643816f7da526c110dc9d3498b7f6b0df2384b10e","keyword":"ai compute campuses","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-01T22:39:38+00:00"}
+{"item_id":"ccedf878a96db43d8401b20643816f7da526c110dc9d3498b7f6b0df2384b10e","keyword":"branding","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-01T22:39:38+00:00"}
+{"item_id":"ccedf878a96db43d8401b20643816f7da526c110dc9d3498b7f6b0df2384b10e","keyword":"infrastructure","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-01T22:39:38+00:00"}
