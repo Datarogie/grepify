@@ -268,3 +268,45 @@
 {"item_id":"421b3ef6e9276e5fedbce84c0398209ca16b29f1eaf8dc53da27ffa936d9cf7a","keyword":"filmmaking","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T18:17:20+00:00"}
 {"item_id":"421b3ef6e9276e5fedbce84c0398209ca16b29f1eaf8dc53da27ffa936d9cf7a","keyword":"generative ai","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T18:17:20+00:00"}
 {"item_id":"421b3ef6e9276e5fedbce84c0398209ca16b29f1eaf8dc53da27ffa936d9cf7a","keyword":"content creation","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T18:17:20+00:00"}
+{"item_id":"f175b69029c0a4a6b1be370b8d14e568408e07ec53b9ae1b760196dc31376942","keyword":"artificial intelligence","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"f175b69029c0a4a6b1be370b8d14e568408e07ec53b9ae1b760196dc31376942","keyword":"prompt engineering","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"f175b69029c0a4a6b1be370b8d14e568408e07ec53b9ae1b760196dc31376942","keyword":"generative ai","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"ab5465e442566ff6ba3a67a6820859380a4111e148e813fd38a3f5f13042f608","keyword":"apple","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"ab5465e442566ff6ba3a67a6820859380a4111e148e813fd38a3f5f13042f608","keyword":"siri","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"ab5465e442566ff6ba3a67a6820859380a4111e148e813fd38a3f5f13042f608","keyword":"ai agents","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"ab5465e442566ff6ba3a67a6820859380a4111e148e813fd38a3f5f13042f608","keyword":"craig federighi","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"ab5465e442566ff6ba3a67a6820859380a4111e148e813fd38a3f5f13042f608","keyword":"john ternus","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"7924aa76304215ce6e98247865252a046d8480d5261df66fcd87e0a548c002b3","keyword":"nvidia","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"7924aa76304215ce6e98247865252a046d8480d5261df66fcd87e0a548c002b3","keyword":"jensen huang","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"7924aa76304215ce6e98247865252a046d8480d5261df66fcd87e0a548c002b3","keyword":"espionage","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"7924aa76304215ce6e98247865252a046d8480d5261df66fcd87e0a548c002b3","keyword":"china","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"7924aa76304215ce6e98247865252a046d8480d5261df66fcd87e0a548c002b3","keyword":"corporate investigation","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"3add074cf0adc8b170c9c1f3233c3dd77b7fd202030e7c54f47641b2dbc1b10c","keyword":"nvidia","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"3add074cf0adc8b170c9c1f3233c3dd77b7fd202030e7c54f47641b2dbc1b10c","keyword":"jensen huang","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"3add074cf0adc8b170c9c1f3233c3dd77b7fd202030e7c54f47641b2dbc1b10c","keyword":"espionage","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"ca437e3207cfe591a0f33f0e190402ab5f334d27c96be918c34bc709af607346","keyword":"nvidia","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"ca437e3207cfe591a0f33f0e190402ab5f334d27c96be918c34bc709af607346","keyword":"jensen huang","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"ca437e3207cfe591a0f33f0e190402ab5f334d27c96be918c34bc709af607346","keyword":"espionage","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"ca437e3207cfe591a0f33f0e190402ab5f334d27c96be918c34bc709af607346","keyword":"china","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"ca437e3207cfe591a0f33f0e190402ab5f334d27c96be918c34bc709af607346","keyword":"us congress","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"ca437e3207cfe591a0f33f0e190402ab5f334d27c96be918c34bc709af607346","keyword":"national security","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"e346be224122568268d44a943ddb470f55b580a385b78ae1854036ec072bb7a9","keyword":"nvidia","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"e346be224122568268d44a943ddb470f55b580a385b78ae1854036ec072bb7a9","keyword":"jensen huang","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"e346be224122568268d44a943ddb470f55b580a385b78ae1854036ec072bb7a9","keyword":"marco rubio","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"e346be224122568268d44a943ddb470f55b580a385b78ae1854036ec072bb7a9","keyword":"espionage","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"e346be224122568268d44a943ddb470f55b580a385b78ae1854036ec072bb7a9","keyword":"china","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"ac986c575a6aea2d373a6c7ef7eb3143719d8d043228b51feb423fe5a4380c96","keyword":"stanford university","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"ac986c575a6aea2d373a6c7ef7eb3143719d8d043228b51feb423fe5a4380c96","keyword":"ai engineering","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"ac986c575a6aea2d373a6c7ef7eb3143719d8d043228b51feb423fe5a4380c96","keyword":"coding agents","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"ac986c575a6aea2d373a6c7ef7eb3143719d8d043228b51feb423fe5a4380c96","keyword":"computer science education","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"9f9a1c81053cc6466f36b30898e85b8ab0a1d9dde569392e0fc2f3ab9eb13804","keyword":"stanford university","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"9f9a1c81053cc6466f36b30898e85b8ab0a1d9dde569392e0fc2f3ab9eb13804","keyword":"ai engineering","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"9f9a1c81053cc6466f36b30898e85b8ab0a1d9dde569392e0fc2f3ab9eb13804","keyword":"computer science education","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"e4bc5f9e1be700db1247828ade09f1bf93260f2866d1d1682b6425d456c242dd","keyword":"nvidia","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"e4bc5f9e1be700db1247828ade09f1bf93260f2866d1d1682b6425d456c242dd","keyword":"jensen huang","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"e4bc5f9e1be700db1247828ade09f1bf93260f2866d1d1682b6425d456c242dd","keyword":"espionage","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"e4bc5f9e1be700db1247828ade09f1bf93260f2866d1d1682b6425d456c242dd","keyword":"china","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"78211643d92305ff7e56d7a83d936526b11082e0712383d9e1e8d9f0fb945a1e","keyword":"nvidia","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"78211643d92305ff7e56d7a83d936526b11082e0712383d9e1e8d9f0fb945a1e","keyword":"jensen huang","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"78211643d92305ff7e56d7a83d936526b11082e0712383d9e1e8d9f0fb945a1e","keyword":"espionage","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
+{"item_id":"78211643d92305ff7e56d7a83d936526b11082e0712383d9e1e8d9f0fb945a1e","keyword":"china","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-08T22:43:56+00:00"}
