@@ -1,2 +1,11 @@
 {"run_id":"20261109T074235Z-6d9b5d","purpose":"extract","model":"gemini-3.1-flash-lite","input_items":25,"tokens_in":3552,"tokens_out":2065,"status":"ok","created_at":"2026-11-09T07:42:36+00:00"}
 {"run_id":"20261109T074235Z-6d9b5d","purpose":"extract","model":"gemini-3.1-flash-lite","input_items":19,"tokens_in":2776,"tokens_out":1572,"status":"ok","created_at":"2026-11-09T07:42:41+00:00"}
+{"run_id":"20261109T225624Z-44ed6c","purpose":"extract","model":"gemini-3.1-flash-lite","input_items":25,"tokens_in":3756,"tokens_out":2016,"status":"ok","created_at":"2026-11-09T22:56:25+00:00"}
+{"run_id":"20261109T225624Z-44ed6c","purpose":"extract","model":"gemini-3.1-flash-lite","input_items":25,"tokens_in":3760,"tokens_out":2145,"status":"ok","created_at":"2026-11-09T22:56:30+00:00"}
+{"run_id":"20261109T225624Z-44ed6c","purpose":"extract","model":"gemini-3.1-flash-lite","input_items":25,"tokens_in":3628,"tokens_out":2075,"status":"ok","created_at":"2026-11-09T22:56:35+00:00"}
+{"run_id":"20261109T225624Z-44ed6c","purpose":"extract","model":"gemini-3.1-flash-lite","input_items":25,"tokens_in":3838,"tokens_out":2142,"status":"ok","created_at":"2026-11-09T22:56:40+00:00"}
+{"run_id":"20261109T225624Z-44ed6c","purpose":"extract","model":"gemini-3.1-flash-lite","input_items":25,"tokens_in":3541,"tokens_out":2084,"status":"ok","created_at":"2026-11-09T22:56:45+00:00"}
+{"run_id":"20261109T225624Z-44ed6c","purpose":"extract","model":"gemini-3.1-flash-lite","input_items":2,"tokens_in":500,"tokens_out":200,"status":"ok","created_at":"2026-11-09T22:56:50+00:00"}
+{"run_id":"20261109T225651Z-0e1143","purpose":"digest","model":"gemini-3.1-flash-lite","input_items":12,"tokens_in":2858,"tokens_out":254,"status":"ok","created_at":"2026-11-09T22:56:53+00:00"}
+{"run_id":"20261109T225656Z-ae10b6","purpose":"digest","model":"gemini-3.1-flash-lite","input_items":20,"tokens_in":4895,"tokens_out":367,"status":"ok","created_at":"2026-11-09T22:56:58+00:00"}
+{"run_id":"20261109T225656Z-ae10b6","purpose":"digest","model":"gemini-3.1-flash-lite","input_items":20,"tokens_in":3321,"tokens_out":286,"status":"ok","created_at":"2026-11-09T22:57:00+00:00"}
