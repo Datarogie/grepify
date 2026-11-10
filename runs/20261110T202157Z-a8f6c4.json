@@ -1,0 +1,19 @@
+{
+  "run_id": "20261110T202157Z-a8f6c4",
+  "command": "digest",
+  "started_at": "2026-11-10T20:21:57+00:00",
+  "finished_at": "2026-11-10T20:22:24+00:00",
+  "ok": true,
+  "counts": {
+    "categories": 2,
+    "category_periods_considered": 14,
+    "digests_generated": 1,
+    "digests_already_present": 6,
+    "categories_skipped": 1,
+    "categories_template": 0
+  },
+  "durations_ms": {},
+  "notes": [
+    "skipped (< 10 items): data-eng"
+  ]
+}
