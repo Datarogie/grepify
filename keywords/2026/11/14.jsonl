@@ -609,3 +609,45 @@
 {"item_id":"08aff11876b90fb1a75590b9369403f3b36c96e05abc576eb2c2af2c81a2a294","keyword":"polished and confident","rank":6,"method":"fallback","model":null,"extracted_at":"2026-11-14T18:42:49+00:00"}
 {"item_id":"08aff11876b90fb1a75590b9369403f3b36c96e05abc576eb2c2af2c81a2a294","keyword":"harder to find","rank":7,"method":"fallback","model":null,"extracted_at":"2026-11-14T18:42:49+00:00"}
 {"item_id":"08aff11876b90fb1a75590b9369403f3b36c96e05abc576eb2c2af2c81a2a294","keyword":"confident","rank":8,"method":"fallback","model":null,"extracted_at":"2026-11-14T18:42:49+00:00"}
+{"item_id":"d164578b588b807c27732d250c6de51064f71ae1bbea0ed726cd56ab425a0bbf","keyword":"claude","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"d164578b588b807c27732d250c6de51064f71ae1bbea0ed726cd56ab425a0bbf","keyword":"3d animation","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"d164578b588b807c27732d250c6de51064f71ae1bbea0ed726cd56ab425a0bbf","keyword":"generative ai","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"d164578b588b807c27732d250c6de51064f71ae1bbea0ed726cd56ab425a0bbf","keyword":"3d style atlas","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"d164578b588b807c27732d250c6de51064f71ae1bbea0ed726cd56ab425a0bbf","keyword":"prompt engineering","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"cbd393329e0a10d1e58194e185483134a4639dc27e6b5263657efe9db50861e7","keyword":"chatgpt","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"cbd393329e0a10d1e58194e185483134a4639dc27e6b5263657efe9db50861e7","keyword":"ai productivity","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"cbd393329e0a10d1e58194e185483134a4639dc27e6b5263657efe9db50861e7","keyword":"automation","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"cbd393329e0a10d1e58194e185483134a4639dc27e6b5263657efe9db50861e7","keyword":"business efficiency","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"8c527f2957bc50cb31b2d611653e68282ee69a15c7f0adbb4ebee963f083fd18","keyword":"ai policy","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"8c527f2957bc50cb31b2d611653e68282ee69a15c7f0adbb4ebee963f083fd18","keyword":"copyright","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"8c527f2957bc50cb31b2d611653e68282ee69a15c7f0adbb4ebee963f083fd18","keyword":"generative ai","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"8c527f2957bc50cb31b2d611653e68282ee69a15c7f0adbb4ebee963f083fd18","keyword":"environmental impact","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"8c527f2957bc50cb31b2d611653e68282ee69a15c7f0adbb4ebee963f083fd18","keyword":"data centers","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"8c527f2957bc50cb31b2d611653e68282ee69a15c7f0adbb4ebee963f083fd18","keyword":"andrew mclachlan","rank":6,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"213840d0265cd270882c355a6afa23897db36a949c0fed747a20b8526385e076","keyword":"claude","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"213840d0265cd270882c355a6afa23897db36a949c0fed747a20b8526385e076","keyword":"anthropic","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"213840d0265cd270882c355a6afa23897db36a949c0fed747a20b8526385e076","keyword":"opus 5.5","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"213840d0265cd270882c355a6afa23897db36a949c0fed747a20b8526385e076","keyword":"ai cost optimization","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"213840d0265cd270882c355a6afa23897db36a949c0fed747a20b8526385e076","keyword":"large language models","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"267fb18c51cddf1aa89b06346cf75125801ea10c4691aede825f41a2c139d084","keyword":"web design","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"267fb18c51cddf1aa89b06346cf75125801ea10c4691aede825f41a2c139d084","keyword":"ai slop","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"267fb18c51cddf1aa89b06346cf75125801ea10c4691aede825f41a2c139d084","keyword":"unslop","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"267fb18c51cddf1aa89b06346cf75125801ea10c4691aede825f41a2c139d084","keyword":"claude","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"267fb18c51cddf1aa89b06346cf75125801ea10c4691aede825f41a2c139d084","keyword":"user interface","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"e473020a1a5ced0d0e8284b3ee3d8d756aef979bfbf609f9a6fa709dd3f0528e","keyword":"nvidia","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"e473020a1a5ced0d0e8284b3ee3d8d756aef979bfbf609f9a6fa709dd3f0528e","keyword":"jensen huang","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"e473020a1a5ced0d0e8284b3ee3d8d756aef979bfbf609f9a6fa709dd3f0528e","keyword":"elon musk","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"e473020a1a5ced0d0e8284b3ee3d8d756aef979bfbf609f9a6fa709dd3f0528e","keyword":"tech industry","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"f7cdd2195edcd7cc4e683d82570f64883937d643776909cb584875104dd032c7","keyword":"assistive technology","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"f7cdd2195edcd7cc4e683d82570f64883937d643776909cb584875104dd032c7","keyword":"accessibility","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"f7cdd2195edcd7cc4e683d82570f64883937d643776909cb584875104dd032c7","keyword":"seeing ai","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"f7cdd2195edcd7cc4e683d82570f64883937d643776909cb584875104dd032c7","keyword":"lookout","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"f7cdd2195edcd7cc4e683d82570f64883937d643776909cb584875104dd032c7","keyword":"blindness","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"03f046a2bee396f43db2e1341f45d38ad658f4c5682721fa1a1fc3b42a964417","keyword":"als","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"03f046a2bee396f43db2e1341f45d38ad658f4c5682721fa1a1fc3b42a964417","keyword":"speech synthesis","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"03f046a2bee396f43db2e1341f45d38ad658f4c5682721fa1a1fc3b42a964417","keyword":"brain-computer interface","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"03f046a2bee396f43db2e1341f45d38ad658f4c5682721fa1a1fc3b42a964417","keyword":"assistive technology","rank":4,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"03f046a2bee396f43db2e1341f45d38ad658f4c5682721fa1a1fc3b42a964417","keyword":"neurotechnology","rank":5,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"ebbfab9752709f8cd21cff2493fdd769af406a28b8210b2c56100f4df27f99da","keyword":"nvidia","rank":1,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"ebbfab9752709f8cd21cff2493fdd769af406a28b8210b2c56100f4df27f99da","keyword":"jensen huang","rank":2,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
+{"item_id":"ebbfab9752709f8cd21cff2493fdd769af406a28b8210b2c56100f4df27f99da","keyword":"corporate governance","rank":3,"method":"llm","model":"gemini-3.1-flash-lite","extracted_at":"2026-11-14T22:56:14+00:00"}
