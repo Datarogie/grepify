@@ -351,7 +351,8 @@ jobs:
             echo "Refusing to commit files over 10 MB to the data branch:" >&2
             echo "$oversized" >&2
             exit 1
-          fi          if git -C data diff --cached --quiet; then
+          fi
+          if git -C data diff --cached --quiet; then
             echo "nothing to commit"
             unset GITHUB_TOKEN auth_payload auth_header
             exit 0
