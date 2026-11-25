@@ -58,11 +58,11 @@ def test_window_construction_across_spring_forward() -> None:
 
 
 def test_window_construction_across_fall_back() -> None:
-    # The window ending Mon 2026-11-02 contains the Sun Nov 1 fall-back
+    # The window ending Mon 2025-11-03 contains the Sun Nov 2 fall-back
     # (MDT -06:00 -> MST -07:00); both bounds stay Edmonton midnight.
-    window = window_ending_at(datetime(2026, 11, 2, 13, 0, tzinfo=UTC), days=7)
+    window = window_ending_at(datetime(2025, 11, 3, 13, 0, tzinfo=UTC), days=7)
     assert window == Window(
-        start="2026-10-26T06:00:00+00:00", end="2026-11-02T07:00:00+00:00", days=7
+        start="2025-10-27T06:00:00+00:00", end="2025-11-03T07:00:00+00:00", days=7
     )
 
 

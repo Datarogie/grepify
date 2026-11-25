@@ -10,6 +10,10 @@ UV ?= uv
 # uv.lock, so `--locked` treats any run without it as stale.
 export UV_EXCLUDE_NEWER ?= 7d
 
+# Empty TZPATH makes zoneinfo read the locked tzdata package instead of the
+# host's /usr/share/zoneinfo, so tz rules move only when uv.lock moves (#135).
+export PYTHONTZPATH :=
+
 .PHONY: help install install-pipeline lock fmt lint typecheck test check audit workflow-security \
         ingest extract trends digest digest-daily digest-weekly build validate health doctor backfill \
         digest-gate data-branch datasize commit-data site eval

@@ -2,7 +2,8 @@
 
 Deterministic (instant injected); the interesting cases are the DST transitions,
 where local-midnight boundaries land on different UTC offsets (MST -07:00 vs
-MDT -06:00). America/Edmonton 2026: spring-forward Sun Mar 8, fall-back Sun Nov 1.
+MDT -06:00). America/Edmonton: last fall-back Sun 2025-11-02, spring-forward Sun
+2026-03-08, then permanent -06:00 (CST) from 2026-11-01 (tzdata 2026c).
 """
 
 from __future__ import annotations
@@ -24,11 +25,17 @@ def test_previous_day_summer() -> None:
 
 
 def test_previous_day_spans_fall_back_is_25h() -> None:
-    # 2026-11-01 is the fall-back day (clocks go MDT->MST); the local day is 25h.
+    period = previous_day(datetime(2025, 11, 3, 13, 0, tzinfo=UTC))
+    assert period.key == "2025-11-02"
+    assert period.start == "2025-11-02T06:00:00+00:00"  # MDT midnight
+    assert period.end == "2025-11-03T07:00:00+00:00"  # MST midnight (offset changed)
+
+
+def test_previous_day_on_switch_to_permanent_cst_is_24h() -> None:
     period = previous_day(datetime(2026, 11, 2, 13, 0, tzinfo=UTC))
     assert period.key == "2026-11-01"
     assert period.start == "2026-11-01T06:00:00+00:00"  # MDT midnight
-    assert period.end == "2026-11-02T07:00:00+00:00"  # MST midnight (offset changed)
+    assert period.end == "2026-11-02T06:00:00+00:00"  # CST midnight, same offset
 
 
 def test_recent_days_newest_first_and_matches_previous_day() -> None:

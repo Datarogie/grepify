@@ -89,11 +89,11 @@ def test_next_run_crosses_spring_forward_with_correct_offset() -> None:
 
 
 def test_next_run_crosses_fall_back_with_correct_offset() -> None:
-    # 2026-11-01 is fall-back day (DST ends). Asking late on 10-31 (still MDT,
-    # -06:00), 10-31's own digest already done, rolls onto 11-01's opening,
+    # 2025-11-02 is Edmonton's last fall-back. Asking late on 11-01 (still MDT,
+    # -06:00), 11-01's own digest already done, rolls onto 11-02's opening,
     # already back to MST (-07:00).
-    result = next_scheduled_run(datetime(2026, 11, 1, 4, 0, tzinfo=UTC), daily_exists=True)
-    assert result.date_label == "2026-11-01"
+    result = next_scheduled_run(datetime(2025, 11, 2, 4, 0, tzinfo=UTC), daily_exists=True)
+    assert result.date_label == "2025-11-02"
     assert result.time_label == "05:00"
     assert result.utc_offset_label == "-07:00"
 
