@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import subprocess
 from pathlib import Path
 
 import yaml
@@ -260,3 +261,23 @@ def test_uv_lock_retains_the_publish_cooldown() -> None:
         "uv.lock lost its publish cooldown. A bare `uv run`/`uv sync` outside "
         "make strips it. Restore with `make lock`."
     )
+
+
+EXPRESSION_RE = re.compile(r"\$\{\{.*?\}\}")
+
+
+def test_every_run_step_is_valid_bash() -> None:
+    for path in workflow_paths():
+        for job_name, step in iter_steps(load_workflow(path)):
+            script = step.get("run")
+            if script is None or step.get("shell", "bash") != "bash":
+                continue
+            result = subprocess.run(
+                ["bash", "-n"],
+                input=EXPRESSION_RE.sub("placeholder", script),
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            where = f"{path.name}:{job_name}:{step.get('name')}"
+            assert result.returncode == 0, f"{where}: {result.stderr}"

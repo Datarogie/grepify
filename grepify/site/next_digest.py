@@ -45,7 +45,7 @@ class NextDigestRun:
 
     date_label: str  # "2026-07-12"
     time_label: str  # "05:00"
-    utc_offset_label: str  # "-06:00" (MDT) / "-07:00" (MST), for the tooltip
+    utc_offset_label: str  # e.g. "-06:00", for the tooltip
     is_weekly: bool  # this occurrence also fires the weekly digest (Monday)
 
 

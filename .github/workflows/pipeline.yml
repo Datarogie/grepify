@@ -343,7 +343,15 @@ jobs:
           cp -a data-result/. data/
           git -C data config user.name "grepify-bot"
           git -C data config user.email "grepify-bot@users.noreply.github.com"
+          printf 'grepify.db\n' > data/.gitignore
+          git -C data rm --cached --ignore-unmatch --quiet grepify.db
           git -C data add -A
+          oversized="$(git -C data diff --cached --name-only --diff-filter=AM -z | (cd data && xargs -0 -r sh -c 'find "$@" -size +10M -print' find))"
+          if [ -n "$oversized" ]; then
+            echo "Refusing to commit files over 10 MB to the data branch:" >&2
+            echo "$oversized" >&2
+            exit 1
+          fi
           if git -C data diff --cached --quiet; then
             echo "nothing to commit"
             unset GITHUB_TOKEN auth_payload auth_header
