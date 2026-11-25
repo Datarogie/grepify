@@ -199,7 +199,7 @@ _SETTINGS_ONE_ITEM_PER_CALL = """
       profiles:
         gemini-free:
           endpoint: openai-compat
-          model: gemini-3.5-flash-lite
+          model: gemini-3.1-flash-lite
           max_calls_per_run: 40
     timezone: America/Edmonton
 """
