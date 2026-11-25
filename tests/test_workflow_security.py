@@ -279,4 +279,5 @@ def test_every_run_step_is_valid_bash() -> None:
                 text=True,
                 check=False,
             )
-            assert result.returncode == 0, f"{path.name}:{job_name}:{step.get('name')}: {result.stderr}"
+            where = f"{path.name}:{job_name}:{step.get('name')}"
+            assert result.returncode == 0, f"{where}: {result.stderr}"
